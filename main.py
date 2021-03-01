@@ -25,8 +25,22 @@ def bubble_sort(array):
                 array[j], array[j+1] = array[j+1], array[j]
 
 
-test = [5, 6, 7, 73, 5135, 77, 1412]
+def insertion_sort(array):
+    if is_array_of_numbers(array) is not True:
+        return print("The argument isn't an array or doesn't contain numbers")
+    for i in range(1, len(array)):
+        temp = array[i]
+        j = i-1
+
+        while j >= 0 and array[j] > temp:
+            array[j+1] = array[j]
+            j -= 1
+
+        array[j+1] = temp
+
+
+test = [9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 print(test)
-bubble_sort(test)
+insertion_sort(test)
 print(test)
