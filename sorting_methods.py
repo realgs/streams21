@@ -8,13 +8,12 @@ def insertion_sort(L):
             j -= 1
     return L
 
+
 def bubble_sort(L):
     n = len(L)
-
+    for i in range(n-1):
+        for j in range(n-1):
+            if L[j] > L[j+1]:
+                temp = L[j]
+                L[j], L[j+1] = L[j+1], temp
     return L
-
-
-if __name__ == "__main__":
-    test = [3, 6, 2, 1, 1, 5, 9, 11, 4, 22, 7, 2, 5, 2]
-
-    print(insertion_sort(test))
