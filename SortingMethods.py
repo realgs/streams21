@@ -1,4 +1,4 @@
-def bubble():
+def bubble(m):
     for i in range(len(m)):
         for j in range(len(m)-1):
             if m[j] > m[j+1]:
@@ -8,7 +8,7 @@ def bubble():
     return m
 
 
-def insertion():
+def insertion(m):
     for i in range(len(m)):
         for j in range(i):
             if m[i] < m[j]:
