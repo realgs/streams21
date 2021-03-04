@@ -28,3 +28,6 @@ def quick_sort(t, x, y):
         quick_sort(t, x, j)
     if i < y:
         quick_sort(t, i, y)
+
+def issorted(t):
+    return t == sorted(t)
