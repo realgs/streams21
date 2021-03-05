@@ -13,3 +13,8 @@ def insertion_Sort(A):
 
     print(A)
 
+A = [8, 7, 4, 3, 6, 2, 5, 1]
+
+bubble_sort(A)
+
+insertion_Sort(A)
