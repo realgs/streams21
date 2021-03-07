@@ -27,3 +27,6 @@ def insertSorting(arr):
 
 
 print(f'Final: {insertSorting([3, 6, -2, 8, 4, 9, 11, 2])}')
+
+
+# Błażej Raducki 254277
