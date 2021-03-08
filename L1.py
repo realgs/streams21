@@ -24,6 +24,15 @@ def bubble(list):
         if replace == False: break
     return list
 
+A=[]
+for i in range(50):
+    A.append(randint(1,100))
+B=[]
+for i in range(50):
+    B.append(randint(-100,-1))
+
+print(f'Przez wstawienie: {insert(A)}')
+print(f'Bąbelkowe: {bubble(B)}')
 
 
 
