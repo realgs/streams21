@@ -1,14 +1,5 @@
 import random
 
-list_of_num = []
-k = int ( input ( "Podaj ile liczb chcesz posortować" ) )
-a = int ( input ( ("Podaj dolną granicę przedziału") ) )
-b = int ( input ( ("Podaj górną granicę przedziału") ) )
-
-for i in range ( k ):
-    list_of_num.append ( random.randint ( a, b ) )
-
-
 def bubble(list_of_num):
     for i in range ( len ( list_of_num ) - 1, 0, -1 ):
         for j in range ( i ):
@@ -32,6 +23,8 @@ def insertion(list_of_num):
 
     return list_of_num
 
+
+list_of_num = [3, 15, 8, 26, 29, 54]
 
 sorted_list1 = bubble ( list_of_num )
 sorted_list2 = insertion ( list_of_num )
