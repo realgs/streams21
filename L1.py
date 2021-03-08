@@ -1,7 +1,5 @@
 from random import randint
-#prosze mnie nie bić, jutro skończe bo dziś miałem problemy z ukrytymi plikami
 #Bartosz Stec
-
 def insert(list):
     for i in range(1, len(list)):
         temp = list[i]
