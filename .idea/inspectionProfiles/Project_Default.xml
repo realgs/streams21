@@ -1,0 +1,32 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="W292" />
+          <option value="E272" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="templates.status_template" />
+          <option value="templates.frequency_template" />
+          <option value="templates.actuator_template" />
+          <option value="templates.home_template" />
+          <option value="templates.gather_template" />
+          <option value="gather.gather_information" />
+          <option value="lista3.agregator.supervisor.reset" />
+          <option value="templates.get_status_template" />
+          <option value="templates.single_gather_template" />
+          <option value="lista4.agregator.supervisor.reset" />
+          <option value="lista4.agregator.supervisor.mail_sending" />
+          <option value="lista4.agregator.supervisor.suspicious_values" />
+          <option value="object.predict" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
