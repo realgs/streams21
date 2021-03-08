@@ -1,4 +1,4 @@
-def bubble_sort(list_to_sort:list):
+def bubble_sort(list_to_sort:list) -> list:
     for i in range(len(list_to_sort)):
         any_change = False
         for j in range(len(list_to_sort)-i-1):
@@ -10,7 +10,7 @@ def bubble_sort(list_to_sort:list):
     return list_to_sort
 
 
-def selection_sort(list_to_sort: list):
+def selection_sort(list_to_sort: list) -> list:
     for i in range(len(list_to_sort)):
         min_index = i
         for j in range(i+1, len(list_to_sort)):
