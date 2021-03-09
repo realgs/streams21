@@ -15,5 +15,19 @@ def select_sort(arr):
     return arr
 
 
+def bubble_sort(arr):
+    for i in range(len(arr) - 1):
+        swap = 0
+        for j in range(len(arr) - 1):
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swap = 1
+        if swap == 0:
+            break
+    return arr
+
+
 print(A)
 print(select_sort(A))
+print(B)
+print(bubble_sort(B))
