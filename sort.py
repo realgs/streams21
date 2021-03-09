@@ -6,3 +6,10 @@ def selection_sort(lista):
                 min_w = j
         lista[min_w], lista[i] = lista[i], lista[min_w]
     return lista
+
+def insertion_sort(lista):
+    for i in range(0, len(lista)):
+        for j in range(0, i):
+            if lista[i] < lista[j]:
+                lista[i], lista[j] = lista[j], lista[i]
+    return lista
