@@ -11,6 +11,7 @@ def bąbelkowe(lista):
                 większa=lista[j]
                 lista[j]=lista[j+1]
                 lista[j+1]=większa
+    print(lista)
 
 def wstawianie(lista):
     for i in range (len(lista)):
@@ -19,3 +20,7 @@ def wstawianie(lista):
                 mniejsza=lista[i]
                 lista[i]=lista[j]
                 lista[j]=mniejsza
+    print(lista)
+
+bąbelkowe(lista)
+wstawianie(lista)
