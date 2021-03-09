@@ -11,3 +11,11 @@ def bąbelkowe(lista):
                 większa=lista[j]
                 lista[j]=lista[j+1]
                 lista[j+1]=większa
+
+def wstawianie(lista):
+    for i in range (len(lista)):
+        for j in range (0,i):
+            if (lista[i]<lista[j]):
+                mniejsza=lista[i]
+                lista[i]=lista[j]
+                lista[j]=mniejsza
