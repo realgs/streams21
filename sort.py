@@ -16,5 +16,5 @@ def insertion_sort(lista):
 
 lista = [5, 80, 10, 40, 22, 6, 103]
 
-print(selection_sort(lista))
-print(insertion_sort(lista))
+print("Selection sort list:", selection_sort(lista))
+print("Insertion sort list:", insertion_sort(lista))
