@@ -13,3 +13,8 @@ def insertion_sort(lista):
             if lista[i] < lista[j]:
                 lista[i], lista[j] = lista[j], lista[i]
     return lista
+
+lista = [5, 80, 10, 40, 22, 6, 103]
+
+print(selection_sort(lista))
+print(insertion_sort(lista))
