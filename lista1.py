@@ -30,7 +30,7 @@ def insertionSort(dane):
         y = i - 1
         while y >= 0 and slider < dane[y]:
             dane[y+1] = dane[y]
-            y += 1
+            y -= 1
             dane[i] = slider
 
 
