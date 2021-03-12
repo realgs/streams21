@@ -43,3 +43,4 @@ print(dane)
 insertionSort(dane)
 print(dane)
 
+print(quickSort(dane, 0, len(dane)-1) == insertionSort(dane))
