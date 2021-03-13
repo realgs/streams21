@@ -21,3 +21,11 @@ def partition(arr, start, end):
 
     arr[i+1], arr[end] = arr[end], arr[i+1]
     return (i+1)
+
+def quickSort(arr, start, end):
+    if len(arr) == 1:
+        return arr
+    if start < end:
+        p = partition(arr, start, end)
+        quickSort(arr, start, p-1)
+        quickSort(arr, p+1, end)
