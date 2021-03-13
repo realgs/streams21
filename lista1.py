@@ -25,22 +25,24 @@ def quickSort(dane, from_index, to_index):
 
 
 def insertionSort(dane):
-    for i in range(1, len(dane)-1):
+    for i in range(1, len(dane)):
         slider = dane[i]
         y = i - 1
         while y >= 0 and slider < dane[y]:
             dane[y+1] = dane[y]
             y -= 1
-            dane[i] = slider
+            dane[y+1] = slider
 
 
-dane = genData(100, 200)
-print(dane)
+if __name__ == "__main__":
+    dane = genData(100, 200)
+    print(dane)
 
-quickSort(dane, 0, len(dane) - 1)
-print(dane)
+    quickSort(dane, 0, len(dane) - 1)
+    print(dane)
 
-insertionSort(dane)
-print(dane)
+    insertionSort(dane)
+    print(dane)
 
-print(quickSort(dane, 0, len(dane)-1) == insertionSort(dane))
+
+
