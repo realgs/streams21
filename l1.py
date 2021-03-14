@@ -1,3 +1,7 @@
+from random import random
+
+arr = [random() for i in range(100)] 
+
 def Partition(arr, l, r):
     i = (l-1)
     pivot = arr[r]
