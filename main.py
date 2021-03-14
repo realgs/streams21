@@ -9,3 +9,15 @@ def bubble_sort(array):
 
         if is_sorted:
             break
+
+
+def insertion_sort(array):
+    for i in range(1, len(array)):
+        tmp = array[i]
+        j = i - 1
+
+        while j >= 0 and array[j] > tmp:
+            array[j + 1] = array[j]
+            j -= 1
+
+        array[j + 1] = tmp
