@@ -17,4 +17,10 @@ def insertion_sort(numbers):
         l[i] = l[j]
         l[j] = temp
   return l
-  
+
+if __name__ == '__main__':
+  numbers = [6, 1, 44, 0, 12, 7, 23]
+  print('List of numbers: ', numbers)
+  print('Sorting...')
+  print('Bubble Sort: ', bubble_sort(numbers))
+  print('Insertion Sort: ', insertion_sort(numbers))
