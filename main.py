@@ -13,8 +13,6 @@ def is_array_of_numbers(array):
         return False
     for item in array:
         if type(item) is not int and type(item) is not float:
-            print(type(item))
-            print('xd')
             return False
     return True
 
