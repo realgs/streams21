@@ -6,13 +6,12 @@ def bubble_sort(A):
 
     print(A)
 
-def insertion_Sort(A):
+
+def insertion_sort(A):
     for i in range(1, len(A)):
-        if A[i] < A[i-1]:
-            A[i - 1], A[i] = A[i], A[i - 1]
-
-    print(A)
-
-A = [8, 7, 4, 3, 6, 2, 5, 1]
-bubble_sort(A)
-insertion_Sort(A)
+        k = A[i]
+    j = 0
+    while k > A[j] and j < i:
+        j += 1
+    A.insert(j, k)
+    del A[i + 1]
