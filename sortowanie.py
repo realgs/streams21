@@ -1,3 +1,6 @@
+from numpy.random import randint
+
+
 def insertion_sort(t):
     for i in range(1, len(t)):
         el = t[i]
@@ -14,7 +17,7 @@ def quick_sort(t, x, y):
         return
     i = x
     j = y
-    v = t[x + (y-x) // 2]
+    v = t[x + (y - x) // 2]
     while i <= j:
         while v > t[i]:
             i += 1
@@ -29,5 +32,14 @@ def quick_sort(t, x, y):
     if i < y:
         quick_sort(t, i, y)
 
+
 def issorted(t):
     return t == sorted(t)
+
+
+a = [randint(150) for x in range(100)]
+b = [randint(150) for y in range(100)]
+a = insertion_sort(a)
+print("Czy a jest posortowane? :", issorted(a))
+b = insertion_sort(b)
+print("Czy b jest posortowane? :", issorted(b))
