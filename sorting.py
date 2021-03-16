@@ -19,6 +19,7 @@ def insertion_sort(numbers):
                 numbers[j] = temp
     return numbers
 print(numbers)
+numbers2=numbers.copy()
 print(bubble_sort(numbers))
 print(insertion_sort(numbers))
 
