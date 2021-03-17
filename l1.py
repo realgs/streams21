@@ -16,5 +16,15 @@ def bubbleSort(L):
     return L
 
 
+def insertionSort(L):
+    for i in range(len(L)):
+        for j in range(0, i):
+            if L[i] < L[j]:
+                temp = L[i]
+                L[i] = L[j]
+                L[j] = temp
+    return L
+
+
 print(bubbleSort(createList(15)))
-print(bubbleSort(createList(10)))
+print(insertionSort(createList(10)))
