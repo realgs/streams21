@@ -51,17 +51,17 @@ def merge(left, right):
     return result
 
 
-def mergeSort(list):
-    if len(list) < 2:
-        return list
+def mergeSort(L):
+    if len(L) < 2:
+        return L
 
-    midpoint = len(list) // 2
+    midpoint = len(L) // 2
 
     return merge(
-        left=mergeSort(list[:midpoint]),
-        right=mergeSort(list[midpoint:]))
+        left=mergeSort(L[:midpoint]),
+        right=mergeSort(L[midpoint:]))
 
 
 print(f'Bubble sort: {bubbleSort(createList(15))}')
-print(f'Insertation sort: {insertionSort(createList(10))}')
+print(f'Insertion sort: {insertionSort(createList(10))}')
 print(f'Merge sort: {mergeSort(createList(20))}')
