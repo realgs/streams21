@@ -1,6 +1,6 @@
 from random import randrange
-#Bubble Sort
-def bubblesort(lst):
+
+def bubble_sort(lst):
     n = len(lst)
     for i in range(n - 1):
         for j in range(0, n - i - 1):
@@ -9,7 +9,7 @@ def bubblesort(lst):
     return lst
 
 
-def insertionSort(lst):
+def insertion_sort(lst):
 
     for i in range(1, len(lst)):
         helper = lst[i]
@@ -24,8 +24,8 @@ def insertionSort(lst):
 ex = []
 for i in range(50):
     ex.append(randrange(0,50))
-ex2 = ex
 
-print(bubblesort(ex))
-print(insertionSort(ex2))
+
+print(bubblesort(ex.copy()))
+print(insertionSort(ex.copy()))
 
