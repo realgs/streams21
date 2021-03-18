@@ -19,3 +19,7 @@ def selection_sort(list):
         list[i], list[index_of_min] = list[index_of_min], list[i]
 
     return list
+
+print(selection_sort(test_arr.copy()))
+print(test_arr)
+print(bubble_sort(test_arr.copy()))
