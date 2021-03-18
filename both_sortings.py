@@ -17,5 +17,4 @@ def insertionsort(input_list):
 list = [random.randint(0,1000) for i in range(1000)]
 
 list_1 = insertionsort(list)
-
 list_2 = bubblesort(list)
