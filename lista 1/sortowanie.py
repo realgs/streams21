@@ -44,5 +44,6 @@ example1 = [5, -6, 11, 9, 4, 3, -2, 15, 8, 0]
 example2 = [2.6, 5, -1.25, 96.4, 7, -2, 96]
 example3 = ['aaa', 'abc', 'jan', 'zenek', 'baba', 'lody', 'rabarbar']
 
-print('Bubble Sort:', bubbleSort(example1), bubbleSort(example2), bubbleSort(example3), sep='\n')
-print('Merge Sort:', mergeSort(example1), mergeSort(example2), mergeSort(example3), sep='\n')
+
+print('Bubble Sort:', bubbleSort(example1.copy()), bubbleSort(example2.copy()), bubbleSort(example3.copy()), sep='\n')
+print('Merge Sort:', mergeSort(example1.copy()), mergeSort(example2.copy()), mergeSort(example3.copy()), sep='\n')
