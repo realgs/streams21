@@ -1,19 +1,20 @@
 import random
+import copy
 
 
 def bubble(num):
-    for i in range ( len ( num ) - 1, 0, -1 ):
-        for j in range ( i ):
-            if num[j] > num[j + 1]:
+    for i in range(len(num)-1, 0, -1):
+        for j in range(i):
+            if num[j] > num[j+1]:
                 temp = num[j]
-                num[j] = num[j + 1]
+                num[j] = num[j+1]
                 num[j + 1] = temp
 
     return num
 
 
 def insertion(num):
-    for i in range ( 1, len ( num ) ):
+    for i in range(1, len(num)):
         j = i - 1
         nxt = num[i]
 
@@ -25,34 +26,39 @@ def insertion(num):
     return num
 
 
-list_of_num = [3, 15, 8, 26, 29, 54]
+def rnd_data(a, b):
+    rnd_list = []
+    for m in range(10):
+        rnd_list.append(random.randint(a, b))
 
-random_list = []
-
-for m in range (10):
-    random_list.append (random.randint (1, 50))
-
-sorted_list1 = bubble (list_of_num)
-sorted_list2 = insertion (list_of_num)
-sorted_list3 = bubble (random_list)
-sorted_list4 = insertion (random_list)
+    return rnd_list
 
 
-def test(sorted):
-    for k in range ( 0, len ( sorted ) - 1 ):
+data = [3, 15, 8, 26, 29, 54]
 
-        if sorted[k] > sorted[k + 1]:
+rnd_data1 = copy.deepcopy(rnd_data(1, 50))
+rnd_data2 = copy.deepcopy(rnd_data(1, 50))
+data1 = copy.deepcopy(data)
+data2 = copy.deepcopy(data)
+
+
+def test(sort):
+    for k in range(0, len(sort) - 1):
+
+        if sort[k] > sort[k + 1]:
             print ("Sortowanie nie wykonało się prawidłowo")
 
     print ("Sortowanie wykonało się prawidłowo")
 
 
-test (sorted_list1)
-test (sorted_list2)
-test (sorted_list3)
-test (sorted_list4)
+bbl1 = bubble(rnd_data1)
+ins1 = insertion(rnd_data2)
+bbl2 = bubble(data1)
+ins2 = insertion(data2)
 
-print(sorted_list1)
-print(sorted_list2)
-print(sorted_list3)
-print(sorted_list4)
+print(bbl1, bbl2, ins1, ins2)
+
+test(bbl1)
+test(bbl2)
+test(ins1)
+test(ins2)
