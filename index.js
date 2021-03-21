@@ -33,4 +33,6 @@ const main = () => {
     })
 }
 
-main()
+const interval = setInterval(() => {
+    main()
+}, 5000)
