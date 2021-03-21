@@ -9,3 +9,14 @@ const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
     }
 }
 
+const handleData = async (cryptoCurrencyCode, currencyCode) => {
+    const data = await getDataFromApi(cryptoCurrencyCode, currencyCode)
+    console.log(data)
+
+    const { ask, bid } = data.response
+
+    const difference = +(((ask - bid) / bid) * 100).toFixed(4)
+    // const difference = +(((bid - ask) / ask) * 100).toFixed(4)
+
+    return difference
+}
