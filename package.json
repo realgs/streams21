@@ -1,0 +1,11 @@
+{
+  "name": "streams21",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/ibockowsky/streams21.git",
+  "author": "Igor Boćkowski <ibockowsky@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}
