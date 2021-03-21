@@ -25,6 +25,13 @@ def print_offers(currency_pairs):
         print()
 
 
+def calculate_pair_price_diff(currency_pair):
+    orderbook = fetch_orderbook(currency_pair)
+    price_diff = (orderbook['asks'][0] - orderbook['bids'][0]) / orderbook['bids'][0]
+
+    return round(price_diff * 100, 2)
+
+
 def log(message):
     print(f'[{datetime.now().strftime("%m/%d/%Y, %X")}] {message}')
 
@@ -38,10 +45,8 @@ def main():
     # TASK 2
     while True:
         for currency_pair in currency_pairs:
-            orderbook = fetch_orderbook(currency_pair)
-            price_diff = (orderbook['asks'][0] - orderbook['bids'][0])/orderbook['bids'][0]
+            log(f'Currency pair: {currency_pair}, bid and ask diff: {calculate_pair_price_diff(currency_pair)}%')
 
-            log(f'Currency pair: {currency_pair}, price difference between bid and ask: {round(price_diff * 100, 2)}%')
             time.sleep(FETCH_INTERVAL)
 
 
