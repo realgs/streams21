@@ -20,3 +20,4 @@ if __name__ == "__main__":
         getCurrencyData("ETH", "ticker")
         getCurrencyData("ZEC", "ticker")
         time.sleep(5)
+        
