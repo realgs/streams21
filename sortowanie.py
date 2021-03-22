@@ -37,9 +37,9 @@ def issorted(t):
     return t == sorted(t)
 
 
+# przykladowy komentarz
 a = [randint(150) for x in range(100)]
 t = a.copy()
 t2 = a.copy()
 print("Czy a jest posortowane? :", issorted(insertion_sort(t)))
 print("Czy b jest posortowane? :", issorted(insertion_sort(t2)))
-
