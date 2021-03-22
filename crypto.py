@@ -49,4 +49,3 @@ if __name__ == '__main__':
   # 2
   stream = []
   startStream(RESOURCES[0], FREQUENCY)
-  
