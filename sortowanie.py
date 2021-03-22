@@ -38,8 +38,8 @@ def issorted(t):
 
 
 a = [randint(150) for x in range(100)]
-b = [randint(150) for y in range(100)]
-a = insertion_sort(a)
-print("Czy a jest posortowane? :", issorted(a))
-b = insertion_sort(b)
-print("Czy b jest posortowane? :", issorted(b))
+t = a.copy()
+t2 = a.copy()
+print("Czy a jest posortowane? :", issorted(insertion_sort(t)))
+print("Czy b jest posortowane? :", issorted(insertion_sort(t2)))
+
