@@ -1,7 +1,10 @@
 const axios = require('axios')
 
 const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
-    const response = await axios.get(`https://bitbay.net/API/Public/${cryptoCurrencyCode}${currencyCode}/ticker.json`)
+    const response = await axios
+        .get(`https://bitbay.net/API/Public/${cryptoCurrencyCode}${currencyCode}/ticker.json`)
+        .then(response => response)
+        .catch(err => err)
 
     return {
         currencies: `${cryptoCurrencyCode} -> ${currencyCode}`,
@@ -11,8 +14,12 @@ const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
 
 const handleData = async (cryptoCurrencyCode, currencyCode) => {
     const data = await getDataFromApi(cryptoCurrencyCode, currencyCode)
-    console.log(data)
 
+    if(!data.response) {
+        console.log(`[${cryptoCurrencyCode}] Something went wrong, please check your API.`)
+        return
+    }
+    console.log(data)
     const { ask, bid } = data.response
 
     const difference = +(((ask - bid) / bid) * 100).toFixed(4)
@@ -27,6 +34,8 @@ const main = () => {
 
     cryptoCurrencyCodes.forEach(async cryptoCurrencyCode => {
         const difference = await handleData(cryptoCurrencyCode, currencyCode)
+
+        if (!difference) return
 
         console.log(`[${cryptoCurrencyCode}] Difference between ASK (someone's lowest sell offer) and BID (someone's highest buy offer) is ${difference}%.`)
         // console.log(`[${cryptoCurrencyCode}] Difference between BID (someone's highest buy offer) and ASK (someone's lowest sell offer) is ${difference}%.`)
