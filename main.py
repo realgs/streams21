@@ -3,7 +3,7 @@ from time import sleep
 from math import inf
 
 # 1
-def print_trades(crypt):
+def print_trades(crypt): # podział na drobniejsze funkcje (nazwa odpowiadająca działaniu, które wykonuje funkcja) i odwoływane się ni nich
     url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json".format(Currency=[crypt, 'USD'],
                                                                                             Category='trades')
     response = requests.get(url)
@@ -12,7 +12,7 @@ def print_trades(crypt):
     else:
         print(response.json())
 
-for crypt in ['BTC', 'LTC', 'DASH']:
+for crypt in ['BTC', 'LTC', 'DASH']: # funkcja zawieszona w powietrzu
     print_trades(crypt)
 
     
@@ -20,7 +20,7 @@ for crypt in ['BTC', 'LTC', 'DASH']:
 def data_stream(crypt, period):
     url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json".format(Currency=[crypt, 'USD'],
                                                                                             Category='trades')
-    while 1:
+    while 1: #lepiej nie używać nieskończonych pętli
         response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
