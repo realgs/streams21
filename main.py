@@ -21,7 +21,6 @@ def data_stream(crypt, period):
     while 1:
         response = requests.get(url)
         if response.status_code == 200:
-
             data = response.json()
             max_sell = -inf
             min_buy = inf
@@ -32,7 +31,6 @@ def data_stream(crypt, period):
                 elif trade['type'] == 'buy':
                     if min_buy > trade['price']:
                         min_buy = trade['price']
-
             sell_buy_diff = 1 - (max_sell - min_buy) / min_buy
             print("Difference between sell and buy prices = ", sell_buy_diff * 100, "%")
             sleep(period)
