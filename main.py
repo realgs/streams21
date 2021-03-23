@@ -14,6 +14,8 @@ def print_trades(crypt):
 
 for crypt in ['BTC', 'LTC', 'DASH']:
     print_trades(crypt)
+
+    
 # 2
 def data_stream(crypt, period):
     url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json".format(Currency=[crypt, 'USD'],
