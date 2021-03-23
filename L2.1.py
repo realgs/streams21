@@ -6,8 +6,11 @@ def krypto_market(data):
     try:
         response = requests.get('http://bitbay.net/API/Public/' + data + 'USD/ticker.json')
         response.raise_for_status()
+
+
     except HTTPError as error_with_http:
         print(f'Błąd z adresem HTTP : {error_with_http}')
+
     else:
         originalData = response.content.decode()
         Cooked_Data = {}
@@ -16,8 +19,13 @@ def krypto_market(data):
             key = part[0]
             Cooked_Data[key[slice(1,-1)]] = part[1]
         value =(1-(float(Cooked_Data["ask"]) - float(Cooked_Data["bid"])) / float(Cooked_Data["bid"])*100)
+        print(f'Request status: {response.status_code}')
         print(f'{data} : Różnica procentowa pomiędzy ceną kupna, a sprzedarzy {value}%')
+        return value
 
+    print(f'Request status: {response.status_code}')
 while True:
     krypto_market('BTC')
+    krypto_market('DASH')
+    krypto_market('LTC')
     time.sleep(10)
