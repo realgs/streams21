@@ -3,13 +3,12 @@ import time
 from requests.exceptions import HTTPError
 import json
 
-def down_n_print(url1,url2):
+def down_n_print(url1,url2,url3):
 
-    for url in [url1, url2]:
+    for url in [url1, url2,url3]:
         try:
             response = requests.get(url)
             print(response.json())
-            print(type(response.json()))
 
             # If the response was successful, no Exception will be raised
             response.raise_for_status()
@@ -21,9 +20,10 @@ def down_n_print(url1,url2):
             print('Success!')
 
 
+cur1,cur2,cur3 = "BTC","GNT","GNT"
+url1 = f"https://bitbay.net/API/Public/{cur1}/trades.json"
+url2 = f"https://bitbay.net/API/Public/{cur2}/trades.json"
+url3 = f"https://bitbay.net/API/Public/{cur3}/trades.json"
 
-url1 = "https://bitbay.net/API/Public/BTC/trades.json"
-url2 = "https://btbay.net/API/Public/BTC/trades.json"
-
-down_n_print(url1,url2)
+down_n_print(url1,url2,url3)
 
