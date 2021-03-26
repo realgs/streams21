@@ -1,6 +1,8 @@
 import requests
 import sys
 
+def Price_diff(buy_price,sell_price):
+    return round(100*(1-sell_price/buy_price),2)
 
 def Download_data(c_currencies,Category): #c_currencies is a list
     for Currency in c_currencies:
@@ -10,7 +12,7 @@ def Download_data(c_currencies,Category): #c_currencies is a list
             data = requests.get(url).json()
             c_buy_price = data['ask']
             c_sell_price = data['bid']
-            print(c_buy_price,c_sell_price)
+            Price_diff(c_buy_price,c_sell_price)
         else:
             print("Could not download data. Try again later!")
             sys.exit()
