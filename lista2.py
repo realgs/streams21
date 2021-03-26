@@ -11,12 +11,7 @@ def dataPicker(resource):
     except Exception as err:
         print(f'Other error occurred: {err}')
     else:
-        dataRaw = response.content.decode()
-        data = {}
-        for elem in dataRaw[slice(1,-1)].split(","):
-            parts = elem.split(':')
-            name = parts[0]
-            data[name[slice(1,-1)]] = parts[1]
+        data = response.json()
         score = round((1 - (float(data["ask"]) - float(data["bid"])) / float(data["bid"])) * 100,6)
         print(f'{resource} - Różnica pomiędzy kupnem a sprzedażą: {score}%')
         return score
