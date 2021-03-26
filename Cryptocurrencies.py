@@ -1,5 +1,6 @@
 import requests
 import sys
+import time
 
 def Price_diff(buy_price,sell_price):
     return round(100*(1-sell_price/buy_price),2)
@@ -21,6 +22,8 @@ def Download_data(c_currencies,Category): #c_currencies is a list
         else:
             print("Could not download data. Try again later!")
             sys.exit()
+    time.sleep(5)
+    Download_data(c_currencies,Category)
 
 Download_data(['BTCUSD','LTCUSD' ,'DASHUSD'],'ticker')
 
