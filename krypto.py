@@ -1,4 +1,6 @@
 import requests
+import time
+import sys
 
 
 def fetchBitbayAPI(category, resource):
@@ -8,15 +10,10 @@ def fetchBitbayAPI(category, resource):
         return response.json()
 
 
-def printOffers(trades, resource):
+def printOffers(orders, resource):
     try:
-        buy = []
-        sell = []
-        for record in trades:
-            if record['type'] == 'buy':
-                buy.append(record)
-            elif record['type'] == 'sell':
-                sell.append(record)
+        buy = orders['bids']
+        sell = orders['asks']
 
         print(f'{resource}:')
         print('    buy:')
@@ -29,10 +26,29 @@ def printOffers(trades, resource):
         print(e)
 
 
+def monitorOffers(resource):
+    while 1:
+        orders = fetchBitbayAPI(category='orderbook', resource='BTCUSD')
+        bid_rate = orders['bids'][0][0]
+        ask_rate = orders['asks'][0][0]
+        diff = (ask_rate-bid_rate) / bid_rate
+        if diff < 0:
+            print('-', abs(diff))
+        else:
+            print('+', abs(diff))
+
+        time.sleep(FREQUENCY)
+
+
 if __name__ == '__main__':
 
     RESOURCES = ['BTCUSD', 'LTCUSD', 'DASHUSD']
+    FREQUENCY = 5
 
-    for R in RESOURCES:
-        trades = fetchBitbayAPI(category='trades', resource=R)
-        printOffers(trades, R)
+    arg = sys.argv[1]
+    if arg == '1':
+        for R in RESOURCES:
+            orders = fetchBitbayAPI(category='orderbook', resource=R)
+            printOffers(orders, R)
+    elif arg == '2':
+        monitorOffers(resource='BTCUSD')
