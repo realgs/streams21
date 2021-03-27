@@ -17,7 +17,13 @@ def crypto(currencies, category):  # 1
 def calculate(buy_price,sell_price):
     return round(100*(1-sell_price/buy_price),2)
 
-
+def refreshing_results(currencies, category):  # 2
+    while(True):
+        data = crypto(currencies,category)
+        print(f'BTCUSD % diffrence between sell and buy price: {calculate(data[0][1],data[0][2])}')
+        print(f'LTCUSD % diffrence between sell and buy price: {calculate(data[1][1],data[1][2])}')
+        print(f'DASHUSD % diffrence between sell and buy price: {calculate(data[2][1],data[2][2])}')
+        time.sleep(5)
 
 
 
