@@ -28,7 +28,8 @@ def refreshing_results(currencies, category):  # 2
             f'LTCUSD % diffrence between sell and buy price: {calculate(data[1][1],data[1][2])}')
         print(
             f'DASHUSD % diffrence between sell and buy price: {calculate(data[2][1],data[2][2])}')
-        time.sleep(5)
+        print('========================================')
+        time.sleep(10)
 
 
 currencies = ['BTCUSD', 'LTCUSD', 'DASHUSD']
