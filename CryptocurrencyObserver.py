@@ -42,8 +42,8 @@ def get_difference(trades, number_of_records_to_show):
     diff = []
 
     for i in range(0, number_of_records_to_show):
-        bid = trades["bids"][i][0]
-        ask = trades["asks"][i][0]
+        bid = trades[BIDS][i][0]
+        ask = trades[ASKS][i][0]
         diff.append( (1 - (ask - bid) / bid))
     
     return diff
