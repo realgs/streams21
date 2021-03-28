@@ -5,17 +5,27 @@ def percent_differnce(buy, sell):
     difference = round((1 - (sell - buy) / buy), 4)
     print(difference, "%")
 
-def Values(currency):
-    r = requests.get("https://bitbay.net/API/Public/"+currency+"/orderbook.json")
+def connection(currency):
+    r = requests.get("https://bitbay.net/API/Public/" + currency + "/orderbook.json")
     if r.status_code == 200:
         values = r.json()
-        buy = values["bids"][0][0]
-        sell = values["asks"][0][0]
+        print(currency+" purchase list",values["bids"])
+        print(currency + " sales list", values["asks"])
+
+def Values(currency):
+    r = requests.get("https://bitbay.net/API/Public/"+currency+"/ticker.json")
+    if r.status_code == 200:
+        values = r.json()
+        buy = values["bid"]
+        sell = values["ask"]
         percent_differnce(buy,sell)
     else:
         print("Something went wrong")
 
 list_of_currency = ["BTC","LTC","DASH"]
+
+for i in list_of_currency:
+    connection(i)
 
 while(True):
     for i in list_of_currency:
