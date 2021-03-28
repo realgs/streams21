@@ -6,9 +6,11 @@ def sell_offer (fromTo, N):
     response = requests.request("GET", url, headers=headers).json()
 
     i = 0
+    result = []
     while i < N:
-        print(response['sell'][i]['ra'])
+        result.append(response['sell'][i]['ra'])
         i += 1
+    return result
 
 def buy_offer (fromTo, N):
     url = f"https://api.bitbay.net/rest/trading/orderbook/{fromTo}"
@@ -16,23 +18,23 @@ def buy_offer (fromTo, N):
     response = requests.request("GET", url, headers=headers).json()
 
     i = 0
+    result = []
     while i < N:
-        print(response['buy'][i]['ra'])
+        result.append(response['buy'][i]['ra'])
         i += 1
+    return result
 
 def main():
-    print("Sprzedaż:")
-    sell_offer("BTC-USD", 3)
-    print("Kupno:")
-    buy_offer("BTC-USD", 3)
-    print("Sprzedaż:")
-    sell_offer("LTC-USD", 10)
-    print("Kupno:")
-    buy_offer("LTC-USD", 10)
-    print("Sprzedaż:")
-    sell_offer("DASH-USD", 5)
-    print("Kupno:")
-    buy_offer("DASH-USD", 5)
+    print("BTC-USD")
+    print("Sprzedaż:", sell_offer("BTC-USD", 3))
+    print("Kupno:", buy_offer("BTC-USD", 3))
+    print("LTC-USD")
+    print("Sprzedaż:", sell_offer("LTC-USD", 10))
+    print("Kupno:", buy_offer("LTC-USD", 10))
+    print("DASH-USD")
+    print("Sprzedaż:", sell_offer("DASH-USD", 5))
+    print("Kupno:", buy_offer("DASH-USD", 5))
+
 
 
 if __name__ == '__main__':
