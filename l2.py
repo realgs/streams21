@@ -12,7 +12,7 @@ def connection(currency):
         print(currency+" purchase list",values["bids"])
         print(currency + " sales list", values["asks"])
 
-def Values(currency):
+def values(currency):
     r = requests.get("https://bitbay.net/API/Public/"+currency+"/ticker.json")
     if r.status_code == 200:
         values = r.json()
@@ -29,6 +29,6 @@ for i in list_of_currency:
 
 while(True):
     for i in list_of_currency:
-        Values(i)
+        values(i)
     print()
     time.sleep(5)
