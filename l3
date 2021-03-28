@@ -1,0 +1,7 @@
+1. Korzystając z realizacji drugiego zadania listy drugiej (symulacji dyskretnego strumienia danych próbkowanego co 5 sekund) zwizualizuj pobierane na bieżąco dane.
+Stworzyć wykres odświeżany co 5 sekund. Można wykorzystać matplotlib lub inną bibliotekę. Zwróć uwagę na obie osie oraz dostosowanie ich zakresów do obecnych danych. 
+Można założyć stały przedział czasu (oś x). Zakres wartości na osi y musi być dostosowywany do wartości zawartych w obecnym przedziale danych.  
+W podstawowej wersji zadania 1 można użyć .clear() i ponownie .plot() (8pkt)
+2. Zwróć uwagę na optymalizację rozwiązania zadania pierwszego pod kątem wydajności. (2pkt)
+
+Deadline 18.04.2021
