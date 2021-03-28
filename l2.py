@@ -1,4 +1,5 @@
 import requests
+import time
 import sys
 
 
@@ -25,4 +26,9 @@ def get_data(currency):
         sys.exit()
 
 
-get_data('BTC')
+if __name__ == '__main__':
+    currency_list = ['BTC', 'BTG', 'ZEC']
+    while True:
+        for i in currency_list:
+            get_data(i)
+        time.sleep(5)
