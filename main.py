@@ -50,13 +50,7 @@ def log(message):
     print(f'[{datetime.now().strftime("%m/%d/%Y, %X")}] {message}')
 
 
-def main():
-    currency_pairs = ['BTCUSD', 'LTCUSD', 'DASHUSD']
-
-    # TASK 1
-    print_offers(currency_pairs)
-
-    # TASK 2
+def start_stream(currency_pairs, interval):
     while True:
         for currency_pair in currency_pairs:
             diff = calculate_pair_price_diff(currency_pair)
@@ -64,9 +58,19 @@ def main():
             if diff:
                 log(f'Currency pair: {currency_pair}, bid and ask diff: {calculate_pair_price_diff(currency_pair)}%\n')
             else:
-                print("Cannot display bid and ask diff: calculate_pair_price_diff() has encountered an error!\n")
+                print('Cannot display bid and ask diff: calculate_pair_price_diff() has encountered an error!\n')
 
-            time.sleep(FETCH_INTERVAL)
+            time.sleep(interval)
+
+
+def main():
+    currency_pairs = ['BTCUSD', 'LTCUSD', 'DASHUSD']
+
+    # TASK 1
+    print_offers(currency_pairs)
+
+    # TASK 2
+    start_stream(currency_pairs, interval=FETCH_INTERVAL)
 
 
 if __name__ == '__main__':
