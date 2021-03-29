@@ -31,6 +31,6 @@ def print_data():
         print(f"Różnica między kupnem a sprzedażą {cur1} za USD wynosi {percentage_1}%")
         print(f"Różnica między kupnem a sprzedażą {cur2} za USD wynosi {percentage_2}%")
         print(f"Różnica między kupnem a sprzedażą {cur1} za USD wynosi {percentage_3}%")
-        time.sleep(30)
+        time.sleep(5)
 
 print_data()
