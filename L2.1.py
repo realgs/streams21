@@ -6,7 +6,7 @@ from datetime import datetime
 url_start='http://bitbay.net/API/Public/'
 url_end='USD/ticker.json'
 interval=10
-def krypto_market(data):
+def crypto_get(data):
     try:
         response = requests.get( url_start + data + url_end)
         response.raise_for_status()
@@ -27,9 +27,9 @@ while True:
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
     print("Lokalny czas =", dt_string)
 
-    krypto_market('BTC')
-    krypto_market('DASH')
-    krypto_market('LTC')
+    crypto_get('BTC')
+    crypto_get('DASH')
+    crypto_get('LTC')
     print('____________________________________________')
 
     time.sleep(interval)
