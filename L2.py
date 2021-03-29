@@ -1,40 +1,38 @@
 import requests
-import pprint
 import time
 
-urls = {'BTCUSD': 'https://bitbay.net/API/Public/BTCUSD/orderbook.json',
-        'LTCUSD': 'https://bitbay.net/API/Public/LTCUSD/orderbook.json',
-        'DASHUSD': 'https://bitbay.net/API/Public/DASHUSD/orderbook.json'}
+
+base_currency = 'USD'
+currencies = ['BTC', 'LTC', 'DASH']
+url = 'https://bitbay.net/API/Public/'
+post = '/orderbook.json'
+time_interval = 5
 
 
-def orderbook(url):
-    for key in url.keys():
-        try:
-            r = requests.get(url[key])
-            r.raise_for_status()
-            print(f'{key} -----------------------------------')
-            # pprint.pprint(r.json())
-            print(r.json())
+def get_data(currency):
+    try:
+        r = requests.get(url+currency+base_currency+post)
+        r.raise_for_status()
+        return r.json()
 
-        except requests.exceptions.HTTPError as err:
-            raise SystemExit(err)
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
 
 
-def data_stream(url):
+if __name__ == '__main__':
+    #1
+    for currency in currencies:
+        r = get_data(currency)
+        print(f'{currency+base_currency} -----------------------------------')
+        print(r)
+
+    #2
+    print('\nThe difference between bids and asks:')
     while True:
-        for key in url.keys():
-            try:
-                r = requests.get(url[key])
-                r.raise_for_status()
-                result = 1 - (r.json()['asks'][0][0] - r.json()['bids'][0][0]) / r.json()['bids'][0][0]
-                print(f'{key}: ', round(result, 4))
-
-            except requests.exceptions.HTTPError as err:
-                raise SystemExit(err)
+        for currency in currencies:
+            r = get_data(currency)
+            result = 1 - (r['asks'][0][0] - r['bids'][0][0]) / r['bids'][0][0]
+            print(f'{currency+base_currency}: ', round(result, 4))
 
         print('\n')
-        time.sleep(5)
-
-
-orderbook(urls)
-data_stream(urls)
+        time.sleep(time_interval)
