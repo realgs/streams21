@@ -36,3 +36,17 @@ def refresh_connect(currency):
     time.sleep(5)
     refresh_connect(currency)
 
+
+currencies = ["BTCUSD", "LTCUSD", "DASHUSD"]
+
+print('\n', "BTCUSD")
+connect(currencies[0])
+
+print('\n', "LTCUSD")
+connect(currencies[1])
+
+print('\n', "DASHUSD")
+connect(currencies[2])
+
+print('\n', f"Differences for {currencies[1]}:", '\n')
+refresh_connect(currencies[1])
