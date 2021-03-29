@@ -24,6 +24,7 @@ def print_offers(offers):
 
 if __name__ == '__main__':
     currency = ['BTCUSD', 'LTCUSD', 'ETHUSD']
+    sleeping_time = 5
     for c in currency:
         all_bid, all_ask = get_data(c)
         print(c, '\n bid: ')
@@ -39,7 +40,6 @@ if __name__ == '__main__':
                 ask = all_ask[0][0]
                 difference = ( ( ask - bid ) / bid ) * 100
                 print (c, '\n bid: ', bid, '    ask: ', ask, '  difference[%]: ', difference, '    round difference: ', round(difference, 2), '\n')
-            time.sleep(5)
+            time.sleep(sleeping_time)
         except KeyboardInterrupt:
             exit()
-            
