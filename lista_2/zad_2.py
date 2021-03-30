@@ -5,7 +5,7 @@ import time
 ADRESS = {
     'BTC-PLN' : 'https://bitbay.net/API/Public/BTCPLN/orderbook.json',
     'LTC-PLN' : 'https://bitbay.net/API/Public/LTCPLN/orderbook.json',
-    'ZRX-PLN': 'https://bitbay.net/API/Public/ZRXPLN/orderbook.json',
+    'ZRX-PLN' : 'https://bitbay.net/API/Public/ZRXPLN/orderbook.json',
     'BCC-PLN' : 'https://bitbay.net/API/Public/BCCPLN/orderbook.json',
     'OMG-PLN' : 'https://bitbay.net/API/Public/OMGPLN/orderbook.json'
 }
@@ -27,7 +27,7 @@ def market():
                 print('ERROR: ',HTTPError)
         counter += 1
         print('------------------')
-        time.sleep(20)
+        time.sleep(5)
 
 
 def calc(bids, asks):
