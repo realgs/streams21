@@ -2,17 +2,24 @@ import requests
 from requests.exceptions import HTTPError
 import time
 
+
+def get_data(target_currency, base_currency ):
+    try:
+        req = requests.get(f'https://bitbay.net/API/Public/{target_currency}{base_currency}/orderbook.json')
+        if req.status_code == 200:
+            data = req.json()
+        else:
+            print("Wystapil blad podczas pobierania -",key)
+    except HTTPError:
+        print('Error:', HTTPError)
+        return None
+    return data
+
+
 def requestoffers():
-    for key in url.keys():
-        try:
-            req = requests.get(url[key])
-            if req.status_code == 200:
-                print(key)
-                print(req.json(),'\n')
-            else:
-                print("Wystapil blad podczas pobierania -",key)
-        except HTTPError:
-            print('Error:', HTTPError)
+    for currency in CURR:
+        print(currency + BASE)
+        print(get_data(currency, BASE) , '\n')
 
 
 def calc_diff(bids, asks):
@@ -39,9 +46,11 @@ def markettracking():
         time.sleep(10)
 
 
-url = {'BTCUSD': 'https://bitbay.net/API/Public/BTCUSD/orderbook.json',
-       'DASHUSD': 'https://bitbay.net/API/Public/DASHUSD/orderbook.json',
-       'LTCUSD': 'https://bitbay.net/API/Public/LTCUSD/orderbook.json',\
-       }
-# requestoffers()
-markettracking()
+# URL = {'BTCUSD': 'https://bitbay.net/API/Public/BTCUSD/orderbook.json',
+#        'DASHUSD': 'https://bitbay.net/API/Public/DASHUSD/orderbook.json',
+#        'LTCUSD': 'https://bitbay.net/API/Public/LTCUSD/orderbook.json',\
+#        }
+CURR = ['BTC','DASH','LTC']
+BASE = 'USD'
+requestoffers()
+# markettracking()
