@@ -12,7 +12,6 @@ def createURLS(market1, market2, market3):
 
 def printMarket(market1, market2, market3):
     urls = createURLS(market1, market2, market3)
-    #last = []
     while True:
         offers = []
         for url in urls:
@@ -21,7 +20,6 @@ def printMarket(market1, market2, market3):
             bid = data['Bid']
             ask = data['Ask']
             offers.append([bid, ask])
-            #last.append([bid, ask])
         allCalc = []
         for i in range(0, 3):
             calc = 1 - ((offers[i][0]-offers[i][1])/offers[i][1])
