@@ -1,37 +1,58 @@
 import requests as r
-import time
+from time import sleep
+
+SLEEP_VALUE = 5
 
 
-def crypto(currencies, category):  # 1
+def add_currency_to_currencies(currencies, currency):
     result = []
-    for currency in currencies:
-        URL = f'https://bitbay.net/API/Public/{currency}/{category}.json'
-        request = r.get(URL).json()
-        buy_price = request['ask']
-        sell_price = request['bid']
-        print(
-            f'Currency: {currency} Sell price: {sell_price} Buy price: {buy_price}')
-        result.append([currency, buy_price, sell_price])
+    for c in currencies:
+        result.append(c+currency)
     return result
 
 
-def calculate(buy_price, sell_price):
-    return round(100*(1-sell_price/buy_price), 2)
+def download_data(currency, caregory):
+    URL = f'https://bitbay.net/API/Public/{currency}/{category}.json'
+    return r.get(URL).json()
+
+
+def print_data(currency, buy_price, sell_price):
+    print(
+        f'Currency: {currency} Buy price: {buy_price} Sell price: {sell_price}')
+
+
+def fetchFromAPI(currencies, category):  # 1
+    result = []
+    for currency in currencies:
+        data = download_data(currency, category)
+        sleep(1)  # Cooldown between download data in loop
+        buy_price = data['ask']
+        sell_price = data['bid']
+        print_data(currency, buy_price, sell_price)
+        result.append([currency, buy_price, sell_price])
+    # example [['BTCUSD', 59899.79, 58567.03], ['LTCUSD', 199.99, 185.1], ['DASHUSD', 224.9, 201.74]]
+    return result
+
+
+def calculate_percentage_diffrence_of_buy_and_sell_price(buy_price, sell_price):
+    return round(100*(1-sell_price/buy_price), 3)
 
 
 def refreshing_results(currencies, category):  # 2
     while(True):
-        data = crypto(currencies, category)
-        print(
-            f'BTCUSD % diffrence between sell and buy price: {calculate(data[0][1],data[0][2])}')
-        print(
-            f'LTCUSD % diffrence between sell and buy price: {calculate(data[1][1],data[1][2])}')
-        print(
-            f'DASHUSD % diffrence between sell and buy price: {calculate(data[2][1],data[2][2])}')
-        print('========================================')
-        time.sleep(10)
+        data = fetchFromAPI(currencies, category)
+        i = 0
+        for currency in currencies:
+            print(
+                f'{currency} % diffrence between sell and buy price: {calculate_percentage_diffrence_of_buy_and_sell_price(data[i][1],data[i][2])}%')
+            i += 1
+        print('======================')
+        sleep(SLEEP_VALUE)
 
 
-currencies = ['BTCUSD', 'LTCUSD', 'DASHUSD']
-category = 'ticker'
-refreshing_results(currencies, category)
+if __name__ == "__main__":
+    currencies = ['BTC', 'LTC', 'DASH']
+    currency = 'USD'
+    currencies = add_currency_to_currencies(currencies, currency)
+    category = 'ticker'
+    refreshing_results(currencies, category)
