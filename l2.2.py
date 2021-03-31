@@ -19,7 +19,7 @@ def calculate(url):
 def show_result():
     while True:
         for i in range (0,len(urls)):
-            print(f'Dla {currency[i]} różnica między sprzedażą, a kupnem to {round(calculate(urls[i]),5)}% ')
+            print(f'For {currency[i]} difference between selling and buying is {round(calculate(urls[i]),5)}% ')
         print("------------------------")
         sleep(5)
 
