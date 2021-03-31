@@ -2,18 +2,22 @@ import time
 import requests
 from requests.exceptions import HTTPError
 
+data_sells = []
+
 
 def data():
     currency_1 = ['BTC', 'LTC', 'DASH']
     currency_2 = 'USD'
-    category = 'trades'
+    category = 'orderbook'
     while True:
-        for i in currency_1:
-            data = download_data(i, currency_2, category)
-            print(data)
-            calculate(data, i)
+        for c in currency_1:
+            data = download_data(c, currency_2, category)
+            # print(data)
+            if data is not None:
+                pass
+                diffrence = calculate(data, c)
         time.sleep(5)
-    return 'done'
+    return diffrence
 
 
 def download_data(currency_1, currency_2, category):
@@ -22,27 +26,25 @@ def download_data(currency_1, currency_2, category):
         data = response.json()
     except HTTPError:
         print('HTTP error:', HTTPError)
-    return(data)
+        return None
+    return data
 
 
 def calculate(data, currency_1):
-    sell_price = []
-    buy_price = []
-    for i in range(len(data)):
-        if data[i]["type"] == "buy":
-            buy_price.append(data[i]["price"])
+    buy = data['bids'][0][0]
+    sell = data['asks'][0][0]
+    procenty = (1-(sell-buy)/sell) * 100
+    diffrence = {
+        'currency': currency_1,
+        'buy_price': data['bids'][0][0],
+        'sell_price': data['asks'][0][0],
+        'procents': procenty,
+    }
 
-        elif data[i]["type"] == "sell":
-            sell_price.append(data[i]["price"])
-
-        if (len(buy_price) != 0) and (len(sell_price) != 0):
-            diffrence = 1 - ((buy_price[-1] - sell_price[-1]) / buy_price[-1])
-            print({
-                'valute': currency_1,
-                'buy_price': buy_price[-1],
-                'sell_price': sell_price[-1],
-                'procent': diffrence})
-    return 'thx'
+    data_sells.append(diffrence)
+    print(diffrence)
+    print('=========`======')
+    return diffrence
 
 
 if __name__ == "__main__":
