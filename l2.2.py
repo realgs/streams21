@@ -3,19 +3,24 @@ from time import sleep
 from numpy import round
 
 
-waluty = ['BTCPLN', 'ETHPLN', 'LSKPLN']
-adres = [f'https://bitbay.net/API/Public/{waluty[0]}/ticker.json',f'https://bitbay.net/API/Public/{waluty[1]}/ticker.json',f'https://bitbay.net/API/Public/{waluty[2]}/ticker.json']
+currency = ['BTCPLN', 'ETHPLN', 'LSKPLN']
+urls = [f'https://bitbay.net/API/Public/{currency[0]}/ticker.json',f'https://bitbay.net/API/Public/{currency[1]}/ticker.json',f'https://bitbay.net/API/Public/{currency[2]}/ticker.json']
 
-def stosunek(url):
-    odpowiedz = requests.get(url)
-    dane = odpowiedz.json()
-    return ((dane['ask'] - dane['bid']) / dane['bid']) * 100
 
-def wypisz():
+def get_data(url):
+    response = requests.get(url)
+    data = response.json()
+    return data
+
+def calculate(url):
+    data = get_data(url)
+    return ((data['ask'] - data['bid']) / data['bid']) * 100
+
+def show_result():
     while True:
-        print(f'Dla {waluty[0]} różnica między sprzedażą, a kupnem to {round(stosunek(adres[0]),5)}% ')
-        print(f'Dla {waluty[1]} różnica między sprzedażą, a kupnem to {round(stosunek(adres[1]),5)}% ')
-        print(f'Dla {waluty[2]} różnica między sprzedażą, a kupnem to {round(stosunek(adres[2]),5)}% \n')
+        for i in range (0,len(urls)):
+            print(f'Dla {currency[i]} różnica między sprzedażą, a kupnem to {round(calculate(urls[i]),5)}% ')
+        print("------------------------")
         sleep(5)
 
-wypisz()
+show_result()
