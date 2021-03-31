@@ -10,4 +10,4 @@ Stworzyć prostą funkcję, która łączy się z danym API, pobiera listę ofer
 
 2. Uzyskać dyskretny strumień danych odświeżając (pobierając) dane co 5 sekund, następnie kalkulując różnicę pomiędzy kupnem a sprzedażą i podając ją w procentach (np. 1 - (cena sprzedaży - cena kupna) / cena kupna).
 Uwaga: jeśli będziecie pobierać dane w sposób ciągły (np 10x na sekundę) prawdopodobnie dostaniecie ban od dostawcy danych na jakiś czas (1-24h).
-(5pkt)
+
