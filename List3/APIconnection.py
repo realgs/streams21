@@ -9,7 +9,7 @@ def get_data(target_currency, base_currency ):
         if req.status_code == 200:
             data = req.json()
         else:
-            print("Wystapil blad podczas pobierania -",key)
+            print("Wystapil blad podczas pobierania -",target_currency)
     except HTTPError:
         print('Error:', HTTPError)
         return None
@@ -27,22 +27,14 @@ def calc_diff(bids, asks):
 
 
 def markettracking():
-    time_counter = 1
     while True:
-        print(time_counter, "- Różnica pomiędzy kupnem a sprzedażą.")
-        for key in url.keys():
-            try:
-                response = requests.get(url[key])
-                if response.status_code == 200:
-                    bids = response.json()['bids'][0][0]
-                    asks = response.json()['asks'][0][0]
-                    difference = calc_diff(bids, asks)
-                    print(key, difference, "%")
-                else:
-                    print("Wystapil blad podczas pobierania.")
-            except HTTPError:
-                print('HTTP error:', HTTPError)
-        time_counter += 1
+        print(time.strftime("%m/%d/%Y, %H:%M:%S", time.localtime()), "- Różnica pomiędzy kupnem a sprzedażą.")
+        for currency in CURR:
+            data = get_data(currency, BASE)
+            bids = data['bids'][0][0]
+            asks = data['asks'][0][0]
+            difference = calc_diff(bids, asks)
+            print(currency, difference, "%")
         time.sleep(10)
 
 
@@ -52,5 +44,5 @@ def markettracking():
 #        }
 CURR = ['BTC','DASH','LTC']
 BASE = 'USD'
-requestoffers()
-# markettracking()
+# requestoffers()
+markettracking()
