@@ -1,14 +1,18 @@
-import axios from 'axios'
+// import axios from 'axios'
 
 const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
-    const response = await axios
-        .get(`https://bitbay.net/API/Public/${cryptoCurrencyCode}${currencyCode}/ticker.json`)
-        .then(response => response)
-        .catch(err => err)
+    // const response = await axios
+    //     .get(`https://bitbay.net/API/Public/${cryptoCurrencyCode}${currencyCode}/ticker.json`)
+    //     .then(response => response)
+    //     .catch(err => err)
+
+    const response = await fetch(`https://bitbay.net/API/Public/${cryptoCurrencyCode}${currencyCode}/ticker.json`)
+                        .then(response => response)
+                        .catch(error => error)
 
     return {
         currencies: `${cryptoCurrencyCode} -> ${currencyCode}`,
-        response: response.data
+        response: await response.json()
     }
 }
 
