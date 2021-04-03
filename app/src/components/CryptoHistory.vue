@@ -15,9 +15,11 @@
             v-for="(row, $index) in cryptoData"
             :key="$index"
           >
-            <div class="crypto-history__body--cell">{{ row.ask }} $</div>
-            <div class="crypto-history__body--cell">{{ row.bid }} $</div>
-            <div class="crypto-history__body--cell">{{ row.difference }} %</div>
+            <div class="crypto-history__body--cell">{{ row.data.ask }} $</div>
+            <div class="crypto-history__body--cell">{{ row.data.bid }} $</div>
+            <div class="crypto-history__body--cell">
+              {{ row.data.difference }} %
+            </div>
           </div>
         </div>
       </div>
