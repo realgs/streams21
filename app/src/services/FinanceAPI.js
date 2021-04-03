@@ -23,7 +23,7 @@ export const handleData = async (cryptoCurrencyCode, currencyCode) => {
     )
     return
   }
-  console.log(data)
+
   const { ask, bid } = data.response
 
   const difference = +(((ask - bid) / bid) * 100).toFixed(4)

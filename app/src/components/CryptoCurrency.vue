@@ -1,12 +1,19 @@
 <template>
-  <div></div>
+  <div>
+    <CryptoHistory
+      v-if="cryptoData && cryptoData.length > 0"
+      :cryptoData="cryptoData"
+    />
+  </div>
 </template>
 
 <script>
 import { handleData } from '@/services/FinanceAPI'
+import CryptoHistory from '@/components/CryptoHistory'
 
 export default {
   name: 'CryptoCurrency',
+  components: { CryptoHistory },
   props: {
     cryptoCurrencyName: {
       type: String,
@@ -27,7 +34,7 @@ export default {
         this.cryptoCurrencyName,
         this.nationalCurrencyName
       )
-      console.log(downloadedData)
+      this.cryptoData.push(downloadedData)
     },
   },
   created() {
