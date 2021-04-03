@@ -1,18 +1,14 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+    <CryptoCurrency cryptoCurrencyName="BTC" nationalCurrencyName="USD" />
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import CryptoCurrency from '@/components/CryptoCurrency.vue'
 
 export default {
-  name: "Home",
-  components: {
-    HelloWorld,
-  },
-};
+  name: 'Home',
+  components: { CryptoCurrency },
+}
 </script>
