@@ -1,0 +1,14 @@
+1. Korzystając z realizacji drugiego zadania listy drugiej (symulacji dyskretnego strumienia danych próbkowanego co 5 sekund) zwizualizuj pobierane na bieżąco dane.
+Stworzyć wykres odświeżany co 5 sekund. Można wykorzystać matplotlib lub inną bibliotekę. Zwróć uwagę na obie osie oraz dostosowanie ich zakresów do obecnych danych. 
+Można założyć stały przedział czasu (oś x). Zakres wartości na osi y musi być dostosowywany do wartości zawartych w obecnym przedziale danych. 
+Wykresy ma dotyczyć jednej pary walutowej. Na wykresie macie zaznaczyć dwie serie danych (najlepsze kursy kupna oraz sprzedaży - obserwujemy ich zmiany w czasie).
+Przykładowy wykres z 2-3 seriami danych znajdziecie tu https://www.walutomat.pl/kursy-walut/eur-pln/
+W podstawowej wersji zadania 1 można użyć .clear() i ponownie .plot() (7pkt)
+
+2. Zwróć uwagę na optymalizację rozwiązania zadania pierwszego pod kątem wydajności (nie używać funkcji clear i ponownie plot w celu odświeżenia wykresu). 
+Wykorzystać wersję po optymalizacjach do jednoczesnego wyświetlenia i odświeżania 3 par walutowych (przykładowo BTCUSD LTCUSD i DASHUSD). 
+Odświeżanie nie musi dziać się dokładnie w tej samej sekundzie dla wszystkich par, jeśli API Was ogranicza. (3pkt)
+
+Deadline 18.04.2021
+
+Modyfikacja (doprecyzowanie) treści zadań 30.03.2021
