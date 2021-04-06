@@ -23,9 +23,13 @@ class Finance():
             return 0
         return content
 
-    def print_data(self, content, cur):
+    def get_percentage(self, content):
         percentage = round(((content["ask"] / content["bid"]) - 1) * 100, 2)
-        print(f"Różnica między kupnem a sprzedażą {cur} za USD wynosi {percentage}%")
+        return percentage
+
+
+    def print_percentage(self, value, cur):
+        print(f"Różnica między kupnem a sprzedażą {cur} za USD wynosi {value}%")
 
     def get_full_url(self, cur):
         return self.pre_url + cur + self.post_url
@@ -36,7 +40,8 @@ class Finance():
             for currency in self.currencies:
                 url = self.get_full_url(currency)
                 content = self.get_data(url)
-                self.print_data(content, currency)
+                percentage = self.get_percentage(content)
+                self.print_percentage(percentage,currency)
             time.sleep(5)
 
 curr = Finance()
