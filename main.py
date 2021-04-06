@@ -1,3 +1,4 @@
+import numpy as np
 from math import inf
 import requests
 from matplotlib.animation import FuncAnimation
@@ -37,27 +38,30 @@ def data_stream(crypt, x, y_1, y_2, i):
     y_2.append(max)
     return [x, y_1, y_2]
 
-def plot_data(x, y_1, y_2):
-    pass
 
-index = count()
+
+def animate(i):
+    if i == stop_point:
+        exit('FINISHED')
+    global x, y_1, y_2
+    temp = data_stream('DASH', x, y_1, y_2, i)
+    x = temp[0]
+    y_1 = temp[1]
+    y_2 = temp[2]
+    plt.plot(x, y_1)
+    plt.plot(x, y_2)
+
+
+def plot_data():
+    ani = FuncAnimation(plt.gcf(), animate, interval=1000)
+
+    plt.tight_layout()
+    plt.show()
+
 x = []
 y_1 = []
 y_2 = []
-# for i in range(5):
-#     x, y_1, y_2 = data_stream('DASH', x, y_1, y_2, i)
-#     #print(x, y_1, y_2)
-#     plt.plot(x, y_1)
+stop_point = 10
 
-def animate(i):
-    #x.append(next(index))
-    temp = data_stream('DASH', x, y_1, y_2, i)
-    x.append(temp[0])
-    y_1.append(temp[1])
-    plt.plot(x, y_1)
+plot_data()
 
-
-ani = FuncAnimation(plt.gcf(), animate, interval= 1000)
-
-plt.tight_layout()
-plt.show()
