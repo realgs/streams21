@@ -25,29 +25,21 @@ def animate(i):
     ax3.plot(x, bid_cur3, label=f'Bid')
     ax3.plot(x, ask_cur3, label=f'Ask')
 
-
     ax1.set_title(f'{currencies[0]} and USD')
-    ax1.legend(loc="upper left")
-    ax1.set_xticks([])
-    ax1.set_xlabel('Time')
-    ax1.set_ylabel('Price')
-
     ax2.set_title(f'{currencies[1]} and USD')
-    ax2.legend(loc="upper left")
-    ax2.set_xticks([])
-    ax2.set_xlabel('Time')
-    ax2.set_ylabel('Price')
-
     ax3.set_title(f'{currencies[2]} and USD')
-    ax3.legend(loc="upper left")
-    ax3.set_xticks([])
-    ax3.set_xlabel('Time')
-    ax3.set_ylabel('Price')
+
+    for ax in (ax1, ax2, ax3):
+        ax.legend(loc="upper left")
+        ax.set_xticks([])
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Price')
 
     plt.tight_layout()
 
 
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=3,ncols=1)
+fig.set_size_inches(12, 8, forward=True)
 anim = FuncAnimation(plt.gcf(), animate, interval=1000)
 plt.show()
 
