@@ -9,15 +9,17 @@ ADRESS = {
     'BCC-PLN' : 'https://bitbay.net/API/Public/BCCPLN/orderbook.json',
     'OMG-PLN' : 'https://bitbay.net/API/Public/OMGPLN/orderbook.json'
 }
+CODES = [200,201,202,203,204,205,206]
 
 def market():
     counter = 1
+    time_interval = 5
     while True:
         print(counter, "survey of buy - sell difference:")
         for key in ADRESS.keys():
             try:
                 request = requests.get(ADRESS[key])
-                if request.status_code == 200:
+                if request.status_code in CODES:
                     bids = request.json()['bids'][0][0]
                     asks = request.json()['asks'][0][0]
                     print(key,'->',calc(bids, asks),"%")
@@ -27,7 +29,7 @@ def market():
                 print('ERROR: ',HTTPError)
         counter += 1
         print('------------------')
-        time.sleep(5)
+        time.sleep(time_interval)
 
 
 def calc(bids, asks):
