@@ -1,6 +1,8 @@
 1. Korzystając z realizacji drugiego zadania listy drugiej (symulacji dyskretnego strumienia danych próbkowanego co 5 sekund) zwizualizuj pobierane na bieżąco dane.
-Stworzyć wykres odświeżany co 5 sekund. Można wykorzystać matplotlib lub inną bibliotekę. Zwróć uwagę na obie osie oraz dostosowanie ich zakresów do obecnych danych. 
-Można założyć stały przedział czasu (oś x). Zakres wartości na osi y musi być dostosowywany do wartości zawartych w obecnym przedziale danych. 
+Stworzyć wykres odświeżany co 5 sekund. Można wykorzystać matplotlib lub inną bibliotekę.
+Zwróć uwagę na obie osie oraz dostosowanie ich zakresów do obecnych danych.
+Można założyć stały przedział czasu (oś x).
+Zakres wartości na osi y musi być dostosowywany do wartości zawartych w obecnym przedziale danych.
 Wykresy ma dotyczyć jednej pary walutowej. Na wykresie macie zaznaczyć dwie serie danych (najlepsze kursy kupna oraz sprzedaży - obserwujemy ich zmiany w czasie).
 Przykładowy wykres z 2-3 seriami danych znajdziecie tu https://www.walutomat.pl/kursy-walut/eur-pln/
 W podstawowej wersji zadania 1 można użyć .clear() i ponownie .plot() (7pkt)

@@ -1,5 +1,8 @@
 import requests
 import time
+import matplotlib.pyplot as plt
+
+hist = []
 
 
 def createURL(market):
@@ -20,21 +23,46 @@ def calc(buy, sell):
     return val
 
 
-def main(market):
+def addData(market):
     url = createURL(market)
     buy, sell = getData(url)
     diff = calc(buy, sell)
+    mom = time.strftime("%H:%M:%S", time.localtime())
+    hist.append([market, buy, sell, mom])
     #print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
 
-markets = ['USD-BTC', 'EUR-YFL', 'USD-BAT']
+
+def prepareData(market):
+    buyL = []
+    sellL = []
+    timeL = []
+    for i in range(0, len(hist)):
+        if hist[i][0] == market:
+            buyL.append(hist[i][1])
+            sellL.append(hist[i][2])
+            timeL.append(hist[i][3])
+    return buyL, sellL, timeL
 
 
-def run():
+def drawPlot(market):
+    buyL, sellL, timeL = prepareData(market)
+    plt.title(f'Wykres notowań kursu {market}')
+    plt.plot(timeL, buyL)
+    plt.plot(timeL, sellL)
+    plt.ylabel('Wartość')
+    plt.xlabel('Czas [s]')
+    plt.show()
+
+
+def run(markets):
     while True:
         for market in markets:
-            main(market)
+            addData(market)
+            drawPlot(market)
         time.sleep(5)
 
 
+markets = ['USD-BTC', 'EUR-YFL', 'USD-BAT']
+
 if __name__ == '__main__':
-    run()
+    run(markets)
