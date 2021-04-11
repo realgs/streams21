@@ -3,22 +3,21 @@
     <div class="crypto-currency--header">
       <h2>{{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}</h2>
     </div>
-    <div
-      class="crypto-currency__chart"
-      v-if="cryptoData && cryptoData.length > 0"
-    >
-      <Apexchart
-        width="1500"
-        height="600"
-        type="line"
-        :options="chartOptions"
-        :series="chartSeries"
-      />
-    </div>
-    <CryptoHistory
-      v-if="cryptoData && cryptoData.length > 0"
-      :cryptoData="cryptoData"
-    />
+    <template v-if="cryptoData && cryptoData.length > 0">
+      <div class="crypto-currency__chart">
+        <Apexchart
+          width="1500"
+          height="600"
+          type="line"
+          :options="chartOptions"
+          :series="chartSeries"
+        />
+      </div>
+      <CryptoHistory :cryptoData="cryptoData" />
+    </template>
+    <template v-else>
+      <h2>No data, please wait.</h2>
+    </template>
   </div>
 </template>
 
