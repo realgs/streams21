@@ -3,7 +3,7 @@ const axios = require('axios')
 const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
   const response = await axios
     .get(
-      `https://cors-anywhere.herokuapp.com/https://api-pub.bitfinex.com/v2/ticker/t${cryptoCurrencyCode}${currencyCode}`
+      `https://api-pub.bitfinex.com/v2/ticker/t${cryptoCurrencyCode}${currencyCode}`
     )
     .then((response) => response)
     .catch((err) => err)
