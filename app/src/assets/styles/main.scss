@@ -1,6 +1,12 @@
 
 body {
     box-sizing: border-box;
+    background: linear-gradient(315deg, #9921e8 0%, #5f72be 74%);
+    background-size: 100% 300%;
+    background-repeat: no-repeat;
+    font-size: 16px;
+    min-height: 300vh;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 body * {

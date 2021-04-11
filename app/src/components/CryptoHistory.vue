@@ -12,7 +12,7 @@
         <div class="crypto-history__body--wrapper">
           <div
             class="crypto-history__body--row"
-            v-for="(row, $index) in cryptoData"
+            v-for="(row, $index) in reverseData"
             :key="$index"
           >
             <div class="crypto-history__body--cell">{{ row.data.ask }} $</div>
@@ -36,11 +36,19 @@ export default {
       required: true,
     },
   },
+  computed: {
+    reverseData() {
+      const copiedData = [...this.cryptoData]
+
+      return copiedData.reverse()
+    },
+  },
 }
 </script>
 
 <style lang="scss" scoped>
 .crypto-history {
+  --width: 100rem;
   &__table {
     display: flex;
     flex-direction: column;
@@ -48,19 +56,23 @@ export default {
 
   &__header,
   &__body {
+    width: var(--width);
     &--row {
       display: flex;
       flex-direction: row;
+      width: var(--width);
     }
 
     &--cell {
-      width: 90px;
+      width: calc(var(--width) / 3);
     }
   }
 
   &__body {
     &--wrapper {
       overflow-y: auto;
+      overflow-x: hidden;
+      height: 90px;
       max-height: 90px;
     }
   }
