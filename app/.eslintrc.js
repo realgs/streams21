@@ -11,7 +11,7 @@ module.exports = {
   rules: {
     'import/no-unresolved': 0,
     'import/no-unassigned-import': 0,
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
   },
   parserOptions: {
