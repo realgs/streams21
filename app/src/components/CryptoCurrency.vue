@@ -1,6 +1,20 @@
 <template>
   <div class="crypto-currency">
-    <LineChart v-if="parsedCryptoData" :chartData="parsedCryptoData" />
+    <div class="crypto-currency--header">
+      <h2>{{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}</h2>
+    </div>
+    <div
+      class="crypto-currency__chart"
+      v-if="cryptoData && cryptoData.length > 0"
+    >
+      <Apexchart
+        width="1500"
+        height="600"
+        type="line"
+        :options="chartOptions"
+        :series="chartSeries"
+      />
+    </div>
     <CryptoHistory
       v-if="cryptoData && cryptoData.length > 0"
       :cryptoData="cryptoData"
@@ -9,13 +23,14 @@
 </template>
 
 <script>
-import LineChart from '@/utils/LineChart'
 import { handleData } from '@/services/FinanceAPI'
 import CryptoHistory from '@/components/CryptoHistory'
 
 export default {
   name: 'CryptoCurrency',
-  components: { CryptoHistory, LineChart },
+  components: {
+    CryptoHistory,
+  },
   props: {
     cryptoCurrencyName: {
       type: String,
@@ -25,40 +40,59 @@ export default {
       type: String,
       required: true,
     },
+    min: {
+      type: Number,
+    },
+    max: {
+      type: Number,
+    },
   },
   data: () => ({
     cryptoData: [],
     dataInterval: null,
   }),
   computed: {
-    parsedCryptoData() {
+    stripedData() {
       if (!this.cryptoData) return
       const copiedData = [...this.cryptoData]
 
-      const labels = []
+      return copiedData.length >= 10
+        ? copiedData.slice(1).slice(-10)
+        : copiedData
+    },
+    chartOptions() {
+      if (!this.stripedData) return
 
-      const asks = {
-        label: 'Asks',
-        borderColor: 'rgb(0, 103, 255)',
-        backgroundColor: 'rgba(0, 103, 255, 0.5)',
-        fill: false,
-        data: [],
-      }
-      const bids = {
-        label: 'Bids',
-        borderColor: 'rgb(39, 255, 0)',
-        backgroundColor: 'rgba(39, 255, 0, 0.5)',
-        fill: false,
-        data: [],
+      const chart = {
+        id: `${this.cryptoCurrencyName}${this.nationalCurrencyName}`,
       }
 
-      for (const data of copiedData) {
-        labels.push(data.time)
-        asks.data.push(data.data.ask)
-        bids.data.push(data.data.bid)
+      const xaxis = {
+        categories: this.stripedData.map((el) => el.time),
       }
 
-      return { labels, datasets: [asks, bids] }
+      const yaxis = {
+        min: this.min,
+        max: this.max,
+      }
+
+      return { chart, xaxis, yaxis }
+    },
+    chartSeries() {
+      if (!this.stripedData) return
+
+      const series = [
+        {
+          name: 'Asks',
+          data: this.stripedData.map((el) => el.data.ask),
+        },
+        {
+          name: 'Bids',
+          data: this.stripedData.map((el) => el.data.bid),
+        },
+      ]
+
+      return series
     },
   },
   methods: {
@@ -87,7 +121,24 @@ export default {
 
 <style lang="scss" scoped>
 .crypto-currency {
+  position: relative;
   display: flex;
   flex-direction: column;
+  background: #444;
+  margin: 2rem 2rem 2rem 2rem;
+  padding: 2rem 2rem 2rem 2rem;
+  color: #fff;
+  border-radius: 0.5rem;
+
+  &__chart {
+    background: #fff;
+    color: black;
+    margin-bottom: 1rem;
+  }
+
+  &--header {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 }
 </style>

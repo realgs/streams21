@@ -1,8 +1,29 @@
 <template>
   <div class="home">
-    <CryptoCurrency cryptoCurrencyName="BTC" nationalCurrencyName="USD" />
-    <CryptoCurrency cryptoCurrencyName="ETH" nationalCurrencyName="USD" />
-    <CryptoCurrency cryptoCurrencyName="XLM" nationalCurrencyName="USD" />
+    <div class="section">
+      <CryptoCurrency
+        cryptoCurrencyName="BTC"
+        nationalCurrencyName="USD"
+        :min="59450"
+        :max="59600"
+      />
+    </div>
+    <div class="section">
+      <CryptoCurrency
+        cryptoCurrencyName="ETH"
+        nationalCurrencyName="USD"
+        :min="2138"
+        :max="2143"
+      />
+    </div>
+    <div class="section">
+      <CryptoCurrency
+        cryptoCurrencyName="XLM"
+        nationalCurrencyName="USD"
+        :min="0.579"
+        :max="0.6"
+      />
+    </div>
   </div>
 </template>
 
@@ -21,5 +42,12 @@ export default {
   flex-direction: column;
   align-items: center;
   width: 100%;
+}
+
+.section {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
