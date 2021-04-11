@@ -20,14 +20,14 @@ def getData(url):
 
 
 def calc(buy, sell):
-    val = (1 - (sell - buy) / buy)*100
+    val = (1 - (sell - buy) / buy) * 100
     return val
 
 
 def addData(market):
     url = createURL(market)
     buy, sell = getData(url)
-    diff = calc(buy, sell)
+    # diff = calc(buy, sell)
     xlab = time.strftime("%H:%M:%S", time.localtime())
     hist.append([market, buy, sell, xlab])
     # print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
@@ -55,16 +55,14 @@ def drawPlot(market):
     plt.xticks(rotation=45)
 
 
-
 def showPlots(markets):
     fig = plt.figure(figsize=(14, 10))
-    plt.subplot(3, 1, 1)
-    drawPlot(markets[0])
-    fig.legend(framealpha=1, frameon=True, prop={'size': 15})
-    plt.subplot(3, 1, 2)
-    drawPlot(markets[1])
-    plt.subplot(3, 1, 3)
-    drawPlot(markets[2])
+
+    for i in range (0, len(markets)):
+        plt.subplot(3, 1, i+1)
+        drawPlot(markets[i])
+
+    fig.legend(['Sell', 'Buy'], frameon=True, prop={'size': 15})
     fig.tight_layout()
     plt.show(block=False)
     plt.pause(5)
