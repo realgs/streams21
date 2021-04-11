@@ -24,12 +24,17 @@ def main(market):
     url = createURL(market)
     buy, sell = getData(url)
     diff = calc(buy, sell)
-    print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
+    #print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
 
 markets = ['USD-BTC', 'EUR-YFL', 'USD-BAT']
 
-while True:
-    for market in markets:
-        main(market)
-    time.sleep(5)
 
+def run():
+    while True:
+        for market in markets:
+            main(market)
+        time.sleep(5)
+
+
+if __name__ == '__main__':
+    run()
