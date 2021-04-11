@@ -3,7 +3,7 @@ const axios = require('axios')
 const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
   const response = await axios
     .get(
-      `https://api-pub.bitfinex.com/v2/ticker/t${cryptoCurrencyCode}${currencyCode}`
+      `https://thingproxy.freeboard.io/fetch/https://api-pub.bitfinex.com/v2/ticker/t${cryptoCurrencyCode}${currencyCode}`
     )
     .then((response) => response)
     .catch((err) => err)
