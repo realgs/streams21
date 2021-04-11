@@ -10,7 +10,7 @@ const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
 
   return {
     currencies: `${cryptoCurrencyCode} -> ${currencyCode}`,
-    response: response2.data,
+    response: response.data,
   }
 }
 
