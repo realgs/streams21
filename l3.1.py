@@ -20,7 +20,7 @@ def getData(url):
 
 
 def calc(buy, sell):
-    val = 1 - (sell - buy) / buy
+    val = (1 - (sell - buy) / buy)*100
     return val
 
 
@@ -28,8 +28,8 @@ def addData(market):
     url = createURL(market)
     buy, sell = getData(url)
     diff = calc(buy, sell)
-    mom = time.strftime("%H:%M:%S", time.localtime())
-    hist.append([market, buy, sell, mom])
+    xlab = time.strftime("%H:%M:%S", time.localtime())
+    hist.append([market, buy, sell, xlab])
     # print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
 
 
@@ -48,16 +48,19 @@ def prepareData(market):
 def drawPlot(market):
     buyL, sellL, timeL = prepareData(market)
     plt.title(f'Wykres notowań kursu {market}')
-    plt.plot(timeL, buyL)
-    plt.plot(timeL, sellL)
-    plt.ylabel('Wartość')
-    plt.xlabel('Czas [s]')
+    plt.plot(timeL, sellL, label='Sell', color='green')
+    plt.plot(timeL, buyL, label='Buy', color='red')
+    plt.ylabel(f'Wartość {market[:3]}')
+    plt.xlabel('Czas [s]', loc='right')
+    plt.xticks(rotation=45)
+
 
 
 def showPlots(markets):
-    fig = plt.figure(figsize=(10, 7))
+    fig = plt.figure(figsize=(14, 10))
     plt.subplot(3, 1, 1)
     drawPlot(markets[0])
+    fig.legend(framealpha=1, frameon=True, prop={'size': 15})
     plt.subplot(3, 1, 2)
     drawPlot(markets[1])
     plt.subplot(3, 1, 3)
@@ -75,7 +78,7 @@ def run(markets):
         showPlots(markets)
 
 
-markets = ['USD-BTC', 'EUR-USD', 'USD-BAT']
+markets = ['EUR-USD', 'USD-BTC', 'USD-BAT']
 
 if __name__ == '__main__':
     run(markets)
