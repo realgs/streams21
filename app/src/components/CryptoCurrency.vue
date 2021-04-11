@@ -26,6 +26,11 @@
 import { handleData } from '@/services/FinanceAPI'
 import CryptoHistory from '@/components/CryptoHistory'
 
+const findMinAsk = (p, v) => (p.data.ask < v.data.ask ? p : v)
+const findMaxAsk = (p, v) => (p.data.ask > v.data.ask ? p : v)
+const findMinBid = (p, v) => (p.data.bid < v.data.bid ? p : v)
+const findMaxBid = (p, v) => (p.data.bid > v.data.bid ? p : v)
+
 export default {
   name: 'CryptoCurrency',
   components: {
@@ -40,10 +45,7 @@ export default {
       type: String,
       required: true,
     },
-    min: {
-      type: Number,
-    },
-    max: {
+    fixDiff: {
       type: Number,
     },
   },
@@ -60,6 +62,18 @@ export default {
         ? copiedData.slice(1).slice(-10)
         : copiedData
     },
+    bounds() {
+      if (!this.stripedData) return
+      const minAsk = this.stripedData.reduce(findMinAsk).data.ask
+      const maxAsk = this.stripedData.reduce(findMaxAsk).data.ask
+      const minBid = this.stripedData.reduce(findMinBid).data.bid
+      const maxBid = this.stripedData.reduce(findMaxBid).data.bid
+
+      return {
+        min: minAsk < minBid ? minAsk : minBid,
+        max: maxAsk > maxBid ? maxAsk : maxBid,
+      }
+    },
     chartOptions() {
       if (!this.stripedData) return
 
@@ -72,8 +86,8 @@ export default {
       }
 
       const yaxis = {
-        min: this.min,
-        max: this.max,
+        min: this.bounds.min - this.fixDiff,
+        max: this.bounds.max + this.fixDiff,
       }
 
       return { chart, xaxis, yaxis }
