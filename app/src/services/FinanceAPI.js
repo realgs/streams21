@@ -18,7 +18,7 @@ export const handleData = async (cryptoCurrencyCode, currencyCode) => {
   const data = await getDataFromApi(cryptoCurrencyCode, currencyCode)
 
   if (!data.response) {
-    console.log(
+    error.log(
       `[${cryptoCurrencyCode}] Something went wrong, please check your API.`
     )
     return
