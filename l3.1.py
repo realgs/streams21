@@ -30,7 +30,7 @@ def addData(market):
     diff = calc(buy, sell)
     mom = time.strftime("%H:%M:%S", time.localtime())
     hist.append([market, buy, sell, mom])
-    #print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
+    # print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
 
 
 def prepareData(market):
@@ -53,13 +53,16 @@ def drawPlot(market):
     plt.ylabel('Wartość')
     plt.xlabel('Czas [s]')
 
+
 def showPlots(markets):
+    fig = plt.figure(figsize=(10, 7))
     plt.subplot(3, 1, 1)
     drawPlot(markets[0])
     plt.subplot(3, 1, 2)
     drawPlot(markets[1])
     plt.subplot(3, 1, 3)
     drawPlot(markets[2])
+    fig.tight_layout()
     plt.show(block=False)
     plt.pause(5)
     plt.close()
@@ -72,10 +75,7 @@ def run(markets):
         showPlots(markets)
 
 
-
-
-
-markets = ['USD-BTC', 'EUR-YFL', 'USD-BAT']
+markets = ['USD-BTC', 'EUR-USD', 'USD-BAT']
 
 if __name__ == '__main__':
     run(markets)
