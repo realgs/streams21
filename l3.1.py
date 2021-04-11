@@ -53,27 +53,26 @@ def drawPlot(market):
     plt.ylabel('Wartość')
     plt.xlabel('Czas [s]')
 
+def showPlots(markets):
+    plt.subplot(3, 1, 1)
+    drawPlot(markets[0])
+    plt.subplot(3, 1, 2)
+    drawPlot(markets[1])
+    plt.subplot(3, 1, 3)
+    drawPlot(markets[2])
+    plt.show(block=False)
+    plt.pause(5)
+    plt.close()
+
 
 def run(markets):
     while True:
         for market in markets:
             addData(market)
+        showPlots(markets)
 
-        fig = plt.figure(figsize=(3, 3))
-        #fig.set_size_inches(20, 5)
-        #spec = gridspec.GridSpec(ncols=1, nrows=3, figure=fig)
 
-        ax1 = fig.add_subplot(3, 1, 1)
-        ax2 = fig.add_subplot(3, 1, 2)
-        ax3 = fig.add_subplot(3, 1, 3)
 
-        plt.subplot(ax1)
-        drawPlot(markets[0])
-        plt.subplot(ax2)
-        drawPlot(markets[1])
-        plt.subplot(ax3)
-        drawPlot(markets[3])
-        plt.show()
 
 
 markets = ['USD-BTC', 'EUR-YFL', 'USD-BAT']
