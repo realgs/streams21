@@ -52,7 +52,7 @@ def show_plots(currency_pairs):
     n = len(currency_pairs)
     time, buy, sell = gen_empty_arrays(n), gen_empty_arrays(n), gen_empty_arrays(n)
 
-    fig, axs = plt.subplots(3, figsize=(15, 10), sharex=True)
+    fig, axs = plt.subplots(n, figsize=(15, 10), sharex=True)
     lines = []
 
     for i in range(len(currency_pairs)):
