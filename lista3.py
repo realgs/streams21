@@ -1,9 +1,9 @@
+import numpy as np
 import requests
 from requests.exceptions import HTTPError
 from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import random
 
 plt.style.use('fivethirtyeight')
 
@@ -28,13 +28,19 @@ def animate(i):
     bidBTC, askBTC = dataPicker('BTC', 'USD', 'ticker.json')
     bidLTC, askLTC = dataPicker('LTC', 'USD', 'ticker.json')
     bidDASH, askDASH = dataPicker('DASH', 'USD', 'ticker.json')
-    points_x.append(datetime.now().strftime("%H:%M:%S"))
     points_BTC_bid.append(bidBTC)
     points_BTC_ask.append(askBTC)
     points_LTC_bid.append(bidLTC)
     points_LTC_ask.append(askLTC)
     points_DASH_bid.append(bidDASH)
     points_DASH_ask.append(askDASH)
+    points_x.append(datetime.now().strftime("%H:%M:%S"))
+
+    # fig, ax = plt.subplots()  PSUJE SIE PROGRAM
+
+    points_x_labels = points_x.copy()
+    if len(points_x_labels) > 3:
+        points_x_labels = points_x_labels[::2]
 
     plt.cla()
     plt.plot(points_x, points_BTC_bid, color='#ff4d4d', linewidth=1.5, label='Bids')
@@ -43,9 +49,14 @@ def animate(i):
     plt.plot(points_x, points_LTC_ask, color='#5200cc', linewidth=1.5, label='Asks')
     plt.plot(points_x, points_DASH_bid, color='#4dff88', linewidth=1.5, label='Bids')
     plt.plot(points_x, points_DASH_ask, color='#00cc44', linewidth=1.5, label='Asks')
+    plt.xticks(points_x_labels, rotation=20)
+    plt.xlabel("Czas")
+    plt.ylabel("Wartość w dolarach")
+    plt.title("Najlepsze kursy kupna oraz sprzedaży")
+    # plt.yscale('log')
     plt.subplots_adjust(bottom=0.15)
-    plt.xticks(points_x, rotation=20)
     plt.legend()
+
 
 if __name__ == '__main__':
     points_x = []
