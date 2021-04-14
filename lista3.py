@@ -25,47 +25,50 @@ def dataPicker(resource, currency, format):
         return _DATA["bid"], _DATA["ask"]
 
 def animate(i):
-    bidBTC, askBTC = dataPicker('BTC', 'USD', 'ticker.json')
-    bidLTC, askLTC = dataPicker('LTC', 'USD', 'ticker.json')
-    bidDASH, askDASH = dataPicker('DASH', 'USD', 'ticker.json')
-    points_BTC_bid.append(bidBTC)
-    points_BTC_ask.append(askBTC)
-    points_LTC_bid.append(bidLTC)
-    points_LTC_ask.append(askLTC)
-    points_DASH_bid.append(bidDASH)
-    points_DASH_ask.append(askDASH)
+    bidLSK, askLSK = dataPicker('LSK', 'USD', 'ticker.json')
+    bidOMG, askOMG = dataPicker('OMG', 'USD', 'ticker.json')
+    bidXRP, askXRP = dataPicker('XRP', 'USD', 'ticker.json')
+    points_LSK_bid.append(bidLSK)
+    points_LSK_ask.append(askLSK)
+    points_OMG_bid.append(bidOMG)
+    points_OMG_ask.append(askOMG)
+    points_XRP_bid.append(bidXRP)
+    points_XRP_ask.append(askXRP)
     points_x.append(datetime.now().strftime("%H:%M:%S"))
 
     # fig, ax = plt.subplots()  PSUJE SIE PROGRAM
 
     points_x_labels = points_x.copy()
-    if len(points_x_labels) > 3:
+    if len(points_x_labels) > 10:
         points_x_labels = points_x_labels[::2]
+    elif len(points_x_labels) > 20:
+        points_x_labels = points_x_labels[::5]
 
     plt.cla()
-    plt.plot(points_x, points_BTC_bid, color='#ff4d4d', linewidth=1.5, label='Bids')
-    plt.plot(points_x, points_BTC_ask, color='#cc0000', linewidth=1.5, label='Asks')
-    plt.plot(points_x, points_LTC_bid, color='#944dff', linewidth=1.5, label='Bids')
-    plt.plot(points_x, points_LTC_ask, color='#5200cc', linewidth=1.5, label='Asks')
-    plt.plot(points_x, points_DASH_bid, color='#4dff88', linewidth=1.5, label='Bids')
-    plt.plot(points_x, points_DASH_ask, color='#00cc44', linewidth=1.5, label='Asks')
+    plt.plot(points_x, points_LSK_bid, color='#ff4d4d', linewidth=1.5, label='LSK Bids')
+    plt.plot(points_x, points_LSK_ask, color='#cc0000', linewidth=1.5, label='LSK Asks')
+    plt.plot(points_x, points_OMG_bid, color='#944dff', linewidth=1.5, label='OMG Bids')
+    plt.plot(points_x, points_OMG_ask, color='#5200cc', linewidth=1.5, label='OMG Asks')
+    plt.plot(points_x, points_XRP_bid, color='#4dff88', linewidth=1.5, label='XRP Bids')
+    plt.plot(points_x, points_XRP_ask, color='#00cc44', linewidth=1.5, label='XRP Asks')
     plt.xticks(points_x_labels, rotation=20)
     plt.xlabel("Czas")
     plt.ylabel("Wartość w dolarach")
     plt.title("Najlepsze kursy kupna oraz sprzedaży")
-    # plt.yscale('log')
+    # plt.yscale('log', base=2)
+    plt.yscale('log')
     plt.subplots_adjust(bottom=0.15)
     plt.legend()
 
 
 if __name__ == '__main__':
     points_x = []
-    points_BTC_bid = []
-    points_BTC_ask = []
-    points_LTC_bid = []
-    points_LTC_ask = []
-    points_DASH_bid = []
-    points_DASH_ask = []
+    points_LSK_bid = []
+    points_LSK_ask = []
+    points_OMG_bid = []
+    points_OMG_ask = []
+    points_XRP_bid = []
+    points_XRP_ask = []
 
     ani = FuncAnimation(plt.gcf(), animate, interval=3000)
     plt.show()
