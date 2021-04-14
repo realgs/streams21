@@ -27,10 +27,8 @@ def calc(buy, sell):
 def addData(market):
     url = createURL(market)
     buy, sell = getData(url)
-    # diff = calc(buy, sell)
     xlab = time.strftime("%H:%M:%S", time.localtime())
     hist.append([market, buy, sell, xlab])
-    # print(f'{time.strftime("%H:%M:%S", time.localtime())} \n {market} {sell} \n {buy} \n {diff}')
 
 
 def prepareData(market):
