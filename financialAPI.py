@@ -1,21 +1,28 @@
 import time
 import requests
 from requests.exceptions import HTTPError
+import matplotlib.pyplot as plt
 
-data_sells = []
+
+data_currency = {
+    "BTC": [],
+    "LTC": [],
+    "DASH": [],
+}
 
 
-def data():
+def data(lines):
     currency_1 = ['BTC', 'LTC', 'DASH']
     currency_2 = 'USD'
     category = 'orderbook'
+    iterator = 0
     while True:
+        iterator += 1
         for c in currency_1:
             data = download_data(c, currency_2, category)
-            # print(data)
             if data is not None:
-                pass
                 diffrence = calculate(data, c)
+        create_graph(iterator, lines)
         time.sleep(5)
     return diffrence
 
@@ -35,17 +42,61 @@ def calculate(data, currency_1):
     sell = data['asks'][0][0]
     procenty = (1-(sell-buy)/sell) * 100
     diffrence = {
-        'currency': currency_1,
         'buy_price': data['bids'][0][0],
         'sell_price': data['asks'][0][0],
         'procents': procenty,
     }
 
-    data_sells.append(diffrence)
+    data_currency[f"{currency_1}"].append(diffrence)
     print(diffrence)
-    print('=========`======')
     return diffrence
 
 
+def create_graph(iterator, lines):
+
+    for c, l in lines.items():
+        data = data_currency[c][0:iterator]
+        buy = []
+        sell = []
+        t = []
+        for i in range(len(data)):
+            buy.append(data[i]["buy_price"])
+            sell.append(data[i]["sell_price"])
+            t.append(i+1)
+
+        l[0].set_data(t, buy)
+        l[1].set_data(t, sell)
+        plts[c].set_xlim([max(iterator-10, 1), iterator+3])
+        plts[c].set_ylim([min(buy)*0.95, max(sell)*1.05])
+
+    plt.draw()
+    plt.pause(1e-17)
+
+
 if __name__ == "__main__":
-    data()
+
+    plt.ion()
+
+    plts = {}
+    lines = {}
+
+    fig = plt.figure()
+
+    itr = 1
+    for c in data_currency.keys():
+        plts[c] = fig.add_subplot(len(data_currency), 1, itr)
+        buy_line, = plts[c].plot([0], [0])
+        sell_line, = plts[c].plot([0], [0])
+        lines[c] = [buy_line, sell_line]
+
+        plts[c].set_ylim([1, 5])
+        plts[c].set_title(f"{c}")
+
+        plts[c].set_xlabel("time")
+        plts[c].set_ylabel("value")
+
+        itr += 1
+
+    fig.tight_layout(h_pad=0.5)
+
+    data(lines)
