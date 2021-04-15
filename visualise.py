@@ -103,5 +103,4 @@ if __name__ == "__main__":
     y_bid_data = {}
 
     ani = FuncAnimation(plt.gcf(), animation_frame, interval=5000)
-    plt.legend()
     plt.show()
