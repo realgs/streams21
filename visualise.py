@@ -25,14 +25,13 @@ def download_data(currency, caregory):
     return r.get(URL).json()
 
 
-def fetchFromAPI(currencies, category): 
+def fetchFromAPI(currencies, category):
     result = []
     for currency in currencies:
         data = download_data(currency, category)
-        sleep(1)  
+        sleep(SLEEP_VALUE)
         buy_price = data['ask']
         sell_price = data['bid']
-        print_data(currency, buy_price, sell_price)
         result.append([currency, buy_price, sell_price])
     return result
 
