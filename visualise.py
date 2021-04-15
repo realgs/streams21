@@ -5,7 +5,7 @@ from requests.exceptions import HTTPError
 from datetime import datetime
 from matplotlib.animation import FuncAnimation
 
-SLEEP_VALUE = 1
+SLEEP_VALUE = 0.1
 
 
 def add_currency_to_currencies(currencies, currency):
@@ -66,7 +66,7 @@ def animation_frame(i):
     x_data_labels = x_data.copy()
 
     plt.cla()
-    
+
     for i in range(len(names)):
         y_ask_data.setdefault(names[i], []).append(asks[i])
         y_bid_data.setdefault(names[i], []).append(bids[i])
