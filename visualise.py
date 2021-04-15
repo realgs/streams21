@@ -28,7 +28,6 @@ def download_data(currency, caregory):
 
     else:
         return response.json()
-    return r.get(URL).json()
 
 
 def fetchFromAPI(currencies, category):
@@ -40,10 +39,6 @@ def fetchFromAPI(currencies, category):
         sell_price = data['bid']
         result.append([currency, buy_price, sell_price])
     return result
-
-
-def calculate_percentage_diffrence_of_buy_and_sell_price(buy_price, sell_price):
-    return round(100*(1-sell_price/buy_price), 3)
 
 
 def split_data_into_packages(data):
@@ -69,9 +64,9 @@ def append_crypto_data_to_lists(names, asks, bids):
 def draw_plots(x_data, y_ask_data, y_bid_data, names):
     for i in range(len(names)):
         plt.plot(x_data, y_ask_data[names[i]],
-                 linewidth=1, label='Asks of ' + names[i])
+                 linewidth=1, label='Buy price of ' + names[i])
         plt.plot(x_data, y_bid_data[names[i]],
-                 linewidth=1, label='Bids of ' + names[i])
+                 linewidth=1, label='Sell price of ' + names[i])
 
     plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
     plt.xticks(x_data)
@@ -112,5 +107,5 @@ if __name__ == "__main__":
     y_ask_data = {}
     y_bid_data = {}
 
-    ani = FuncAnimation(plt.gcf(), animation_frame, interval=5000)
+    anim = FuncAnimation(plt.gcf(), animation_frame, interval=5000)
     plt.show()
