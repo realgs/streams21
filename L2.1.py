@@ -44,6 +44,11 @@ def animate(i):
     #         x_axis_labels = x_axis_labels[::step]
     #         i+=5
     #         step+=1
+    if len(x_axis_labels) > 7:
+        x_axis_labels = x_axis_labels[::3]
+    if len(x_axis_labels) > 25:
+        x_axis_labels = x_axis_labels[::5]
+
 
 
     plt.cla()
