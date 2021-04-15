@@ -94,10 +94,10 @@ def animation_frame(i):
 
 if __name__ == "__main__":
     currencies = ['LSK', 'LTC', 'DASH']
-    colors = ['blue', 'orange', 'black', 'green', 'yellow', 'purple']
+    category = 'ticker'
     currency = 'USD'
     currencies = add_currency_to_currencies(currencies, currency)
-    category = 'ticker'
+
     x_data = []
     y_ask_data = {}
     y_bid_data = {}
