@@ -13,6 +13,15 @@ def add_currency_to_currencies(currencies, currency):
 
 def download_data(currency, caregory):
     URL = f'https://bitbay.net/API/Public/{currency}/{category}.json'
+    try:
+        response = r.get(URL)
+        response.raise_for_status()
+
+    except HTTPError:
+        print(f'Error: : {HTTPError}')
+
+    else:
+        return response.json()
     return r.get(URL).json()
 
 
