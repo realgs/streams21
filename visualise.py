@@ -56,10 +56,22 @@ def split_data_into_packages(data):
         result.setdefault('bid', []).append(bid)
     return names, result
 
-def append_crypto_data_to_lists(names,asks,bids):
+
+def append_crypto_data_to_lists(names, asks, bids):
     for i in range(len(names)):
         y_ask_data.setdefault(names[i], []).append(asks[i])
         y_bid_data.setdefault(names[i], []).append(bids[i])
+
+
+def draw_plots(x_data, y_ask_data, y_bid_data, names):
+    for i in range(len(names)):
+        plt.plot(x_data, y_ask_data[names[i]],
+                 linewidth=1, label='Asks of ' + names[i])
+        plt.plot(x_data, y_bid_data[names[i]],
+                 linewidth=1, label='Bids of ' + names[i])
+
+    plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
+    plt.xticks(x_data)
 
 
 def animation_frame(i):
@@ -68,20 +80,12 @@ def animation_frame(i):
     asks = splitted_data['ask']
     bids = splitted_data['bid']
     x_data.append(datetime.now().strftime("%H:%M:%S"))
-    x_data_labels = x_data.copy()
 
     plt.cla()
 
-    append_crypto_data_to_lists(names,asks,bids)
+    append_crypto_data_to_lists(names, asks, bids)
 
-    for i in range(len(names)):
-        plt.plot(x_data, y_ask_data[names[i]],
-                 linewidth=1, label='Asks of ' + names[i])
-        plt.plot(x_data, y_bid_data[names[i]],
-                 linewidth=1, label='Bids of ' + names[i])
-
-    plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
-    plt.xticks(x_data_labels)
+    draw_plots(x_data, y_ask_data, y_bid_data, names)
 
     plt.xlabel('Time')
     plt.ylabel('Value in USD')
