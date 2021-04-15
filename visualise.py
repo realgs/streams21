@@ -54,9 +54,9 @@ def split_data_into_packages(data):
         ask = val[1]
         bid = val[2]
         time = datetime.now().strftime("%H:%M:%S")
+        result.setdefault('name', []).append(name)
         result.setdefault('ask', []).append(ask)
         result.setdefault('bid', []).append(bid)
-        result.setdefault('name', []).append(name)
     return result
 
 
@@ -85,7 +85,6 @@ def draw_legend_once():
 
 
 def animation_frame(i):
-
     data = fetchFromAPI(currencies, category)
     splitted_data = split_data_into_packages(data)
     names = splitted_data['name']
