@@ -39,17 +39,17 @@ def fetchFromAPI(currencies, category):
 def calculate_percentage_diffrence_of_buy_and_sell_price(buy_price, sell_price):
     return round(100*(1-sell_price/buy_price), 3)
 
-
-def refreshing_results(currencies, category): 
-    while(True):
-        data = fetchFromAPI(currencies, category)
-        i = 0
-        for currency in currencies:
-            print(
-                f'{currency} % diffrence between sell and buy price: {calculate_percentage_diffrence_of_buy_and_sell_price(data[i][1],data[i][2])}%')
-            i += 1
-        print('======================')
-        sleep(SLEEP_VALUE)
+def split_data_into_packages(data):
+    names = []
+    result = {}
+    for val in data:
+        names.append(val[0])
+        ask = val[1]
+        bid = val[2]
+        time = datetime.now().strftime("%H:%M:%S")
+        result.setdefault('ask', []).append(ask)
+        result.setdefault('bid', []).append(bid)
+    return names, result
 
 
 if __name__ == "__main__":
