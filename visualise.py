@@ -76,8 +76,15 @@ def draw_plots(x_data, y_ask_data, y_bid_data, names):
     plt.xticks(x_data)
 
 
-def animation_frame(i):
+def draw_legend_once():
     global CHECK
+    if CHECK == 0:
+        plt.legend()
+        CHECK = 1
+
+
+def animation_frame(i):
+
     data = fetchFromAPI(currencies, category)
     names, splitted_data = split_data_into_packages(data)
     asks = splitted_data['ask']
@@ -91,9 +98,7 @@ def animation_frame(i):
     plt.xlabel('Time')
     plt.ylabel('Value in USD')
 
-    if CHECK == 0:
-        plt.legend()
-        CHECK = 1
+    draw_legend_once()
 
 
 if __name__ == "__main__":
