@@ -65,6 +65,8 @@ def animation_frame(i):
     x_data.append(datetime.now().strftime("%H:%M:%S"))
     x_data_labels = x_data.copy()
 
+    plt.cla()
+    
     for i in range(len(names)):
         y_ask_data.setdefault(names[i], []).append(asks[i])
         y_bid_data.setdefault(names[i], []).append(bids[i])
