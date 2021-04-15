@@ -56,6 +56,11 @@ def split_data_into_packages(data):
         result.setdefault('bid', []).append(bid)
     return names, result
 
+def append_crypto_data_to_lists(names,asks,bids):
+    for i in range(len(names)):
+        y_ask_data.setdefault(names[i], []).append(asks[i])
+        y_bid_data.setdefault(names[i], []).append(bids[i])
+
 
 def animation_frame(i):
     data = fetchFromAPI(currencies, category)
@@ -67,9 +72,7 @@ def animation_frame(i):
 
     plt.cla()
 
-    for i in range(len(names)):
-        y_ask_data.setdefault(names[i], []).append(asks[i])
-        y_bid_data.setdefault(names[i], []).append(bids[i])
+    append_crypto_data_to_lists(names,asks,bids)
 
     for i in range(len(names)):
         plt.plot(x_data, y_ask_data[names[i]],
