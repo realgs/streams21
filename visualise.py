@@ -7,6 +7,8 @@ from matplotlib.animation import FuncAnimation
 
 SLEEP_VALUE = 0.1
 
+CHECK = 0
+
 
 def add_currency_to_currencies(currencies, currency):
     result = []
@@ -75,13 +77,12 @@ def draw_plots(x_data, y_ask_data, y_bid_data, names):
 
 
 def animation_frame(i):
+    global CHECK
     data = fetchFromAPI(currencies, category)
     names, splitted_data = split_data_into_packages(data)
     asks = splitted_data['ask']
     bids = splitted_data['bid']
     x_data.append(datetime.now().strftime("%H:%M:%S"))
-
-    plt.cla()
 
     append_crypto_data_to_lists(names, asks, bids)
 
@@ -89,7 +90,10 @@ def animation_frame(i):
 
     plt.xlabel('Time')
     plt.ylabel('Value in USD')
-    plt.legend()
+
+    if CHECK == 0:
+        plt.legend()
+        CHECK = 1
 
 
 if __name__ == "__main__":
