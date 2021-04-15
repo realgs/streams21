@@ -80,8 +80,15 @@ def animation_frame(i):
 
 
 if __name__ == "__main__":
-    currencies = ['BTC', 'LTC', 'DASH']
+    currencies = ['LSK', 'LTC', 'DASH']
+    colors = ['blue', 'orange', 'black', 'green', 'yellow', 'purple']
     currency = 'USD'
     currencies = add_currency_to_currencies(currencies, currency)
     category = 'ticker'
-    refreshing_results(currencies, category)
+    x_data = []
+    y_ask_data = {}
+    y_bid_data = {}
+
+    ani = FuncAnimation(plt.gcf(), animation_frame, interval=5000)
+    plt.legend()
+    plt.show()
