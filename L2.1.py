@@ -3,9 +3,10 @@ from requests.exceptions import HTTPError
 import time
 from datetime import datetime
 
+
 URL_START='http://bitbay.net/API/Public/'
 URL_END='USD/ticker.json'
-INTERVAL=10
+INTERVAL=5
 
 def crypto_get(data):
     try:
@@ -17,9 +18,7 @@ def crypto_get(data):
 
     else:
         originalData = response.json()
-        value = (100 - (1 - (float(originalData["ask"]) - float(originalData["bid"])) / float(originalData["bid"])) * 100 )
-        print(f'{data} - Różnica procentowa pomiędzy kupnem a sprzedażą: {value}%')
-        return value
+        return originalData["bid"], originalData["ask"]
 
 
 
