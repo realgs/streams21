@@ -4,12 +4,11 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-
 URL_START='http://bitbay.net/API/Public/'
 URL_END='USD/ticker.json'
 INTERVAL=5
 
-def crypto_get(data):
+def crypto_get(data, cryptovault, json):
     try:
         response = requests.get( URL_START + data + URL_END)
         response.raise_for_status()
@@ -36,7 +35,6 @@ def animate(i):
     crypto_ask_ZRX.append(bid_ZRX)
 
     x_axis_labels=x_axis.copy()
-
     # while True:
     #     i=5
     #     step=2
@@ -48,8 +46,6 @@ def animate(i):
         x_axis_labels = x_axis_labels[::3]
     if len(x_axis_labels) > 25:
         x_axis_labels = x_axis_labels[::5]
-
-
 
     plt.cla()
     # plt.yscale('log')
@@ -65,6 +61,7 @@ def animate(i):
     plt.xlabel('Czas pobrania danych')
     plt.ylabel('Wartość w USD')
     plt.legend()
+
 if __name__ == '__main__':
     x_axis = []
     crypto_bid_LSK = []
@@ -75,4 +72,3 @@ if __name__ == '__main__':
     crypto_ask_ZRX = []
     ani = FuncAnimation(plt.gcf(),animate , interval=5000)
     plt.show()
-
