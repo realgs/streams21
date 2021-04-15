@@ -1,7 +1,11 @@
 import requests as r
 from time import sleep
+from matplotlib import pyplot as plt
+from requests.exceptions import HTTPError
+from datetime import datetime
+from matplotlib.animation import FuncAnimation
 
-SLEEP_VALUE = 5
+SLEEP_VALUE = 1
 
 
 def add_currency_to_currencies(currencies, currency):
