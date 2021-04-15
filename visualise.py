@@ -50,13 +50,14 @@ def split_data_into_packages(data):
     names = []
     result = {}
     for val in data:
-        names.append(val[0])
+        name = val[0]
         ask = val[1]
         bid = val[2]
         time = datetime.now().strftime("%H:%M:%S")
         result.setdefault('ask', []).append(ask)
         result.setdefault('bid', []).append(bid)
-    return names, result
+        result.setdefault('name', []).append(name)
+    return result
 
 
 def append_crypto_data_to_lists(names, asks, bids):
@@ -86,7 +87,8 @@ def draw_legend_once():
 def animation_frame(i):
 
     data = fetchFromAPI(currencies, category)
-    names, splitted_data = split_data_into_packages(data)
+    splitted_data = split_data_into_packages(data)
+    names = splitted_data['name']
     asks = splitted_data['ask']
     bids = splitted_data['bid']
     x_data.append(datetime.now().strftime("%H:%M:%S"))
