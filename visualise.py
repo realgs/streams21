@@ -39,6 +39,7 @@ def fetchFromAPI(currencies, category):
 def calculate_percentage_diffrence_of_buy_and_sell_price(buy_price, sell_price):
     return round(100*(1-sell_price/buy_price), 3)
 
+
 def split_data_into_packages(data):
     names = []
     result = {}
@@ -50,6 +51,32 @@ def split_data_into_packages(data):
         result.setdefault('ask', []).append(ask)
         result.setdefault('bid', []).append(bid)
     return names, result
+
+
+def animation_frame(i):
+    data = fetchFromAPI(currencies, category)
+    names, splitted_data = split_data_into_packages(data)
+    asks = splitted_data['ask']
+    bids = splitted_data['bid']
+    x_data.append(datetime.now().strftime("%H:%M:%S"))
+    x_data_labels = x_data.copy()
+
+    for i in range(len(names)):
+        y_ask_data.setdefault(names[i], []).append(asks[i])
+        y_bid_data.setdefault(names[i], []).append(bids[i])
+
+    for i in range(len(names)):
+        plt.plot(x_data, y_ask_data[names[i]],
+                 linewidth=1, label='Asks of ' + names[i])
+        plt.plot(x_data, y_bid_data[names[i]],
+                 linewidth=1, label='Bids of ' + names[i])
+
+    plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
+    plt.xticks(x_data_labels)
+
+    plt.xlabel('Time')
+    plt.ylabel('Value in USD')
+    plt.legend()
 
 
 if __name__ == "__main__":
