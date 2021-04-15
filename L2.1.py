@@ -20,7 +20,7 @@ def crypto_get(data):
         originalData = response.json()
         return originalData["bid"], originalData["ask"]
 
-
+def animate(i):
 
 while True:
     now = datetime.now()
