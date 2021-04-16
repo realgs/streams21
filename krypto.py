@@ -3,14 +3,16 @@ import time
 import sys
 
 
-def fetchBitbayAPI(category, resource):
+def get_bitbay_data(category, resource):
     URL = f'https://bitbay.net/API/Public/{resource}/{category}.json'
-    response = requests.get(URL)
-    if response.status_code == 200:
+    try:
+        response = requests.get(URL)
         return response.json()
+    except Exception as e:
+        print(e)
 
 
-def printOffers(orders, resource):
+def print_offers(orders, resource):
     try:
         buy = orders['bids']
         sell = orders['asks']
@@ -26,9 +28,9 @@ def printOffers(orders, resource):
         print(e)
 
 
-def monitorOffers(resource):
+def monitor_offers(resource, freq):
     while 1:
-        orders = fetchBitbayAPI(category='orderbook', resource='BTCUSD')
+        orders = get_bitbay_data(category='orderbook', resource='BTCUSD')
         bid_rate = orders['bids'][0][0]
         ask_rate = orders['asks'][0][0]
         diff = (ask_rate-bid_rate) / bid_rate
@@ -37,18 +39,19 @@ def monitorOffers(resource):
         else:
             print('+', abs(diff))
 
-        time.sleep(FREQUENCY)
+        time.sleep(freq)
 
 
 if __name__ == '__main__':
-
-    RESOURCES = ['BTCUSD', 'LTCUSD', 'DASHUSD']
+    MAIN_CURRENCY = 'USD'
+    CRYPTO_CURRENCY = ['BTC', 'LTC', 'DASH']
     FREQUENCY = 5
 
     arg = sys.argv[1]
     if arg == '1':
-        for R in RESOURCES:
-            orders = fetchBitbayAPI(category='orderbook', resource=R)
-            printOffers(orders, R)
+        for currency in CRYPTO_CURRENCY:
+            resource = currency + MAIN_CURRENCY
+            orders = get_bitbay_data('orderbook', resource)
+            print_offers(orders, resource)
     elif arg == '2':
-        monitorOffers(resource='BTCUSD')
+        monitor_offers(resource='BTCUSD', freq=FREQUENCY)
