@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import currency
 from matplotlib.animation import FuncAnimation
+from matplotlib import style
 import datetime
 
 
@@ -29,7 +30,7 @@ def get_bid_ask(url: str, pair: str):
 
 def change_single_pair(number):
     print(f"Number of iteration: {number}")
-    global ask_values, bid_values, times_list, URL, PAIR
+    global ask_values, bid_values, times_list, URL, PAIR, is_legend
 
     res = get_bid_ask(URL, PAIR)
     ask_values.append(res[0])
@@ -41,14 +42,15 @@ def change_single_pair(number):
     if len(current_time_labels) > 12:
         current_time_labels = current_time_labels[::4]
 
-    plt.cla()
     plt.title(PAIR)
 
     plt.plot(times_list, ask_values, color='green', label='ask')
     plt.plot(times_list, bid_values, color='red', label='bid')
 
     plt.xticks(current_time_labels, rotation='vertical')
-    plt.legend(loc=2)
+    if not is_legend:
+        plt.legend(loc=2)
+        is_legend = True
 
 
 if __name__ == "__main__":
@@ -56,12 +58,16 @@ if __name__ == "__main__":
     REPEAT = 20
 
     PAIR = 'BTC-USD'
+    #PAIR = 'ETH-USD'
+    #PAIR = 'LTC-USD'
     URL = "https://api.bittrex.com/v3/markets/{}/orderbook".format(PAIR)
     MAX_LENGTH = 20
+    is_legend = False
 
     ask_values = list()
     bid_values = list()
     times_list = list()
 
+    style.use('ggplot')
     animation = FuncAnimation(plt.gcf(), func=change_single_pair, interval=FREQUENCY*1000)
     plt.show()
