@@ -69,3 +69,13 @@ def draw_plot(x_data_BTC,x_data_LTC,x_data_DASH,plt_BTC,plt_LTC,plt_DASH):
     plt.legend()
 
     plt.pause(time_sleep)
+
+if __name__=="__main__":
+    x_data_BTC= []
+    x_data_LTC = []
+    x_data_DASH = []
+    plt_BTC= []
+    plt_LTC = []
+    plt_DASH = []
+    while True:
+        draw_plot(x_data_BTC, x_data_LTC, x_data_DASH, plt_BTC, plt_LTC, plt_DASH)
