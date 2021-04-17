@@ -36,3 +36,36 @@ def plot_data(x_data_BTC,x_data_LTC,x_data_DASH,plt_BTC,plt_LTC,plt_DASH):
     plt_DASH.append(bid_DASH)
 
     return x_data_BTC,x_data_LTC,x_data_DASH,plt_BTC,plt_LTC,plt_DASH
+
+def draw_plot(x_data_BTC,x_data_LTC,x_data_DASH,plt_BTC,plt_LTC,plt_DASH):
+    x_data_BTC_d, x_data_LTC_d, x_data_DASH_d, plt_BTC_d, plt_LTC_d, plt_DASH_d=plot_data(x_data_BTC,x_data_LTC,x_data_DASH,plt_BTC, plt_LTC, plt_DASH)
+
+    plt.subplot(311).cla()
+    plt.subplot(312).cla()
+    plt.subplot(313).cla()
+
+    plt.subplot(311)
+    plt.plot(x_data_BTC_d, plt_BTC_d[::2], label='BTC_ask')
+    plt.plot(x_data_BTC_d, plt_BTC_d[1::2], label='BTC_bid')
+    plt.xticks(x_data_BTC_d, rotation=35)
+    plt.xlabel('Godzina')
+    plt.ylabel('Wartość')
+    plt.legend()
+
+    plt.subplot(312)
+    plt.plot(x_data_LTC_d,plt_LTC_d[::2],label='LTC_ask')
+    plt.plot(x_data_LTC_d, plt_LTC_d[1::2], label='LTC_bid')
+    plt.xticks(x_data_LTC_d, rotation=35)
+    plt.xlabel('Godzina')
+    plt.ylabel('Wartość')
+    plt.legend()
+
+    plt.subplot(313)
+    plt.plot(x_data_DASH_d,plt_DASH_d[::2],label='DASH_ask')
+    plt.plot(x_data_DASH_d, plt_DASH_d[1::2], label='DASH_bid')
+    plt.xticks(x_data_DASH_d, rotation=35)
+    plt.xlabel('Godzina')
+    plt.ylabel('Wartość')
+    plt.legend()
+
+    plt.pause(time_sleep)
