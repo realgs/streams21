@@ -36,30 +36,4 @@ def plot_data(x_data,plt_BTC,plt_LTC,plt_DASH):
 
     return x_data,plt_BTC,plt_LTC,plt_DASH
 
-def draw_plot(i):
-    x_data_a, plt_BTC_a, plt_LTC_a, plt_DASH_a = plot_data(x_data, plt_BTC, plt_LTC, plt_DASH)
-    plt.cla()
 
-    plt.plot(x_data_a, plt_BTC_a[::2], label='BTC_ask')
-    plt.plot(x_data_a, plt_BTC_a[1::2], label='BTC_bid')
-
-    plt.plot(x_data_a, plt_LTC_a[::2], label='LTC_ask')
-    plt.plot(x_data_a, plt_LTC_a[1::2], label='LTC_bid')
-
-    plt.plot(x_data_a, plt_DASH_a[::2], label='DASH_ask')
-    plt.plot(x_data_a, plt_DASH_a[1::2], label='DASH_bid')
-
-    plt.xticks(x_data_a, rotation=35)
-
-    plt.xlabel('Godzina')
-    plt.ylabel('Wartość')
-    plt.legend()
-
-
-if __name__=="__main__":
-    x_data = []
-    plt_BTC= []
-    plt_LTC = []
-    plt_DASH = []
-    T_animation=animation(plt.figure(),draw_plot,interval=1000*time_sleep)
-    plt.show()
