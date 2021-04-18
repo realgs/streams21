@@ -24,3 +24,25 @@ def get_data(currency, p_currency):
     except requests.exceptions.HTTPError:
         print("No connection to the server.")
         sys.exit()
+
+
+def plot(currencies, data, times, k):
+
+    plots = len(data[0])
+    for p in range(plots):
+        y = []
+
+        for d in data:
+            y.append(d[p][1])
+            x = [i for i in range(len(y))]
+        l = max(0, len(x)-20)
+        r = (len(x))
+        plt.plot(x, y, "-", label=currencies[p])
+
+    plt.legend()
+    plt.xticks(ticks=x, labels=times, rotation=50)
+    plt.xlabel("Time")
+    plt.ylabel("Bids-asks difference [%]")
+    plt.xlim(left=l, right=r)
+    plt.pause(k)
+    plt.clf()
