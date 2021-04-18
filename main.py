@@ -51,3 +51,4 @@ if __name__ == "__main__":
     plt3 = []
     animacja = FuncAnimation(plt.figure(), plots, Interwal)
     plt.show()
+    
