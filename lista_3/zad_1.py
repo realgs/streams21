@@ -75,7 +75,7 @@ def show_plots():
     counter = 0
     req_times, bids_table, asks_table = arrays(n), arrays(n), arrays(n)
 
-    fig, axis = plt.subplots(n)
+    fig, axis = plt.subplots(n,figsize=(16,9))
     lines = []
 
     for i in range(n):
