@@ -38,9 +38,12 @@ def animated_chart(i):
     asks_list.append(bid_results[1])
     time_list.append(bid_results[2])
 
+    plt.cla()
     plt.title(f'Crypto {crypto_to_char} plot')
+    plt.xticks(rotation="vertical")
     plt.plot(time_list, bids_list, color='green', label='bid')
     plt.plot(time_list, asks_list, color='red', label='ask')
+    plt.legend()
 
 
 if __name__ == "__main__":
