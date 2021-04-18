@@ -5,6 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation as animation
 
+
 CURRIENCES = ['ZEC', 'ETH', 'XRP']
 SLEEP_TIME = 5
 URL_BEG = 'https://bitbay.net/API/Public/'
@@ -39,6 +40,20 @@ def plotData(time_data, prices):
 
     return time_data, prices
 
+def plotLoop(i):
+    time_data_p, prices_p = plotData(time_data, prices)
+    time_data_p = time_data_p[-5:]
+    plt.cla()
+    for cur in CURRIENCES:
+        plt.plot(time_data_p, prices[cur]['buy'][-5:], label=f'{cur} buy')
+        plt.plot(time_data_p, prices[cur]['sell'][-5:], label=f'{cur} sell')
+
+    plt.xticks(time_data_p, rotation=35)
+
+    plt.xlabel('Time')
+    plt.ylabel('Price')
+    plt.legend()
+
 def dataFrame(CURRIENCES=CURRIENCES, prices = {}):
     for cur in CURRIENCES:
         buy, sell = getData(cur)
@@ -49,3 +64,6 @@ def dataFrame(CURRIENCES=CURRIENCES, prices = {}):
 if __name__ == '__main__':
     time_data = []
     prices = dataFrame()
+    T_animation=animation(plt.figure(),plotLoop,interval=1000*SLEEP_TIME)
+    plt.show()
+
