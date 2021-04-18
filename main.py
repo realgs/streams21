@@ -49,6 +49,6 @@ if __name__ == "__main__":
     plt1 = []
     plt2 = []
     plt3 = []
-    animacja = FuncAnimation(plt.figure(), plots, Interwal)
+    animations = FuncAnimation(plt.figure(), plots, Interwal)
     plt.show()
     
