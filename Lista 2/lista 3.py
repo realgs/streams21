@@ -38,11 +38,12 @@ def draw_values(currency_l, buy_prices_l, sell_prices_l, plt_l, index_l):
     y1 = y1_np[0:values_amount]
     y2 = y2_np[0:values_amount]
 
+    plt.subplot(3, 1, index_l + 1)
     plt_l.plot(x, y1, label="Buy price " + currency_l)
     plt_l.plot(x, y2, label="Sell price " + currency_l)
     plt_l.title(currency_l)
 
-    plt_l.legend()
+    plt_l.legend(loc='upper left')
     plt_l.draw()
 
 
