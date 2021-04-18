@@ -2,9 +2,9 @@ from requests import get
 import matplotlib.pyplot as plt
 
 
-def request_crypto(crypt, template):
+def request_crypto(crypt, ref_curr, template):
     try:
-        request = template[0] + crypt + template[1]
+        request = template[0] + crypt + ref_curr + template[1]
         resp = get(request)
         status = str(resp.status_code)
         assert status[0] == '2', "wrong status: " + status
@@ -24,14 +24,14 @@ def update_data(data_storage, data, name, attrs):
         data_storage[name][attr].append(data[i])
 
 
-def visualise(stop_interval, data_storage, names, attrs, axes, t, colors_storage, template):
+def visualise(stop_interval, data_storage, names, ref_curr, attrs, axes, t, colors_storage, template):
     crypto_num = len(names)
     attr_num = len(attrs)
     possible_to_plot = False
     t_val = t[-1]
     for i in range(crypto_num):
         crypto = names[i]
-        crypto_data = request_crypto(crypto, template)
+        crypto_data = request_crypto(crypto, ref_curr, template)
         update_data(data_storage, crypto_data, crypto, attrs)
         print(f'{crypto} data at time: {t_val}s:')
         for j in range(attr_num - 1):
@@ -48,7 +48,7 @@ def visualise(stop_interval, data_storage, names, attrs, axes, t, colors_storage
             axes[-1].plot(t, last_attr_data, color=colors_storage[crypto], label=f'{crypto}')
         axes[i].set_title(crypto)
         axes[i].set_xlabel('time')
-        axes[i].set_ylabel('value')
+        axes[i].set_ylabel(f'value ({ref_curr})')
         if possible_to_plot:
             axes[i].legend()
             axes[i].set_xlim(xmin=0, xmax=t_val)
@@ -57,7 +57,7 @@ def visualise(stop_interval, data_storage, names, attrs, axes, t, colors_storage
         axes[-1].legend()
     axes[-1].set_title('buy/sell ratio')
     axes[-1].set_xlabel('time')
-    axes[-1].set_ylabel('value')
+    axes[-1].set_ylabel('value (%)')
 
     plt.draw()
     if len(t) >= 2:
@@ -68,6 +68,7 @@ def visualise(stop_interval, data_storage, names, attrs, axes, t, colors_storage
 
 
 cryptos = ['BTC', 'LTC', 'ETH']
+refference_currency = 'PLN'
 attributes = ['sell', 'buy', 'ratio']
 colors = {'sell': 'r', 'buy': 'g', 'BTC': 'brown', 'LTC': 'orange', 'ETH': 'b'}
 crypt_values = {'BTC': {'buy': [], 'sell': [], 'ratio': []},
@@ -78,10 +79,10 @@ time_values = []
 plt.ion()
 time_val = 0
 actualisation_interval = 5
-
 fig, ax = plt.subplots(4, 1, figsize=(10, 8), constrained_layout=True)
 while True:
     fig.suptitle('Cryptocurrencies Data')
     time_values.append(time_val * 5)
-    visualise(actualisation_interval, crypt_values, cryptos, attributes, ax, time_values, colors, req_temp)
+    visualise(actualisation_interval, crypt_values, cryptos, refference_currency, attributes, ax, time_values, colors,
+              req_temp)
     time_val += 1
