@@ -11,7 +11,7 @@ def Dates():
     BTCSell.append(sell)
 
     time_list_LTC.append(datetime.datetime.now())
-    buy, sell = Values("ZEC")
+    buy, sell = Values("LTC")
     LTCBuy.append(buy)
     LTCSell.append(sell)
 
