@@ -54,7 +54,7 @@ def drawPlot(market):
 
 
 def showPlots(markets):
-    fig = plt.figure(figsize=(14, 10))
+    fig = plt.figure(figsize=(12, 8))
 
     for i in range (0, len(markets)):
         plt.subplot(3, 1, i+1)
