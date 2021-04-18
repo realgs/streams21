@@ -75,7 +75,6 @@ crypt_values = {'BTC': {'buy': [], 'sell': [], 'ratio': []},
                 'ETH': {'buy': [], 'sell': [], 'ratio': []}}
 req_temp = ('https://bitbay.net/API/Public/', '/ticker.json')
 time_values = []
-status = '200'
 plt.ion()
 time_val = 0
 actualisation_interval = 5
