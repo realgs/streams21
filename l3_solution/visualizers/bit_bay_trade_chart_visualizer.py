@@ -59,21 +59,6 @@ class BitbayTradeChartVisualizer:
     i = 1
 
     def plot_charts(self):
-
-        # x = np.linspace(0, 10 * np.pi, 100)
-        # y = np.sin(x)
-        # if self.is_visualized is False:
-        #     plt.ion()
-        #     self.fig = plt.figure()
-        #     self.ax = self.fig.add_subplot(111)
-        #     self.is_visualized = True
-        # else:
-        #     line1, = self.ax.plot(x, y, 'b-')
-        #     line1.set_ydata(np.sin(0.5 * x + self.i))
-        #     self.fig.canvas.draw()
-        #     self.fig.canvas.flush_events()
-        #     self.i += 1
-
         if self.is_visualized:
             self.update_plot()
         else:
