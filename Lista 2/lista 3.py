@@ -56,11 +56,15 @@ if __name__ == "__main__":
     plt.ion()
     plt.show()
 
-    while True:
-        for currency in currencies:
-            import_values(currency, buy_prices, sell_prices, URL, currencies.index(currency))
-            draw_values(currency, buy_prices, sell_prices, plt, currencies.index(currency))
+    try:
+        while True:
+            for currency in currencies:
+                import_values(currency, buy_prices, sell_prices, URL, currencies.index(currency))
+                draw_values(currency, buy_prices, sell_prices, plt, currencies.index(currency))
 
-        plt.pause(0.0001)
-        plt.clf()
-        time.sleep(5)
+            plt.pause(0.0001)
+            plt.clf()
+            time.sleep(5)
+    except KeyboardInterrupt:
+        pass
+
