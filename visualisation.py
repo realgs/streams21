@@ -46,3 +46,21 @@ def plot(currencies, data, times, k):
     plt.xlim(left=l, right=r)
     plt.pause(k)
     plt.clf()
+
+
+def plot_data(currencies, p_currency, k):
+    data = []
+    times = []
+    while True:
+        d = []
+        for currency in currencies:
+            bids, asks = get_data(currency, p_currency)
+            d.append([currency, diff(bids, asks)])
+
+        data.append(d)
+        times.append(datetime.now().strftime("%H:%M:%S"))
+
+        print(data)
+        print(times)
+
+        plot(currencies, data, times, k)
