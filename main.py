@@ -5,6 +5,8 @@ import requests
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 from itertools import count
+import copy
+
 
 
 #liczba punktów na X = 20. jest przemiszczny wykres w prawo
@@ -35,46 +37,58 @@ def count_minmax(data):
 
     return min_sell, max_buy
 
-def data_stream(crypt, x, y_1, y_2, i):
+def data_stream(crypt, x, y_1, y_2, i, range=5):
     x.append(i)
-    data = get_data(crypt, 'orderbook')
+    data = get_data(crypt, 'trades')
     min, max = count_minmax(data)
     y_1.append(min)
     y_2.append(max)
+    if len(x) > range:
+        x.pop(0)
+        y_1.pop(0)
+        y_2.pop(0)
     return [x, y_1, y_2]
 
 
 
 def animate(i):
-    global x, y_1, y_2, stop_point
-    if i == stop_point:
-        exit('FINISHED')
+    global x, y_1, y_2, legend
+    print(x, y_1, y_2)
+
     temp = data_stream('DASH', x, y_1, y_2, i)
-    #fig, ax = plt.subplots(1)
     x = temp[0]
     y_1 = temp[1]
     y_2 = temp[2]
-    plt.plot(x, y_1, label= 'min1', color= 'red')
-    plt.plot(x, y_2, label= 'max1', color = 'green')
-    plt.legend()
 
-def plot_data():
-    ani = FuncAnimation(plt.gcf(), func=animate, interval=1000)
+    ax.plot(x, y_1, label= 'min1', color= 'red')
+    ax.plot(x, y_2, label= 'max1', color = 'blue')
+    legend = ax.legend(['min1', 'max1'])
 
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Jakiś wykres')
+
+def plot_data(x_label, y_label, title):
+    ani = FuncAnimation(fig, func=animate, interval=1000)
+
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
     #plt.legend()
     plt.tight_layout()
     plt.show()
 
 
-x = []
-y_1 = []
-y_2 = []
-stop_point = 10
+if __name__ == "__main__":
+    fig = plt.figure()
+    ax = plt.axes(xlim=(0, 5))
+    line, = ax.plot([], [], lw=3)
+    legend = ''
+    x = []
+    y_1 = []
+    y_2 = []
+    stop_point = 10
+    crypt = 'BTC'
+    currency = 'USD'
+    plot_data('', currency, crypt)
 
-#plot_data()
-crypt = 'BTC'
-url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json".format(Currency=[crypt, 'USD'], Category='market')
-print(url)
+    url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json?sort=desc".format(Currency=[crypt, currency], Category='trades')
+    print(url)
