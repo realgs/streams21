@@ -31,23 +31,7 @@ def Values(currency):
         print("Something went wrong")
 
 def plot():
-    def update_plot(i):
-        Dates()
-        lines[0][0].set_data(time_list_BTC, BTCBuy)
-        lines[1][0].set_data(time_list_BTC, BTCSell)
-        lines[2][0].set_data(time_list_LTC, LTCBuy)
-        lines[3][0].set_data(time_list_LTC, LTCSell)
-        lines[4][0].set_data(time_list_DASH, DASHBuy)
-        lines[5][0].set_data(time_list_DASH, DASHSell)
-
-        ax[0].relim()
-        ax[1].relim()
-        ax[2].relim()
-        ax[0].autoscale_view()
-        ax[1].autoscale_view()
-        ax[2].autoscale_view()
-
-    lines = list()
+    global ax
     fig, ax = plt.subplots(3)
     fig.tight_layout(pad=2)
 
@@ -73,6 +57,21 @@ def plot():
     plt.autoscale()
     plt.show()
 
+def update_plot(i):
+    Dates()
+    lines[0][0].set_data(time_list_BTC, BTCBuy)
+    lines[1][0].set_data(time_list_BTC, BTCSell)
+    lines[2][0].set_data(time_list_LTC, LTCBuy)
+    lines[3][0].set_data(time_list_LTC, LTCSell)
+    lines[4][0].set_data(time_list_DASH, DASHBuy)
+    lines[5][0].set_data(time_list_DASH, DASHSell)
+
+    ax[0].relim()
+    ax[1].relim()
+    ax[2].relim()
+    ax[0].autoscale_view()
+    ax[1].autoscale_view()
+    ax[2].autoscale_view()
 
 time_list_BTC = list()
 time_list_LTC = list()
@@ -83,4 +82,5 @@ LTCBuy = list()
 LTCSell = list()
 DASHBuy = list()
 DASHSell = list()
+lines = list()
 plot()
