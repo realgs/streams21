@@ -67,6 +67,6 @@ def generate_graph(data, interval):
 
 if __name__ == '__main__':
     interval = 5
-    currency1 = ["BTC", "ETH", "TRX"]
+    currency1 = ["BTC", "LTC", "ETH"]
     currency2 = "USD"
     create_graph ( currency1, currency2, interval )
