@@ -20,6 +20,10 @@ CODES = [200,201,202,203,204,205,206]
 
 def market():
     counter = 1
+    global df_b
+    global df_a
+    bids_table = []
+    asks_table = []
     FILE_PATH = 'market.csv'
     while True:
         print(counter, "survey of buy - sell difference:")
@@ -30,12 +34,12 @@ def market():
                     bids = request.json()['bids'][0][0]
                     asks = request.json()['asks'][0][0]
                     print(key,'->',calc(bids,asks),"%")
-                    col = [bids]
-                    col.append(asks)
-                    col.append(key)
-                    df = pd.DataFrame(col)
-                    df = df.T
-                    df.to_csv(FILE_PATH, mode='a', index=False, header=False)
+                    bids_table.append(bids)
+                    asks_table.append(asks)
+                    df_b = pd.DataFrame(bids_table)
+                    df_a = pd.DataFrame(asks_table)
+                    df_b = df_b.T
+                    df_a = df_a.T
                 else:
                     print('ERROR')
             except HTTPError:
@@ -47,6 +51,8 @@ def market():
 
 def calc(bids, asks):
     return round(((1 - (asks - bids)/bids)*100),2)
+    
 
+ani = FuncAnimation(plt.gcf(), market, interval=250)
 
 print(market())
