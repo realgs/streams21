@@ -1,7 +1,6 @@
 from requests import get
 import time
 import sys
-import matplotlib.pyplot as plt
 
 def connection(currency):
     return f'https://bitbay.net/API/Public/{currency}/orderbook.json'
