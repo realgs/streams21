@@ -1,7 +1,11 @@
 import requests
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import datetime
+
+crypto = ["BTC", "LTC", "DASH"]
+curr = "USD"
 
 
 def path(currency):
@@ -46,3 +50,21 @@ def animated_plot(i):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.legend(["Bid BTC", "Ask BTC", "Bid LTC", "Ask LTC", "Bid DASH", "Ask DASH"])
+
+
+if __name__ == '__main__':
+    x_val = []
+    bid_y_val_BTC = []
+    ask_y_val_BTC = []
+
+    bid_y_val_LTC = []
+    ask_y_val_LTC = []
+
+    bid_y_val_DASH = []
+    ask_y_val_DASH = []
+
+    fig = plt.figure(figsize=(23, 10))
+    ani = FuncAnimation(fig, animated_plot, interval=5000)
+
+    plt.show()
+
