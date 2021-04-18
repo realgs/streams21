@@ -29,6 +29,15 @@ def getData(currency):
     sell = data["ask"]
     return buy, sell
 
+def plotData(time_data, prices):
+    for cur in CURRIENCES:
+        buy, sell = getData(cur)
+        prices[cur]['buy'].append(buy)
+        prices[cur]['sell'].append(sell)
+
+    time_data.append(datetime.now().strftime("%H:%M:%S"))
+
+    return time_data, prices
 
 def dataFrame(CURRIENCES=CURRIENCES, prices = {}):
     for cur in CURRIENCES:
