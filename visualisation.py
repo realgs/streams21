@@ -64,3 +64,14 @@ def plot_data(currencies, p_currency, k):
         print(times)
 
         plot(currencies, data, times, k)
+
+
+def main():
+    currencies = ['BTC', 'ETH', 'DOT', 'UNI', 'SUSHI']
+    p_currency = 'PLN'
+    k = 0.1
+    plot_data(currencies, p_currency, k)
+
+
+if __name__ == '__main__':
+    main()
