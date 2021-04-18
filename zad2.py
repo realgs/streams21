@@ -34,3 +34,11 @@ def getData(currency):
     buy = data["bid"]
     sell = data["ask"]
     return buy, sell
+
+def plotData(prices):
+    for cur in CURRIENCES:
+        buy, sell = getData(cur)
+        prices[cur]['buy'].append(buy)
+        prices[cur]['sell'].append(sell)
+
+    return prices
