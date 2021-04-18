@@ -32,7 +32,8 @@ def getCurrencyData(currency, category):
         return False
 
     if response.status_code == 200:
-        print(f"-----------{currency}-------------")
+        print("=======================================")
+        print(f"Różnica kupna a sprzedaży waluty: {currency}")
         json = response.json()
         response = json
         sell_price = response['ask']
