@@ -6,6 +6,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.dates import DateFormatter
 
 INTERVAL = 5000
+MAX_POINTS = 100
 
 
 def get_data(currency_pair, method):
@@ -66,6 +67,11 @@ def update(_,*args):
         buy[i].append(data[0])
         sell[i].append(data[1])
         date[i].append(data[2])
+
+        if len(buy[i]) > MAX_POINTS:
+            buy[i].pop(0)
+            sell[i].pop(0)
+            date[i].pop(0)
         
         data_lines[i*2][0].set_data(date[i], buy[i])
         data_lines[i*2+1][0].set_data(date[i], sell[i])
