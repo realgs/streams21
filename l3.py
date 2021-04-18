@@ -1,9 +1,7 @@
 import requests
-import time
 from datetime import datetime
 import sys
 import matplotlib.pyplot as plt
-
 
 
 def get_data(currency):
@@ -12,7 +10,8 @@ def get_data(currency):
         response = requests.get(url)
         if response.status_code == 200:
             resp_json = response.json()
-            current_time = datetime.now()
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
             selling_cost = resp_json['ask']
             purchase_cost = resp_json['bid']
             return current_time, selling_cost, purchase_cost
@@ -25,7 +24,7 @@ def get_data(currency):
 
 
 def gen_empty_list(currency_list):
-    return {i:[] for i in currency_list}
+    return {i: [] for i in currency_list}
 
 
 def update_data(values):
@@ -38,22 +37,27 @@ def draw_plot(currency_list, time_interval):
 
     cur_num = len(currency_list)
     values = gen_empty_list(currency_list)
-
+    fig, axs = plt.subplots(3, 1, figsize=(12, 10))
     for i in range(cur_num):
-        fig, axs = plt.subplot(i+1, 1, i+1)
-        plt.title(currency_list(i))
+        axs[i].set_title(currency_list[i])
 
     while True:
         update_data(values)
         for n in range(cur_num):
             if len(values[currency_list[n]]) == 2:
-                time = [values[currency_list[n]][-2:][0]]
-                sell = [values[currency_list[n]][-2:][1]]
-                purchase = [values[currency_list[n]][-2:][2]]
+                time = [values[currency_list[n]][-1][0], values[currency_list[n]][-2][0]]
+                sell = [values[currency_list[n]][-1][1], values[currency_list[n]][-2][1]]
+                purchase = [values[currency_list[n]][-1][2], values[currency_list[n]][-2][2]]
+                axs[n].plot(time, sell, label="Selling cost", color='lime')
+                axs[n].plot(time, purchase, label="Purchase cost", color='m')
+                axs[n].legend()
             elif len(values[currency_list[n]]) > 2:
-                pass
-
-
+                time = [values[currency_list[n]][-1][0], values[currency_list[n]][-2][0]]
+                sell = [values[currency_list[n]][-1][1], values[currency_list[n]][-2][1]]
+                purchase = [values[currency_list[n]][-1][2], values[currency_list[n]][-2][2]]
+                axs[n].plot(time, sell, color='lime')
+                axs[n].plot(time, purchase, color='m')
+        plt.pause(time_interval)
 
 
 if __name__ == '__main__':
