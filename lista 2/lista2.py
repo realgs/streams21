@@ -1,50 +1,34 @@
 import requests
 import time
+URL = "https://api.bitbay.net/rest/trading/orderbook/"
+FIRST_POSITION = 0
+FIFE = 5
+CURRENCY = ["BTC-USD", "LTC-USD", "DASH-USD"]
 
-def sell_offer (currency, N):
-    url = f"https://api.bitbay.net/rest/trading/orderbook/{currency}"
+
+def get_data(currency):
+    temp_url = URL + currency
+    print(temp_url)
     headers = {'content-type': 'application/json'}
-    response = requests.request("GET", url, headers=headers).json()
+    response = requests.request("GET", temp_url, headers=headers).json()
 
-    i = 0
-    result = []
-    while i < N:
-        result.append(response['sell'][i]['ra'])
-        i += 1
-    return result
+    try:
+        buy = float(response['buy'][FIRST_POSITION]['ra'])
+        sell = float(response['sell'][FIRST_POSITION]['ra'])
+    except ValueError:
+        print(">>> ValueError: could not convert string to float ")
 
-def buy_offer (currency, N):
-    url = f"https://api.bitbay.net/rest/trading/orderbook/{currency}"
-    headers = {'content-type': 'application/json'}
-    response = requests.request("GET", url, headers=headers).json()
+    return (buy, sell)
 
-    i = 0
-    result = []
-    while i < N:
-        result.append(response['buy'][i]['ra'])
-        i += 1
-    return result
+
 
 def diff (currency):
     while True:
-        sell = float(sell_offer(currency, 1)[0])
-        buy = float(buy_offer(currency, 1)[0])
-        print(1 - (sell - buy) / sell)
-        time.sleep(5)
+        buy, sell = get_data(currency)
+        print((1 - (sell - buy) / sell) * 100)
+        time.sleep(FIFE)
 
 def main():
-    # print("BTC-USD")
-    # print("Sell prices:", sell_offer("BTC-USD", 3))
-    # print("Buy prieces:", buy_offer("BTC-USD", 3))
-    # print("LTC-USD")
-    # print("Sell prieces:", sell_offer("LTC-USD", 10))
-    # print("Buy prieces:", buy_offer("LTC-USD", 10))
-    # print("DASH-USD")
-    # print("Sell prieces:", sell_offer("DASH-USD", 5))
-    # print("Buy prieces:", buy_offer("DASH-USD", 5))
-    print("------------")
-    # diff("BTC-USD")
-    # diff("LTC-USD")
     diff("DASH-USD")
 
 if __name__ == '__main__':
