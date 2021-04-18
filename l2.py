@@ -1,26 +1,37 @@
-import requests as r
+import requests
 import time
 
-def currencies(url):
-    for key in url.keys():
-        resp = r.get(url[key])
-        print(f'{key}')
-        print(resp.json())
 
-def percentage_results(url):
-    i=1
+base_currency = 'USD'
+currencies = ['BTC', 'LTC', 'DASH']
+url = 'https://bitbay.net/API/Public/'
+post = '/orderbook.json'
+time_interval = 5
+
+
+def get_data(currency, post):
+    try:
+        r = requests.get(url+currency+base_currency+post)
+        r.raise_for_status()
+        return r.json()
+
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+
+
+if __name__ == '__main__':
+
+    for currency in currencies:
+        r = get_data(currency, post)
+        print(f'{currency+base_currency} -----------------------------------')
+        print(r)
+
+    print('\nPercentage difference between bids and asks:')
     while True:
-        print('---------------------------------- ' + str(i) + ' ----------------------------------')
-        i += 1
-        for key in url.keys():
-            resp = r.get(url[key])
-            result = 100 * (1 - (resp.json()['asks'][0][0] - resp.json()['bids'][0][0]) / resp.json()['bids'][0][0])
-            print(f'{key}:', round(result, 4))
-        time.sleep(5)
+        for currency in currencies:
+            r = get_data(currency, post)
+            result = 1 - (r['asks'][0][0] - r['bids'][0][0]) / r['bids'][0][0]
+            print(f'{currency+base_currency}: ', round(result, 4))
 
-urls = {'BTCUSD': 'https://bitbay.net/API/Public/BTCUSD/orderbook.json',
-        'LTCUSD': 'https://bitbay.net/API/Public/LTCUSD/orderbook.json',
-        'DASHUSD': 'https://bitbay.net/API/Public/DASHUSD/orderbook.json'}
-
-currencies(urls)
-percentage_results(urls)
+        print('\n')
+        time.sleep(time_interval)
