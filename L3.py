@@ -11,7 +11,7 @@ def calculate_diff(buy, sell):
 
 def get_values(currency1):
     try:
-        req = requests.get ( connect ( currency1, "USD" ) ).json ()
+        req = requests.get (connect(currency1, "USD")).json()
         bid = req['bids']
         ask = req['asks']
 
@@ -48,25 +48,25 @@ def create_graph(currency1, currency2, interval):
 def generate_graph(data, interval):
 
     plt.ion ()
-    t = np.arange ( 0, 5 * (len ( data )), 5 )
-    number = len ( data[0] )
+    t = np.arange (0,5 *(len(data)), 5)
+    number = len(data[0])
 
-    for i in range ( number ):
+    for i in range (number):
         y = []
         for j in data:
-            y.append ( j[i][1] )
-        plt.plot ( t, y, "--*", label=data[0][i][0], )
+            y.append (j[i][1])
+        plt.plot (t, y, "--*", label=data[0][i][0])
 
     plt.legend ()
-    plt.xlabel ( "time" )
-    plt.ylabel ( "difference" )
-    plt.xlim ( [-0.1, t[-1] + 1] )
+    plt.xlabel ("time")
+    plt.ylabel ("difference")
+    plt.xlim ([-0.1, t[-1] + 1])
     plt.draw ()
-    plt.pause ( interval )
+    plt.pause (interval)
     plt.clf ()
 
 if __name__ == '__main__':
     interval = 5
     currency1 = ["BTC", "LTC", "ETH"]
     currency2 = "USD"
-    create_graph ( currency1, currency2, interval )
+    create_graph (currency1, currency2, interval)
