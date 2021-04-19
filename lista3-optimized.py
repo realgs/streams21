@@ -16,7 +16,6 @@ def data(currency):
     return response["ask"], response["bid"]
 
 
-
 def plot_data(plot_1, plot_2, plot_3):
     ask_BTC, bid_BTC = data(currencies[0])
     ask_LTC, bid_LTC = data(currencies[1])
