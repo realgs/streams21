@@ -54,7 +54,10 @@ def draw_figure():
         temp += 1
 
     for i in range(PAIRS_COUNT):
-      ax[i].set_ylim(0.75 * max(bids[PAIRS[i][0]]), 1.25 * max(asks[PAIRS[i][0]]))
+      # ax[i].set_ylim(0.75 * max(bids[PAIRS[i][0]]), 1.25 * max(asks[PAIRS[i][0]]))
+      ax[i].relim()
+      ax[i].autoscale_view(scalex=False)
+
 
 
     figure.canvas.draw()
