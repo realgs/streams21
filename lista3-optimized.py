@@ -1,71 +1,55 @@
 import matplotlib.pyplot as plt
 import requests
-import time
-from requests.exceptions import HTTPError
+from matplotlib.animation import FuncAnimation
 
 
 url_1 = 'https://bitbay.net/API/Public/'
 url_2 = '/ticker.json'
 base = 'USD'
-currencies = ['BTC', 'LTC', 'DASH']
+currencies = ['BCC', 'LTC', 'DASH']
 frequency = 5
 
 
 def data(currency):
-    try:
-        response = requests.get(url_1 + currency + base + url_2)
-        response.raise_for_status()
-        return response.json()
-    except HTTPError:
-        print('HTTP error:', HTTPError)
-    except Exception:
-        print('Other error:', Exception)
+    url = url_1 + currency + base + url_2
+    response = requests.get(url).json()
+    return response["ask"], response["bid"]
 
 
-def graph():
-    asks = {}
-    bids = {}
-    for currency in currencies:
-        asks[currency] = []
-        bids[currency] = []
 
-    times = []
-    t = 0
+def plot_data(plot_1, plot_2, plot_3):
+    ask_BTC, bid_BTC = data(currencies[0])
+    ask_LTC, bid_LTC = data(currencies[1])
+    ask_DASH, bid_DASH = data(currencies[2])
+    plot_1.append(ask_BTC)
+    plot_1.append(bid_BTC)
+    plot_2.append(ask_LTC)
+    plot_2.append(bid_LTC)
+    plot_3.append(ask_DASH)
+    plot_3.append(bid_DASH)
 
-    plt.ion()
-    figure, ax = plt.subplots(len(currencies), 1, figsize=(9, 8))
-
-    sections = []
-    for i in range(len(currencies)):
-        sections.append(ax[i].plot(times, asks[currencies[i]], label="asks")[0])
-        sections.append(ax[i].plot(times, bids[currencies[i]], label="bids")[0])
-        ax[i].set_title(currencies[i])
-        ax[i].set_xlim(0, 50)
-        ax[i].legend()
-
-    while True:
-        for currency in currencies:
-            response = data(currency)
-            asks[currency].append(response['ask'])
-            bids[currency].append(response['bid'])
-
-        t += 1
-        times.append(t)
-
-        c = 0
-        for i in range(len(sections)):
-            if i % 2 == 0:
-                sections[i].set_data(times, asks[currencies[c]])
-            else:
-                sections[i].set_data(times, bids[currencies[c]])
-                c += 1
-
-        for i in range(len(currencies)):
-            ax[i].set_ylim(max(bids[currencies[i]]) * 0.8, max(asks[currencies[i]])*1.2)
-
-        figure.canvas.draw()
-        figure.canvas.flush_events()
-        time.sleep(frequency)
+    return plot_1, plot_2, plot_3
 
 
-graph()
+def draw(a):
+    plot1, plot2, plot3 = plot_data(plot_1, plot_2, plot_3)
+    plt.cla()
+    plt.title("Wykres ask i bid od czasu")
+    plt.plot(plot1[::2], label='BCC ask')
+    plt.plot(plot1[1::2], label='BCC bid')
+    plt.plot(plot2[::2], label='LTC ask')
+    plt.plot(plot2[1::2], label='LTC bid')
+    plt.plot(plot3[::2], label='DASH ask')
+    plt.plot(plot3[1::2], label='DASH bid')
+    plt.ylabel('Kryptowaluty - wartosc')
+    plt.xlabel('Czas')
+    plt.legend(loc='upper right')
+
+
+if __name__ == "__main__":
+    plot_1 = []
+    plot_2 = []
+    plot_3 = []
+    animation = FuncAnimation(plt.figure(), draw, interval=500)
+    plt.show()
+
