@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
 
-currency= ['BTC-USD', 'ETH-USD', 'LTC-USD']
+currency= ['BSV-USD', 'BTG-USD', 'LTC-USD']
 BIT_URL = "https://bitbay.net/API/Public/Place_Holder/ticker.json"
 Interwal=5000
 
