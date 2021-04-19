@@ -32,7 +32,7 @@ def calc_diffrence(currency1):
 
 def draw_graph(datas, interval):
     plt.ion()
-    freq = np.arange(0, 5 * (len(datas)), 5)
+    freq = [i for i in range(0,5 * len(datas), 5)]
     for i in range(len(datas[0])):
         y_label = []
         for part in datas:
