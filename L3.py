@@ -30,32 +30,31 @@ def calc_diffrence(currency1):
     print('bid: ', bid, '\nask: ', ask, '\ndifference: ', round(difference, 3), '%', '\n')
     return difference
 
-def draw_graph(all_data, interval):
+def draw_graph(datas, interval):
     plt.ion()
-    freq = np.arange(0, 5 * (len(all_data)), 5)
-    iteration = len(all_data[0])
-    for i in range(iteration):
-        y = []
-        for part in all_data:
-            y.append(part[i][1])
-        plt.plot(freq, y, '-h', label = all_data[0][i][0])
+    freq = np.arange(0, 5 * (len(datas)), 5)
+    for i in range(len(datas[0])):
+        y_label = []
+        for part in datas:
+            y_label.append(part[i][1])
+        plt.plot(freq, y_label, '-h', label = datas[0][i][0])
     plt.legend(loc='upper right')
     plt.title('Bids vs. asks', color='r')
     plt.xlabel('time')
     plt.ylabel('value')
-    plt.xlim([-0.1,freq[-1]+1])
+    plt.xlim([-1,freq[-1]+1])
     plt.draw()
     plt.pause(interval)
     plt.clf()
 
 def make_graph(currency1, currency2, interval):
-    all_data = []
+    datas = []
     while True:
         temp_list = []
         for i in currency1:
             temp_list.append([i +' | '+ currency2, calc_diffrence(i)])
-        all_data.append(temp_list)
-        draw_graph(all_data, interval)
+        datas.append(temp_list)
+        draw_graph(datas, interval)
 
 if __name__ == '__main__':
     interval = 5
