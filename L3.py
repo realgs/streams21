@@ -1,6 +1,7 @@
 import requests
 import numpy as np
 import matplotlib.pyplot as plt
+from sys import exit
 
 
 def connect(currency1, currency2):
@@ -98,4 +99,11 @@ if __name__ == '__main__':
     interval = 5
     currency1 = ["BTC", "LTC", "ETH"]
     currency2 = "USD"
-    create_graph (currency1, interval)
+
+    while True:
+        try:
+            create_graph (currency1, interval)
+
+        except KeyboardInterrupt:
+            print ("Error due to user interuption")
+            exit ()
