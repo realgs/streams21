@@ -32,7 +32,7 @@ def calc_diffrence(currency1):
 
 def draw_graph(datas, interval):
     plt.ion()
-    freq = [i for i in range(0,5 * len(datas), 5)]
+    freq = [i for i in range(0,interval * len(datas), interval)]
     for i in range(len(datas[0])):
         y_label = []
         for part in datas:
@@ -51,8 +51,16 @@ def make_graph(currency1, currency2, interval):
     datas = []
     while True:
         temp_list = []
-        for i in currency1:
-            temp_list.append([i +' | '+ currency2, calc_diffrence(i)])
+        for cur1 in currency1:
+            temp_list.append([cur1 +' | '+ currency2, calc_diffrence(cur1)])
         datas.append(temp_list)
         draw_graph(datas, interval)
 
+interval = 5
+currency1 = ['BTC', 'LTC', 'TRX']
+currency2 = 'USD'
+try:
+    make_graph(currency1, currency2, interval)
+except KeyboardInterrupt:
+    print('User hit the interrupt key')
+    sys.exit()
