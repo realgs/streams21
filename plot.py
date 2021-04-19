@@ -2,10 +2,6 @@ import requests
 import matplotlib.pyplot as plt
 import time
 
-PAIRS = [('LTC','PLN'), ('ETH','PLN'), ('BCC','PLN')]
-PAIRS_COUNT = len(PAIRS)
-FREQ = 5
-
 
 def get_data(first_currency, second_currency):
   try:
@@ -23,6 +19,7 @@ def get_data(first_currency, second_currency):
 
 def draw_figure():
 
+  plt.style.use('ggplot')
   asks, bids = ({pair[0]: [] for pair in PAIRS} for _ in range(2))
   req_numbers, subplots = ([] for _ in range(2))
   num = 0
@@ -31,8 +28,8 @@ def draw_figure():
   figure, ax = plt.subplots(nrows=PAIRS_COUNT, figsize=(10, 10))
 
   for i in range(PAIRS_COUNT):
-    subplots.append(ax[i].plot(req_numbers, asks[PAIRS[i][0]], label="Asks")[0])
-    subplots.append(ax[i].plot(req_numbers, bids[PAIRS[i][0]], label="Bids")[0])
+    subplots.append(ax[i].plot(req_numbers, asks[PAIRS[i][0]], color = 'red', label="Asks")[0])
+    subplots.append(ax[i].plot(req_numbers, bids[PAIRS[i][0]], color = 'blue', label="Bids")[0])
     ax[i].set_xlim(0, 50)
     ax[i].set_title(PAIRS[i][0])
     ax[i].legend()
@@ -48,9 +45,6 @@ def draw_figure():
     num += 1
     req_numbers.append(num)
 
-    print(asks)
-    print(bids)
-
     temp = 0
     for i in range(len(subplots)):
       if i % 2 == 0:
@@ -64,9 +58,18 @@ def draw_figure():
 
 
     figure.canvas.draw()
+
+    if num == 50:
+      plt.savefig('graph.png')
+
     figure.canvas.flush_events()
     time.sleep(FREQ)
 
 
 if __name__ == '__main__':
+
+  PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('BCC', 'PLN')]
+  PAIRS_COUNT = len(PAIRS)
+  FREQ = 5
+
   draw_figure()
