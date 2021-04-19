@@ -73,6 +73,8 @@ def monitor_offers(resource, interval, mode):
         plt.plot(T, dash_asks, '.-',
                  label=CRYPTO_CURRENCY[2]+MAIN_CURRENCY+' asks')
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.gca().relim()
+        plt.gca().autoscale_view()
         plt.tight_layout()
 
     if mode == 'CLI':
