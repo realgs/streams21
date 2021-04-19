@@ -56,12 +56,3 @@ def make_graph(currency1, currency2, interval):
         datas.append(temp_list)
         draw_graph(datas, interval)
 
-if __name__ == '__main__':
-    interval = 5
-    currency1 = ['BTC', 'LTC', 'TRX']
-    currency2 = 'USD'
-    try:
-        make_graph(currency1, currency2, interval)
-    except KeyboardInterrupt:
-        print('User hit the interrupt key')
-        sys.exit()
