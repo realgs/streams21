@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
 from crypto import fetchOffers
 import random
+import numpy as np
 
 
-RESOURCES = ['ETHPLN']
+RESOURCES = ['BTCPLN','ETHPLN','LTCPLN']
 FREQUENCY = 5  # seconds
 OFFSET = 0.1  # percentage
+NORMALIZE = True
 
 
 plt.ion()
@@ -14,12 +16,12 @@ fig, ax = plt.subplots()
 x, ys, lines = [],[],[]
 for resource in RESOURCES:
   ys.append( [[],[]] )  # new blank space for values: [[bids list],[asks list]]
-  line1, = ax.plot([],[], label=f'{resource}_1', marker='o')
-  line2, = ax.plot([],[], label=f'{resource}_2', marker='o', linestyle='--')
-  lines.append([line1,line2])
+  line_bids, = ax.plot([],[], label=f'{resource}_bids', marker='o')
+  line_asks, = ax.plot([],[], label=f'{resource}_asks', marker='o', linestyle='--')
+  lines.append([line_bids,line_asks])
 
 ax.set_title('Crypto')
-ax.set_xlabel('time in seconds')
+ax.set_xlabel('time [s]')
 ax.set_ylabel('value')
 ax.legend()
 
@@ -46,11 +48,21 @@ while 1:
     offset = (OFFSET*max(x), OFFSET*(max(Y)-min(Y)))
     ax.set_xlim(min(x)-offset[0], max(x)+offset[0])
     ax.set_ylim(min(Y)-offset[1], max(Y)+offset[1])
+    # get bids and asks lists
+    yb = ys[i][0] # bids
+    ya = ys[i][1] # asks
+    # normalize data
+    if NORMALIZE:
+      ax.set_ylim(0-OFFSET,1+OFFSET)
+      yb = np.array(ys[i][0])  # y normalized bids
+      yb = (yb-min(yb))/(max(yb)-min(yb))
+      ya = np.array(ys[i][1])  # y normalized asks
+      ya = (ya-min(ya))/(max(ya)-min(ya))
     # add values to the plots
     lines[i][0].set_xdata(x)
-    lines[i][0].set_ydata(ys[i][0])
+    lines[i][0].set_ydata(yb)
     lines[i][1].set_xdata(x)
-    lines[i][1].set_ydata(ys[i][1])
+    lines[i][1].set_ydata(ya)
     plt.pause(0.1)  # so that I don't get blocked on the API
   print(f'Sleeping for {FREQUENCY}s...')
   plt.pause(FREQUENCY)
