@@ -1,5 +1,4 @@
 import numpy as np
-
 from math import inf
 import requests
 from matplotlib.animation import FuncAnimation
@@ -9,7 +8,7 @@ import copy
 
 
 def get_data(crypt, req_type):
-    url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json".format(Currency=[crypt, 'USD'],
+    url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json?sort=desc".format(Currency=[crypt, 'PLN'],
                                                                                             Category=req_type)
     response = requests.get(url)
     if response.status_code == 200:
@@ -94,4 +93,4 @@ if __name__ == "__main__":
     x, x_2, x_3 = [], [], []
     y_1, y_2, y_3, y_4, y_5, y_6 = [], [], [], [], [], []
 
-    plot_data('', 'USD', 'Trades')
+    plot_data('', 'PLN', 'Trades')
