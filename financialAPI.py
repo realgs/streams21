@@ -41,10 +41,12 @@ def calculate(data, currency_1):
     buy = data['bids'][0][0]
     sell = data['asks'][0][0]
     procenty = (1-(sell-buy)/sell) * 100
+    t = time.strftime("%H:%M:%S", time.localtime())
     diffrence = {
         'buy_price': data['bids'][0][0],
         'sell_price': data['asks'][0][0],
         'procents': procenty,
+        'time': str(t),
     }
 
     data_currency[f"{currency_1}"].append(diffrence)
@@ -62,11 +64,13 @@ def create_graph(iterator, lines):
         for i in range(len(data)):
             buy.append(data[i]["buy_price"])
             sell.append(data[i]["sell_price"])
+            tim = data[i]["time"]
             t.append(i+1)
 
         l[0].set_data(t, buy)
         l[1].set_data(t, sell)
-        plts[c].set_xlim([max(iterator-10, 1), iterator+3])
+        plts[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
+        plts[c].set_xlim([max(iterator-8, 1), iterator+3])
         plts[c].set_ylim([min(buy)*0.95, max(sell)*1.05])
 
     plt.draw()
@@ -90,7 +94,7 @@ if __name__ == "__main__":
         lines[c] = [buy_line, sell_line]
 
         plts[c].set_ylim([1, 5])
-        plts[c].set_title(f"{c}")
+        plts[c].set_title(f"{c} - USD")
 
         plts[c].set_xlabel("time")
         plts[c].set_ylabel("value")
