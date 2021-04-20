@@ -4,6 +4,8 @@ import sys
 import urllib.request
 import matplotlib.pyplot as plt
 import datetime
+import matplotlib.ticker
+import math
 
 def calculate(buy_price, sell_price):
     output = round((1 - (sell_price - buy_price) / buy_price), 3)
@@ -45,6 +47,7 @@ def getCurrencyData(currency, category):
 
 if __name__ == "__main__":
     x = []
+    logArray = []
 
     BTCSellArray = []
     BTCBuyArray = []
@@ -67,10 +70,18 @@ if __name__ == "__main__":
     plt.title("Finance Plot")
     plt.xlabel("Time")
     plt.ylabel("Data/Money")
+    plt.grid()
+    plt.locator_params(nbins=5, axis='x')
+
+    for log in range(1,20):
+       logArray.append(math.log2(log))
+    print(logArray)
+
+
+    plt.yscale('log', base=2)
 
     while True:
-        x.append(datetime.datetime.now())
-
+        x.append(datetime.datetime.now().strftime("%H:%M:%S"))
         buyBTC, sellBTC = getCurrencyData("BTC", "ticker")
         buyETH, sellETH = getCurrencyData("ETH", "ticker")
         buyLSK, sellLSK = getCurrencyData("LSK", "ticker")
@@ -96,5 +107,3 @@ if __name__ == "__main__":
         plt.draw()
         plt.pause(1e-17)
         time.sleep(5)
-
-
