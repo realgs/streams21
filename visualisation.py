@@ -2,10 +2,7 @@ import requests
 import sys
 from datetime import datetime
 import matplotlib.pyplot as plt
-
-
-def diff(purchase, sale):
-    return round(((1 - (sale[0][0] - purchase[0][0])/purchase[0][0])*100), 2)
+import matplotlib.animation as anim
 
 
 def get_data(currency, p_currency):
@@ -15,10 +12,6 @@ def get_data(currency, p_currency):
         bids = response_json['bids']
         asks = response_json['asks']
 
-        # print(f"{currency}:\n "
-        #       f"Purchase price: {bids[0][0]},\n"
-        #       f"Selling price: {asks[0][0]},\n "
-        #       f"Difference between purchase and selling price: {diff(bids, asks)} %")
         return bids, asks
 
     except requests.exceptions.HTTPError:
@@ -26,50 +19,65 @@ def get_data(currency, p_currency):
         sys.exit()
 
 
-def plot(currencies, data, times, k):
+def plot(currencies, bid, ask, times, k):
 
-    plots = len(data[0])
-    for p in range(plots):
-        y = []
+    for p in range(len(currencies)):
+        y1 = []
+        y2 = []
+        for b in bid:
+            y1.append(b[p][1])
+        for a in ask:
+            y2.append(a[p][1])
+            x = [i for i in range(len(y1))]
 
-        for d in data:
-            y.append(d[p][1])
-            x = [i for i in range(len(y))]
+        print(y1)
+        print(y2)
         l = max(0, len(x)-20)
         r = (len(x))
-        plt.plot(x, y, "-", label=currencies[p])
 
-    plt.legend()
-    plt.xticks(ticks=x, labels=times, rotation=50)
-    plt.xlabel("Time")
-    plt.ylabel("Bids-asks difference [%]")
-    plt.xlim(left=l, right=r)
+        plt.subplot(len(currencies), 1, p+1)
+        plt.plot(x, y2, "-", label=f"Asks of {currencies[p]}", color="#9467bd")
+        plt.plot(x, y1, "-", label=f"Bids of {currencies[p]}", color="#1f77b4")
+
+        plt.legend()
+        plt.xticks(ticks=x, labels=times, rotation=50)
+        plt.xlabel("Time")
+        plt.ylabel(f"Bids, asks {currencies[p]} values [PLN]")
+        plt.xlim(left=l, right=r)
+    plt.tight_layout()
     plt.pause(k)
     plt.clf()
 
 
 def plot_data(currencies, p_currency, k):
-    data = []
+    bid = []
+    ask = []
     times = []
+
+
+    plt.subplots(nrows=len(currencies), figsize=(10, len(currencies) * 3.5))
+
     while True:
-        d = []
+        b = []
+        a = []
         for currency in currencies:
             bids, asks = get_data(currency, p_currency)
-            d.append([currency, diff(bids, asks)])
+            b.append([currency, bids[0][0]])
+            a.append([currency, asks[0][0]])
 
-        data.append(d)
+        bid.append(b)
+        ask.append(a)
         times.append(datetime.now().strftime("%H:%M:%S"))
-
-        print(data)
-        print(times)
-
-        plot(currencies, data, times, k)
+        # print(bid)
+        # print(ask)
+        # print(times)
+        plot(currencies, bid, ask, times, k)
 
 
 def main():
-    currencies = ['BTC', 'ETH', 'DOT', 'UNI', 'SUSHI']
+    currencies = ['BTC', 'ETH', 'DOT']
     p_currency = 'PLN'
-    k = 0.1
+    k = 0.5
     plot_data(currencies, p_currency, k)
 
 
