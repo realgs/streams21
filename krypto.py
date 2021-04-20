@@ -43,8 +43,10 @@ def dynamic_plotting(interval):
     date = []
     bids = [[] for _ in range(N)]
     asks = [[] for _ in range(N)]
+    avg_bids = [[] for _ in range(N)]
+    avg_asks = [[] for _ in range(N)]
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(9, 8), num='Please hire me')
     fig.suptitle('Cryptocurriencies live tracking')
 
     axes = []
@@ -53,9 +55,13 @@ def dynamic_plotting(interval):
 
     lines = []
     for i, ax in enumerate(axes):
-        line1, = ax.plot_date(date, bids[i], '.-', label='bids')
-        line2, = ax.plot_date(date, asks[i], '.-', label='asks')
-        lines.append((line1, line2))
+        bids_line, = ax.plot_date(date, bids[i], '-', label='bids')
+        asks_line, = ax.plot_date(date, asks[i], '-', label='asks')
+        avg_bid_line, = ax.plot_date(date, avg_bids[i], '--',
+                                     label="bids' avg")
+        avg_ask_line, = ax.plot_date(date, avg_asks[i], '--',
+                                     label="asks' avg")
+        lines.append((bids_line, asks_line, avg_bid_line, avg_ask_line))
 
     def _update(frame):
         orders = []
@@ -69,23 +75,28 @@ def dynamic_plotting(interval):
         for i in range(N):
             bids[i].append(orders[i]['bids'][0][0])
             asks[i].append(orders[i]['asks'][0][0])
+            avg_bids[i].append(sum(bids[i])/len(bids[i]))
+            avg_asks[i].append(sum(asks[i])/len(asks[i]))
 
         for i, line in enumerate(lines):
             line[0].set_data(date, bids[i])
             line[1].set_data(date, asks[i])
+            line[2].set_data(date, avg_bids[i])
+            line[3].set_data(date, avg_asks[i])
 
         for ax, crypto_currency in zip(axes, CRYPTO_CURRENCIES):
-            ax.set(ylabel=f'Rate [{MAIN_CURRENCY}]',
-                   title=crypto_currency)
             xlocator = AutoDateLocator()
             ylocator = plt.LinearLocator(numticks=3)
             formatter = ConciseDateFormatter(xlocator)
+
+            ax.set(ylabel=f'Rate [{MAIN_CURRENCY}]',
+                   title=crypto_currency)
+            ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             ax.yaxis.set_major_locator(ylocator)
             ax.xaxis.set_major_locator(xlocator)
             ax.xaxis.set_major_formatter(formatter)
             ax.relim()
             ax.autoscale_view()
-            ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         plt.tight_layout()
 
