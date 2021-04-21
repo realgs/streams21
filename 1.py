@@ -15,13 +15,20 @@ def get_data(currency):
     except requests.exceptions.ConnectionError:
         print("Connection Error occured")
 
+def append_not_none(values, a):
+    if a != None:
+        values.append(a)
+    else:
+        if len(values)>1:
+            values.append(values[-1])
+
 def prepare_data(ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values):
-    ask1_values.append(get_data(currency[0]).get('ask'))
-    bid1_values.append(get_data(currency[0]).get('bid'))
-    ask2_values.append(get_data(currency[1]).get('ask'))
-    bid2_values.append(get_data(currency[1]).get('bid'))
-    ask3_values.append(get_data(currency[2]).get('ask'))
-    bid3_values.append(get_data(currency[2]).get('bid'))
+    append_not_none(ask1_values,get_data(currency[0]).get('ask'))
+    append_not_none(bid1_values,get_data(currency[0]).get('bid'))
+    append_not_none(ask2_values, get_data(currency[1]).get('ask'))
+    append_not_none(bid2_values, get_data(currency[1]).get('bid'))
+    append_not_none(ask3_values, get_data(currency[2]).get('ask'))
+    append_not_none(bid3_values, get_data(currency[2]).get('bid'))
     return ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values
 
 def make_plot(i):
@@ -38,7 +45,6 @@ def make_plot(i):
     plt.plot(plt3_bid, label=f'{currency[2]}:Bid')
     plt.legend(loc = 'upper left')
 
-
 if __name__ == "__main__":
     ask1_values = []
     bid1_values = []
@@ -48,6 +54,7 @@ if __name__ == "__main__":
     bid3_values = []
     animations = FuncAnimation(plt.figure(), make_plot, interval=5000)
     plt.show()
+
 
 
 
