@@ -1,9 +1,6 @@
 import requests
 import time
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
-
-hist = []
 
 
 def createURL(market):
@@ -12,11 +9,32 @@ def createURL(market):
 
 
 def getData(url):
-    response = requests.get(url)
-    data = response.json()['result']
+    resp = getResponse(url)
+    data = resp['result']
     buy = data['Bid']
     sell = data['Ask']
     return buy, sell
+
+    # try:
+    #     response = requests.get(url)
+    #     data = response.json()['result']
+    #     buy = data['Bid']
+    #     sell = data['Ask']
+    #     return buy, sell
+    # except Exception as e:
+    #     print(e)
+
+
+def getResponse(url):
+    global response
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        print(e)
+
+    if response.status_code == 200:
+        respJson = response.json()
+        return respJson
 
 
 def calc(buy, sell):
@@ -27,8 +45,8 @@ def calc(buy, sell):
 def addData(market):
     url = createURL(market)
     buy, sell = getData(url)
-    xlab = time.strftime("%H:%M:%S", time.localtime())
-    hist.append([market, buy, sell, xlab])
+    xTime = time.strftime("%H:%M:%S", time.localtime())
+    hist.append([market, buy, sell, xTime])
 
 
 def prepareData(market):
@@ -56,8 +74,8 @@ def drawPlot(market):
 def showPlots(markets):
     fig = plt.figure(figsize=(12, 8))
 
-    for i in range (0, len(markets)):
-        plt.subplot(3, 1, i+1)
+    for i in range(0, len(markets)):
+        plt.subplot(3, 1, i + 1)
         drawPlot(markets[i])
 
     fig.legend(['Sell', 'Buy'], frameon=True, prop={'size': 15})
@@ -68,6 +86,8 @@ def showPlots(markets):
 
 
 def run(markets):
+    global hist
+    hist = []
     while True:
         for market in markets:
             addData(market)
