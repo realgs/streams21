@@ -2,10 +2,9 @@ import requests
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-
-#bid kupno ask sprzedaz
 currency = ['DASHPLN', 'BSVPLN', 'LTCPLN']
 time_int = 5
+
 def get_data(currency):
     try:
         response = requests.get(f'https://bitbay.net/API/Public/{currency}/ticker.json')
@@ -16,23 +15,17 @@ def get_data(currency):
     except requests.exceptions.ConnectionError:
         print("Connection Error occured")
 
-def prepare_data(plt_ask1, plt_bid1,plt_ask2, plt_bid2,plt_ask3, plt_bid3):
-    ask1 = get_data(currency[0]).get('ask')
-    bid1 = get_data(currency[0]).get('bid')
-    ask2 = get_data(currency[1]).get('ask')
-    bid2 = get_data(currency[1]).get('bid')
-    ask3 = get_data(currency[2]).get('ask')
-    bid3 = get_data(currency[2]).get('bid')
-    plt_ask1.append(ask1)
-    plt_bid1.append(bid1)
-    plt_ask2.append(ask2)
-    plt_bid2.append(bid2)
-    plt_ask3.append(ask3)
-    plt_bid3.append(bid3)
-    return plt_ask1, plt_bid1,plt_ask2, plt_bid2, plt_ask3, plt_bid3
+def prepare_data(ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values):
+    ask1_values.append(get_data(currency[0]).get('ask'))
+    bid1_values.append(get_data(currency[0]).get('bid'))
+    ask2_values.append(get_data(currency[1]).get('ask'))
+    bid2_values.append(get_data(currency[1]).get('bid'))
+    ask3_values.append(get_data(currency[2]).get('ask'))
+    bid3_values.append(get_data(currency[2]).get('bid'))
+    return ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values
 
 def make_plot(i):
-    plt1_ask, plt1_bid,plt2_ask, plt2_bid, plt3_ask, plt3_bid = prepare_data(plt_ask1, plt_bid1,plt_ask2, plt_bid2,plt_ask3, plt_bid3)
+    plt1_ask, plt1_bid,plt2_ask, plt2_bid, plt3_ask, plt3_bid = prepare_data(ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values)
     plt.cla()
     plt.title("Cryptocurrency values")
     plt.ylabel('Value')
@@ -47,12 +40,12 @@ def make_plot(i):
 
 
 if __name__ == "__main__":
-    plt_ask1 = []
-    plt_bid1 = []
-    plt_ask2 = []
-    plt_bid2 = []
-    plt_ask3 = []
-    plt_bid3 = []
+    ask1_values = []
+    bid1_values = []
+    ask2_values = []
+    bid2_values = []
+    ask3_values = []
+    bid3_values = []
     animations = FuncAnimation(plt.figure(), make_plot, interval=5000)
     plt.show()
 
