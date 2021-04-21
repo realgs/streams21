@@ -6,10 +6,10 @@ from matplotlib.animation import FuncAnimation
 URL = "https://api.bitbay.net/rest/trading/orderbook/"
 FIRST_POSITION = 0
 FIFE = 5
-CURRENCY = ["ZEC-USD", "LTC-USD", "DASH-USD"]
+CURRENCY = ["BTC-USD", "LTC-USD", "DASH-USD"]
 
-ZEC_buy = []
-ZEC_sell = []
+BTC_buy = []
+BTC_sell = []
 LTC_buy = []
 LTC_sell = []
 DASH_buy = []
@@ -39,23 +39,34 @@ def add_data(currency, buy_list, sell_list):
 
 
 def make_plot(a):
-    y1, y2 = add_data(CURRENCY[0], ZEC_buy, ZEC_sell)
+    y1, y2 = add_data(CURRENCY[0], BTC_buy, BTC_sell)
     y3, y4 = add_data(CURRENCY[1], LTC_buy, LTC_sell)
     y5, y6 = add_data(CURRENCY[2], DASH_buy, DASH_sell)
     t.append(time.strftime("%H:%M:%S", time.localtime()))
+    for i in [y1, y2, y3, y4, y5, y6, t]:
+        if len(i) > 20:
+            i.pop(0)
     plt.clf()
-    plt.title("Wykres notowań kursu")
-    plt.plot(t, y1, label="ZEC buy", color="blue")
-    plt.plot(t, y2, label="ZEC sell", color="yellow")
+    plt.suptitle("Wykres notowań kursu")
+    plt.subplot(311)
+    plt.plot(t, y1, label="BTC buy", color="blue")
+    plt.plot(t, y2, label="BTC sell", color="yellow")
+    plt.xticks([])
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.subplot(312)
     plt.plot(t, y3, label="LTC buy", color="red")
     plt.plot(t, y4, label="LTC sell", color="green")
+    plt.ylabel("Kurs")
+    plt.xticks([])
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.subplot(313)
     plt.plot(t, y5, label="DASH buy", color="pink")
     plt.plot(t, y6, label="DASH sell", color="grey")
     plt.xlabel("Czas")
-    plt.ylabel("Kurs")
     plt.xticks(rotation='vertical')
     plt.subplots_adjust(bottom=0.2)
-    plt.legend(loc="upper right")
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.tight_layout()
 
 
 def main():
