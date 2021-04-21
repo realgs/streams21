@@ -8,23 +8,6 @@ def createURL(market):
     return url
 
 
-def getData(url):
-    resp = getResponse(url)
-    data = resp['result']
-    buy = data['Bid']
-    sell = data['Ask']
-    return buy, sell
-
-    # try:
-    #     response = requests.get(url)
-    #     data = response.json()['result']
-    #     buy = data['Bid']
-    #     sell = data['Ask']
-    #     return buy, sell
-    # except Exception as e:
-    #     print(e)
-
-
 def getResponse(url):
     global response
     try:
@@ -37,6 +20,14 @@ def getResponse(url):
         return respJson
 
 
+def getData(url):
+    resp = getResponse(url)
+    data = resp['result']
+    buy = data['Bid']
+    sell = data['Ask']
+    return buy, sell
+
+
 def calc(buy, sell):
     val = (1 - (sell - buy) / buy) * 100
     return val
@@ -46,18 +37,18 @@ def addData(market):
     url = createURL(market)
     buy, sell = getData(url)
     xTime = time.strftime("%H:%M:%S", time.localtime())
-    hist.append([market, buy, sell, xTime])
+    database.append([market, buy, sell, xTime])
 
 
 def prepareData(market):
     buyL = []
     sellL = []
     timeL = []
-    for i in range(0, len(hist)):
-        if hist[i][0] == market:
-            buyL.append(hist[i][1])
-            sellL.append(hist[i][2])
-            timeL.append(hist[i][3])
+    for i in range(0, len(database)):
+        if database[i][0] == market:
+            buyL.append(database[i][1])
+            sellL.append(database[i][2])
+            timeL.append(database[i][3])
     return buyL, sellL, timeL
 
 
@@ -86,15 +77,14 @@ def showPlots(markets):
 
 
 def run(markets):
-    global hist
-    hist = []
+    global database
+    database = []
     while True:
         for market in markets:
             addData(market)
         showPlots(markets)
 
 
-markets = ['EUR-USD', 'USD-BTC', 'USD-BAT']
-
 if __name__ == '__main__':
+    markets = ['EUR-USD', 'USD-BTC', 'USD-BAT']
     run(markets)
