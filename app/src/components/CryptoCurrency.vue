@@ -29,6 +29,7 @@ const findMinAsk = (p, v) => (p.data.ask < v.data.ask ? p : v)
 const findMaxAsk = (p, v) => (p.data.ask > v.data.ask ? p : v)
 const findMinBid = (p, v) => (p.data.bid < v.data.bid ? p : v)
 const findMaxBid = (p, v) => (p.data.bid > v.data.bid ? p : v)
+const findMaxVolume = (p, v) => (p.data.volume > v.data.volume ? p : v)
 
 export default {
   name: 'CryptoCurrency',
@@ -51,14 +52,15 @@ export default {
   data: () => ({
     cryptoData: [],
     dataInterval: null,
+    transactionsCount: 5,
   }),
   computed: {
     stripedData() {
       if (!this.cryptoData) return
       const copiedData = [...this.cryptoData]
 
-      return copiedData.length >= 10
-        ? copiedData.slice(1).slice(-10)
+      return copiedData.length >= this.transactionsCount
+        ? copiedData.slice(1).slice(-this.transactionsCount)
         : copiedData
     },
     bounds() {
@@ -67,10 +69,12 @@ export default {
       const maxAsk = this.stripedData.reduce(findMaxAsk).data.ask
       const minBid = this.stripedData.reduce(findMinBid).data.bid
       const maxBid = this.stripedData.reduce(findMaxBid).data.bid
+      const maxVolume = 15 * this.stripedData.reduce(findMaxVolume).data.volume
 
       return {
         min: minAsk < minBid ? minAsk : minBid,
         max: maxAsk > maxBid ? maxAsk : maxBid,
+        maxVolume,
       }
     },
     chartOptions() {
@@ -80,32 +84,135 @@ export default {
         id: `${this.cryptoCurrencyName}${this.nationalCurrencyName}`,
       }
 
+      const plotOptions = {
+        bar: {
+          horizontal: false,
+          columnWidth: '0.5%',
+          endingShape: 'rounded',
+        },
+      }
+
       const xaxis = {
         categories: this.stripedData.map((el) => el.time),
       }
 
-      const yaxis = {
-        min: this.bounds.min - this.fixDiff,
-        max: this.bounds.max + this.fixDiff,
-      }
+      const yaxis = [
+        {
+          axisTicks: {
+            show: true,
+          },
+          axisBorder: {
+            show: true,
+            color: '#008FFB',
+          },
+          labels: {
+            style: {
+              colors: '#008FFB',
+            },
+          },
+          title: {
+            text: 'Transaction volume',
+            style: {
+              color: '#008FFB',
+            },
+          },
+          min: 0,
+          max: this.bounds.maxVolume,
+        },
+        {
+          seriesName: 'Asks',
+          min: this.bounds.min - this.fixDiff,
+          max: this.bounds.max + this.fixDiff,
+          opposite: true,
+          axisTicks: {
+            show: true,
+          },
+          axisBorder: {
+            show: true,
+            color: '#00E396',
+          },
+          labels: {
+            style: {
+              colors: '#00E396',
+            },
+          },
+          title: {
+            text: 'Asks/Bids',
+            style: {
+              color: '#00E396',
+            },
+          },
+        },
+        {
+          seriesName: 'Bids',
+          min: this.bounds.min - this.fixDiff,
+          max: this.bounds.max + this.fixDiff,
+          show: false,
+        },
+        {
+          seriesName: 'Avg Asks',
+          min: this.bounds.min - this.fixDiff,
+          max: this.bounds.max + this.fixDiff,
+          show: false,
+        },
+        {
+          seriesName: 'Avg Bids',
+          min: this.bounds.min - this.fixDiff,
+          max: this.bounds.max + this.fixDiff,
+          show: false,
+        },
+      ]
 
-      return { chart, xaxis, yaxis }
+      return { chart, plotOptions, xaxis, yaxis }
     },
     chartSeries() {
       if (!this.stripedData) return
 
       const series = [
         {
+          name: 'Transaction volume',
+          type: 'column',
+          data: this.stripedData.map((el) => el.data.volume),
+        },
+        {
           name: 'Asks',
+          type: 'line',
           data: this.stripedData.map((el) => el.data.ask),
         },
         {
           name: 'Bids',
+          type: 'line',
           data: this.stripedData.map((el) => el.data.bid),
         },
       ]
 
-      return series
+      if (this.cryptoData.length <= 2 * this.transactionsCount) return series
+
+      const asksHistory = []
+      const bidsHistory = []
+
+      this.stripedData.forEach((el) => {
+        const index = this.cryptoData.indexOf(el) - 1
+        const { askAvg, bidAvg } = this.countAvgs(index)
+
+        asksHistory.push(askAvg)
+        bidsHistory.push(bidAvg)
+      })
+
+      const avgSeries = [
+        {
+          name: 'Avg Asks',
+          type: 'line',
+          data: asksHistory,
+        },
+        {
+          name: 'Avg Bids',
+          type: 'line',
+          data: bidsHistory,
+        },
+      ]
+
+      return [...series, ...avgSeries]
     },
   },
   methods: {
@@ -119,6 +226,33 @@ export default {
         time: time.toLocaleString(),
         data: downloadedData,
       })
+    },
+    countAvgs(startIndex) {
+      const asksHistory = []
+      const bidsHistory = []
+
+      // for (
+      //   let i = startIndex;
+      //   i > this.cryptoData.length - this.transactionsCount;
+      //   i--
+      // ) {
+      // asksHistory.push(this.cryptoData[i].data.ask)
+      // bidsHistory.push(this.cryptoData[i].data.bid)
+      // }
+
+      let i = startIndex
+      while (i !== startIndex - this.transactionsCount) {
+        asksHistory.push(this.cryptoData[i].data.ask)
+        bidsHistory.push(this.cryptoData[i].data.bid)
+        i--
+      }
+
+      const askAvg =
+        asksHistory.reduce((a, b) => a + b, 0) / this.transactionsCount
+      const bidAvg =
+        bidsHistory.reduce((a, b) => a + b, 0) / this.transactionsCount
+
+      return { askAvg, bidAvg }
     },
   },
   created() {

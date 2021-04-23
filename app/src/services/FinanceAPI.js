@@ -24,12 +24,11 @@ export const handleData = async (cryptoCurrencyCode, currencyCode) => {
     return
   }
 
-  // const { ask, bid } = data.response
-
-  const [bid, _, ask] = data.response
+  const bid = data.response[0]
+  const ask = data.response[2]
+  const volume = data.response[7]
 
   const difference = +(((ask - bid) / bid) * 100).toFixed(4)
-  // const difference = +(((bid - ask) / ask) * 100).toFixed(4)
 
-  return { ask, bid, difference }
+  return { ask, bid, difference, volume }
 }
