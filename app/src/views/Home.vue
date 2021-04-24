@@ -5,6 +5,8 @@
         :cryptoCurrencyName="instance.crypto"
         :nationalCurrencyName="instance.national"
         :fixDiff="instance.fixValue"
+        :alert="toBeAlerted === `${instance.crypto}${instance.national}`"
+        @volume="handleVolume"
       />
     </div>
     <div class="float-form">
@@ -34,6 +36,35 @@ export default {
     }),
     instancesCount() {
       return this.instances.length
+    },
+  },
+  data: () => ({
+    instancesData: {},
+    toBeAlerted: '',
+  }),
+  methods: {
+    handleVolume(e) {
+      this.instancesData[`${e.cryptoCurrencyName}${e.nationalCurrencyName}`] = {
+        name: `${e.cryptoCurrencyName}${e.nationalCurrencyName}`,
+        volume: e.volume,
+        trend: e.trend,
+      }
+
+      this.runAlert()
+    },
+    runAlert() {
+      const candidates = []
+      for (let instance in this.instancesData) {
+        if (!this.instancesData[instance].trend)
+          candidates.push(this.instancesData[instance])
+      }
+
+      if (candidates.length === 0) this.toBeAlerted = ''
+      else if (candidates.length === 1) this.toBeAlerted = candidates[0].name
+      else
+        this.toBeAlerted = candidates.sort(
+          (a, b) => b.volume - a.volume
+        )[0].name
     },
   },
 }

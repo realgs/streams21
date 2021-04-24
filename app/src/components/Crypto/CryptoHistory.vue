@@ -16,8 +16,12 @@
             v-for="(row, $index) in reverseData"
             :key="$index"
           >
-            <div class="crypto-history__body--cell">{{ row.data.ask }} $</div>
-            <div class="crypto-history__body--cell">{{ row.data.bid }} $</div>
+            <div class="crypto-history__body--cell">
+              {{ row.data.ask }} {{ sign }}
+            </div>
+            <div class="crypto-history__body--cell">
+              {{ row.data.bid }} {{ sign }}
+            </div>
             <div class="crypto-history__body--cell">
               {{ row.data.difference }} %
             </div>
@@ -37,6 +41,7 @@ export default {
       type: Array,
       required: true,
     },
+    sign: [String],
   },
   computed: {
     reverseData() {

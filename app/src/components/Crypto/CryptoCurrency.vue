@@ -1,5 +1,5 @@
 <template>
-  <div class="crypto-currency">
+  <div class="crypto-currency" :class="{ glow: alert }">
     <div class="crypto-currency--header">
       <div v-if="cryptoData && cryptoData.length > 0">
         <label for="transactionsToShow">Transactions to show: </label>
@@ -29,7 +29,13 @@
           :series="chartSeries"
         />
       </div>
-      <CryptoHistory :cryptoData="cryptoData" />
+      <div class="crypto-currency__status">
+        <h2>RSI Status: {{ RSIStatus }}</h2>
+      </div>
+      <CryptoHistory
+        :cryptoData="cryptoData"
+        :sign="signs[nationalCurrencyName]"
+      />
     </template>
     <template v-else>
       <h2>No data, please wait.</h2>
@@ -66,12 +72,17 @@ export default {
     fixDiff: {
       type: Number,
     },
+    alert: [Boolean],
   },
   data: () => ({
     cryptoData: [],
     dataInterval: null,
     transactionsToCount: 5,
     transactionsToShow: 5,
+    signs: {
+      USD: '$',
+      EUR: '€',
+    },
   }),
   computed: {
     stripedData() {
@@ -81,6 +92,9 @@ export default {
       return copiedData.length >= this.transactionsToShow
         ? copiedData.slice(1).slice(-this.transactionsToShow)
         : copiedData
+    },
+    enoughtData() {
+      return 2 * this.transactionsToCount < this.cryptoData.length
     },
     bounds() {
       if (!this.stripedData) return
@@ -95,6 +109,26 @@ export default {
         max: maxAsk > maxBid ? maxAsk : maxBid,
         maxVolume,
       }
+    },
+    RSIStatus() {
+      if (!this.currentRSI && !this.enoughtData) return 'not enough data'
+
+      const status = (val) => {
+        if (val === 100)
+          return 'The probability of a reversal to a downward trend'
+        else if (val >= 70) return 'Sell signal'
+        else if (val <= 30 && val > 0) return 'Buy signal'
+        else if (val === 0)
+          return 'The probability of a trend reversal to an upward trend'
+        else return 'None'
+      }
+
+      return status(parseInt(this.currentRSI))
+    },
+    RSITrend() {
+      return !this.currentRSI && !this.enoughtData
+        ? false
+        : this.currentRSI <= 30
     },
   },
   methods: {
@@ -123,6 +157,43 @@ export default {
         bidsHistory.reduce((a, b) => a + b, 0) / this.transactionsToCount
 
       return { askAvg, bidAvg }
+    },
+    countRSI(startIndex) {
+      const asksHistory = this.cryptoData
+        .slice(startIndex - this.transactionsToCount - 1, startIndex)
+        .map((el) => el.data.ask)
+      const bidsHistory = this.cryptoData
+        .slice(startIndex - this.transactionsToCount - 1, startIndex)
+        .map((el) => el.data.bid)
+
+      const avgHistory = []
+      for (let i = 0; i < asksHistory.length; i++) {
+        avgHistory.push((asksHistory[i] + bidsHistory[i]) / 2)
+      }
+
+      const increase = []
+      const decrease = []
+
+      for (let i = 0; i < avgHistory.length - 1; i++) {
+        const calc = avgHistory[i] - avgHistory[i + 1]
+        if (calc >= 0) {
+          increase.push(calc)
+          decrease.push(0)
+        } else if (calc < 0) {
+          decrease.push(calc * -1)
+          increase.push(0)
+        }
+      }
+
+      const RS =
+        increase.reduce((a, b) => a + b, 0) /
+        (increase.length ? increase.length : 1) /
+        (decrease.reduce((a, b) => a + b, 0) /
+          (decrease.length ? decrease.length : 1))
+
+      const RSI = 100 - 100 / (1 + RS)
+
+      return isNaN(RSI) ? 0 : RSI
     },
   },
   created() {
@@ -153,6 +224,11 @@ export default {
     margin-bottom: 1rem;
   }
 
+  &__status {
+    width: 100%;
+    text-align: center;
+  }
+
   &--header {
     text-align: center;
     margin-bottom: 1rem;
@@ -167,6 +243,23 @@ export default {
       padding: 2px 4px;
       width: 50px;
     }
+  }
+}
+
+.glow {
+  -webkit-animation: glow 1s ease-in-out infinite alternate;
+  -moz-animation: glow 1s ease-in-out infinite alternate;
+  animation: glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 10px rgb(255, 0, 0), 0 0 20px #fff, 0 0 30px #e60000,
+      0 0 40px #e60013, 0 0 50px #e60013, 0 0 60px #e60073, 0 0 70px #e60073;
+  }
+  to {
+    box-shadow: 0 0 20px rgb(255, 0, 0), 0 0 30px #ff4da6, 0 0 40px #ff4da6,
+      0 0 50px #ff4d5c, 0 0 60px #ff4d6b, 0 0 70px #ff4d4d, 0 0 80px #ff4d5c;
   }
 }
 </style>
