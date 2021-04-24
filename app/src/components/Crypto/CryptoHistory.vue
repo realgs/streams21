@@ -6,6 +6,7 @@
           <div class="crypto-history__header--cell">Ask</div>
           <div class="crypto-history__header--cell">Bid</div>
           <div class="crypto-history__header--cell">Difference</div>
+          <div class="crypto-history__header--cell">Volume</div>
         </div>
       </div>
       <div class="crypto-history__body">
@@ -20,6 +21,7 @@
             <div class="crypto-history__body--cell">
               {{ row.data.difference }} %
             </div>
+            <div class="crypto-history__body--cell">{{ row.data.volume }}</div>
           </div>
         </div>
       </div>
@@ -64,7 +66,7 @@ export default {
     }
 
     &--cell {
-      width: calc(var(--width) / 3);
+      width: calc(var(--width) / 4);
     }
   }
 
