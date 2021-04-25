@@ -136,15 +136,13 @@ export default {
         else if (val <= 30 && val > 0) return 'Buy signal'
         else if (val === 0)
           return 'The probability of a trend reversal to an upward trend'
-        else return 'None'
+        else return val
       }
 
       return status(parseInt(this.currentRSI))
     },
     RSITrend() {
-      return !this.currentRSI && !this.enoughtData
-        ? false
-        : this.currentRSI <= 30
+      return this.currentRSI && this.enoughtData ? this.currentRSI <= 30 : false
     },
     hesitation() {
       if (
