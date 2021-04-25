@@ -19,6 +19,10 @@
       </div>
       <h2>{{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}</h2>
       <div v-if="cryptoData && cryptoData.length > 0">
+        <label for="diffAskBid">Ask/Bid lower than %: </label>
+        <input type="number" id="diffAskBid" v-model.number="maxDiffAskBid" />
+      </div>
+      <div v-if="cryptoData && cryptoData.length > 0">
         <label for="transactionsToCount">Transactions to count: </label>
         <input
           type="number"
@@ -40,6 +44,7 @@
       <div class="crypto-currency__status">
         <h2>RSI Status: {{ RSIStatus }}</h2>
         <h2 v-if="hesitation > minHesitation">Volatile Asset</h2>
+        <h2 v-if="diffAskBid < maxDiffAskBid">Liquid Asset</h2>
       </div>
       <CryptoHistory
         :cryptoData="cryptoData"
@@ -93,6 +98,7 @@ export default {
       EUR: '€',
     },
     minHesitation: 1,
+    maxDiffAskBid: 1,
   }),
   computed: {
     stripedData() {
@@ -156,8 +162,6 @@ export default {
         .slice(-this.transactionsToCount)
         .map((el) => el.data.bid)
 
-      console.log(asksHistory)
-
       const hesitationHistory = []
       for (let i = 0; i < asksHistory.length - 1; i++) {
         const current = (asksHistory[i] + bidsHistory[i]) / 2
@@ -167,6 +171,11 @@ export default {
       }
 
       return Math.max(...hesitationHistory)
+    },
+    diffAskBid() {
+      if (!this.cryptoData) return 100
+
+      return this.cryptoData[this.cryptoData.length - 1].data.difference
     },
   },
   methods: {
