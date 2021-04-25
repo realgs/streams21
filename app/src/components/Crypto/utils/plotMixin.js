@@ -177,9 +177,11 @@ export default {
         },
       ]
 
+      const lastVolume = series[0].data[series[0].data.length - 1]
+
       this.currentRSI = RSIHistory[RSIHistory.length - 1]
       this.$emit('volume', {
-        volume: series[0].data[series[0].data.length - 1],
+        volume: lastVolume,
         trend: this.RSITrend,
         cryptoCurrencyName: this.cryptoCurrencyName,
         nationalCurrencyName: this.nationalCurrencyName,

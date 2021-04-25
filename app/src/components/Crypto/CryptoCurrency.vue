@@ -6,7 +6,15 @@
         <input
           type="number"
           id="transactionsToShow"
-          v-model="transactionsToShow"
+          v-model.number="transactionsToShow"
+        />
+      </div>
+      <div v-if="cryptoData && cryptoData.length > 0">
+        <label for="minHesitation">min hesitation %: </label>
+        <input
+          type="number"
+          id="minHesitation"
+          v-model.number="minHesitation"
         />
       </div>
       <h2>{{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}</h2>
@@ -15,7 +23,7 @@
         <input
           type="number"
           id="transactionsToCount"
-          v-model="transactionsToCount"
+          v-model.number="transactionsToCount"
         />
       </div>
     </div>
@@ -31,6 +39,7 @@
       </div>
       <div class="crypto-currency__status">
         <h2>RSI Status: {{ RSIStatus }}</h2>
+        <h2 v-if="hesitation > minHesitation">Volatile Asset</h2>
       </div>
       <CryptoHistory
         :cryptoData="cryptoData"
@@ -83,6 +92,7 @@ export default {
       USD: '$',
       EUR: '€',
     },
+    minHesitation: 1,
   }),
   computed: {
     stripedData() {
@@ -130,6 +140,34 @@ export default {
         ? false
         : this.currentRSI <= 30
     },
+    hesitation() {
+      if (
+        !this.cryptoData ||
+        this.cryptoData.length <= this.transactionsToCount
+      )
+        return 0
+
+      const asksHistory = this.cryptoData
+        .slice(1)
+        .slice(-this.transactionsToCount)
+        .map((el) => el.data.ask)
+      const bidsHistory = this.cryptoData
+        .slice(1)
+        .slice(-this.transactionsToCount)
+        .map((el) => el.data.bid)
+
+      console.log(asksHistory)
+
+      const hesitationHistory = []
+      for (let i = 0; i < asksHistory.length - 1; i++) {
+        const current = (asksHistory[i] + bidsHistory[i]) / 2
+        const next = (asksHistory[i + 1] + bidsHistory[i + 1]) / 2
+
+        hesitationHistory.push((Math.abs(current - next) / current) * 100)
+      }
+
+      return Math.max(...hesitationHistory)
+    },
   },
   methods: {
     async getCryptoData() {
@@ -176,6 +214,7 @@ export default {
 
       for (let i = 0; i < avgHistory.length - 1; i++) {
         const calc = avgHistory[i] - avgHistory[i + 1]
+
         if (calc >= 0) {
           increase.push(calc)
           decrease.push(0)
