@@ -3,11 +3,11 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 interval = 5
-cryptos = ["BTC","ETH","TRX"]
-currency = "USD"
+cryptos = ["BTC"]
+currency = "PLN"
+t = []
 
-
-def sellbuy_difference(sells, buys):
+def sellbuy(sells, buys):
     sa,sp,ba,bp = 0,0,0,0
     for s in sells:
         sa, sp = sa+s[0],sp+s[1]
@@ -15,7 +15,7 @@ def sellbuy_difference(sells, buys):
         ba, bp = ba+b[0],bp+b[1]
     sellprice = sp/sa
     buyprice= bp/ba
-    return (1 - (sellprice - buyprice) / buyprice)
+    return (sellprice , buyprice)
 
 
 def handle_exceptions(req):
@@ -39,25 +39,32 @@ def cryptostream_to_plot(crypto_set, currency, interval):
         for crypto in crypto_set:
             response = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/orderbook.json", timeout=5)
             handle_exceptions(response)
-            c_list.append([crypto+"/"+currency,sellbuy_difference(response.json()['asks'], response.json()['bids'])])
+            c_list.append([crypto,sellbuy(response.json()['asks'], response.json()['bids'])])
         all_data.append(c_list)
         graph_gen(all_data,interval)
 
 def graph_gen(all_data,interval):
-    t = np.arange(0,5*(len(all_data)),5)
+    t.append(time.strftime("%H:%M:%S", time.localtime()))
+    # te powinno być globalnym zbiorem faktycznych sygnatur czasowych
+    # potrzebna jest globalna zmienna, której dodawalibyśmy wartości przy iteracjach
     plt.ion()
     nr = len(all_data[0])
     for c in range(nr):
-        y = []
+        ys = []
+        yb =[]
         for set in all_data:
-            y.append(set[c][1])
-        plt.plot(t,y,"--o",label = all_data[0][c][0])
+            ys.append(set[c][1][0])
+            yb.append(set[c][1][1])
+        plt.plot(t,ys,"--o",label = all_data[0][c][0] + ": sprzedaż")
+        plt.plot(t, yb, "--o", label=all_data[0][c][0] + ": kupno")
     plt.legend()
+    plt.title("Wykres wartości cryptowalut w czasie")
     plt.xlabel("time")
     plt.ylabel("value")
-    plt.xlim([-0.25,t[-1]+1])
+    plt.xticks(rotation=80)
+    #plt.xlim([-0.25,t[-1]+1])
     plt.draw()
-    plt.pause(interval)
+    plt.pause(interval-2)
     plt.clf()
 
 
