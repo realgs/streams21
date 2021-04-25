@@ -1,7 +1,7 @@
 import requests
 import time
 import matplotlib.pyplot as plt
-import numpy as np
+
 interval = 5
 cryptos = ["BTC"]
 currency = "PLN"
@@ -45,8 +45,6 @@ def cryptostream_to_plot(crypto_set, currency, interval):
 
 def graph_gen(all_data,interval):
     t.append(time.strftime("%H:%M:%S", time.localtime()))
-    # te powinno być globalnym zbiorem faktycznych sygnatur czasowych
-    # potrzebna jest globalna zmienna, której dodawalibyśmy wartości przy iteracjach
     plt.ion()
     nr = len(all_data[0])
     for c in range(nr):
@@ -62,12 +60,8 @@ def graph_gen(all_data,interval):
     plt.xlabel("time")
     plt.ylabel("value")
     plt.xticks(rotation=80)
-    #plt.xlim([-0.25,t[-1]+1])
     plt.draw()
     plt.pause(interval-2)
     plt.clf()
 
-
-cryptostream_to_plot(cryptos,currency, interval)
-
-
+cryptostream_to_plot(cryptos, currency, interval)
