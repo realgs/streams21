@@ -1,4 +1,4 @@
-const axios = require('axios')
+import axios from './axiosInstance'
 
 const getDataFromApi = async (cryptoCurrencyCode, currencyCode) => {
   const response = await axios
