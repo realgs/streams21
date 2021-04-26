@@ -1,0 +1,13 @@
+Wskaźniki trendu sygnału.
+
+Bazując na poprzednim zadaniu wybrać parę walutową, która będzie cechowała się większą zmiennością. 
+Przykładowo para BTCUSD na Bitbay jest zbyt stabilna, żebyście coś zobaczyli, lepiej unikać par o bazie USD na rynku Bitbay, bo tam rynek prawie nie żyje.
+
+1. Wykresy trzech zasobów z poprzedniego zadania wyświetlać na trzech osobnych wykresach. 
+a) na wykresie lub pod wykresem dodać wolumen transakcji (przykład https://www.bankier.pl/inwestowanie/profile/quote.html?symbol=PGE ) 4pkt
+b) na wykres oprócz linii wartości osiąganych przez zasób dodać innym kolorem średnią  ruchomą z wybranego przedziału próbek. Przedział do ustalenia przez użytkownika, można ograniczyć zakres. 3pkt
+c) dodać oscylator RSI (relative strength index / wskaźnik siły względnej) ( https://pl.wikipedia.org/wiki/Wska%C5%BAnik_si%C5%82y_wzgl%C4%99dnej ). Przedział y do ustalenia przez użytkownika. 3pkt
+
+Jeśli punkty a) i c) kolidują u Was ze sobą na widoku wykresu - dajcie użytkownikowi możliwość wyboru czy życzy sobie wyświetlić volumen czy RSI.
+
+Maksymalny termin oddania zadania: 5 lub 10 maja, w zależności od grupy
