@@ -29,9 +29,9 @@ def add_values(buy, sell):
 
 
 def draw_axes(list_currencies):
-    cur_num = len(list_currencies)
+    currencies_amount = len(list_currencies)
     fig, axs = plt.subplots(3, 1, figsize=(15, 12), constrained_layout=True)
-    for i in range(cur_num):
+    for i in range(currencies_amount):
         axs[i].set_title(list_currencies[i])
         axs[i].set_xlabel('time')
         axs[i].set_ylabel('value')
@@ -40,14 +40,14 @@ def draw_axes(list_currencies):
 
 def draw_plot(list_currencies, time_interval):
     fig, axs = draw_axes(list_currencies)
-    cur_num = len(list_currencies)
+    currencies_amount = len(list_currencies)
 
     buy, sell = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
 
     iterator = 0
     while True:
         add_values(buy, sell)
-        for n in range(cur_num):
+        for n in range(currencies_amount):
             if len(buy[list_currencies[n]]) and len(sell[list_currencies[n]]) == 2:
                 time = [(iterator - 1) * time_interval, iterator * time_interval]
                 selling_cost = [sell[list_currencies[n]][-2], sell[list_currencies[n]][-1]]
