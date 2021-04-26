@@ -1,66 +1,75 @@
 from requests import get
-import sys
 import matplotlib.pyplot as plt
-import numpy as np
+import sys
 
-def connection(currency1, currency2):
-    return f'https://bitbay.net/API/Public/{currency1}{currency2}/orderbook.json'
 
-def get_values(currency1):
+def connection(currency):
+    return f'https://bitbay.net/API/Public/{currency}/ticker.json'
+
+
+def get_values(currency):
     try:
-        req = get(connection(currency1, 'USD')).json()
-        bid = req['bids']
-        ask = req['asks']
+        req = get(connection(currency)).json()
+        bid = req['bid']
+        ask = req['ask']
+        return bid, ask
     except Exception as e:
         print(e)
-    return bid, ask
 
-def print_offers(offers):
-    offer_parts = offers[:1] + ['...'] + offers[-1:]
-    for offer in offer_parts:
-        print(offer)
-    return offer
 
-def calc_diffrence(currency1):
-    bids, asks = get_values(currency1)
-    bid = bids[0][0]
-    ask = asks[0][0]
-    difference = (1 - (ask - bid) / bid)
-    print(currency1)
-    print('bid: ', bid, '\nask: ', ask, '\ndifference: ', round(difference, 3), '%', '\n')
-    return difference
+def gen_empty_dicts(list_currencies):
+    return {i: [] for i in list_currencies}
 
-def draw_graph(datas, interval):
-    plt.ion()
-    freq = [i for i in range(0,interval * len(datas), interval)]
-    for i in range(len(datas[0])):
-        y_label = []
-        for part in datas:
-            y_label.append(part[i][1])
-        plt.plot(freq, y_label, '-h', label = datas[0][i][0])
-    plt.legend(loc='upper right')
-    plt.title('Bids vs. asks', color='r')
-    plt.xlabel('Time')
-    plt.ylabel('Value')
-    plt.xlim([-1,freq[-1]+1])
-    plt.draw()
-    plt.pause(interval)
-    plt.clf()
 
-def make_graph(currency1, currency2, interval):
-    datas = []
+def add_values(buy, sell):
+    for i in list_currencies:
+        data = get_values(i)
+        buy[i].append(data[0])
+        sell[i].append(data[1])
+
+
+def draw_axes(list_currencies):
+    cur_num = len(list_currencies)
+    fig, axs = plt.subplots(3, 1, figsize=(15, 12), constrained_layout=True)
+    for i in range(cur_num):
+        axs[i].set_title(list_currencies[i])
+        axs[i].set_xlabel('time')
+        axs[i].set_ylabel('value')
+    return fig, axs
+
+
+def draw_plot(list_currencies, time_interval):
+    fig, axs = draw_axes(list_currencies)
+    cur_num = len(list_currencies)
+
+    buy, sell = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
+
+    iterator = 0
     while True:
-        temp_list = []
-        for cur1 in currency1:
-            temp_list.append([cur1 +' | '+ currency2, calc_diffrence(cur1)])
-        datas.append(temp_list)
-        draw_graph(datas, interval)
+        add_values(buy, sell)
+        for n in range(cur_num):
+            if len(buy[list_currencies[n]]) and len(sell[list_currencies[n]]) == 2:
+                time = [(iterator - 1) * time_interval, iterator * time_interval]
+                selling_cost = [sell[list_currencies[n]][-2], sell[list_currencies[n]][-1]]
+                purchase_cost = [buy[list_currencies[n]][-2], buy[list_currencies[n]][-1]]
+                axs[n].plot(time, selling_cost, label="Selling cost", color='purple')
+                axs[n].plot(time, purchase_cost, label="Purchase cost", color='blue')
+                axs[n].legend()
+            elif len(buy[list_currencies[n]]) and len(sell[list_currencies[n]]) > 2:
+                time = [(iterator - 1) * time_interval, iterator * time_interval]
+                selling_cost = [sell[list_currencies[n]][-2], sell[list_currencies[n]][-1]]
+                purchase_cost = [buy[list_currencies[n]][-2], buy[list_currencies[n]][-1]]
+                axs[n].plot(time, selling_cost, color="purple")
+                axs[n].plot(time, purchase_cost, color='blue')
+        iterator += 1
+        plt.pause(time_interval)
 
-interval = 5
-currency1 = ['BTC', 'LTC', 'TRX']
-currency2 = 'USD'
-try:
-    make_graph(currency1, currency2, interval)
-except KeyboardInterrupt:
-    print('User hit the interrupt key')
-    sys.exit()
+
+if __name__ == '__main__':
+    try:
+        list_currencies = ['BTC', 'LTC', 'TRX']
+        time_interval = 5
+        draw_plot(list_currencies, time_interval)
+    except KeyboardInterrupt:
+        print('User hit the interrupt key')
+        sys.exit()
