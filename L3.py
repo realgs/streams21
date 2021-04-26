@@ -12,24 +12,25 @@ z = "DASHUSD"
 dat = [x, y, z]
 P = []
 
-if __name__=="__main__":
 
-    def weight(a, b):
-        if a > b:
-            return a
-        else:
-            return b
+def weight(a, b):
+    if a > b:
+        return a
+    else:
+        return b
 
-
-    def collectingdata():
+def collectingdata():
 
         try:
             for i in dat:
-                l = requests.get("https://bitbay.net/API/Public/"+i+"/orderbook.json").json()
-                #print(l)
+                l = requests.get("https://bitbay.net/API/Public/" + i + "/orderbook.json").json()
+                # print(l)
 
         except requests.HTTPError as error:
             print("Error:", error)
+
+
+if __name__=="__main__":
 
 
     #collectingdata()
