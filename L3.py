@@ -30,6 +30,12 @@ def collectingdata():
             print("Error:", error)
 
 
+def loop():
+        while 1:
+            secbreak()
+            time.sleep(T)
+            print("Mineło %d sek" % (T))
+
 if __name__=="__main__":
 
 
@@ -49,14 +55,6 @@ if __name__=="__main__":
     secbreak()
 
 
-    def loop():
-        while 1:
-            secbreak()
-            time.sleep(T)
-            print("Mineło %d sek" % (T))
-
-
-
     def plots():
         data = []
 
@@ -70,7 +68,7 @@ if __name__=="__main__":
         line2, = axes.plot(data, BTCBuy, label='Buy BTC', color='grey')
 
         plt.legend()
-        plt.title("Finance Plot")
+        plt.title("Stock Plot")
         plt.xlabel("Time")
         plt.ylabel("Value")
 
