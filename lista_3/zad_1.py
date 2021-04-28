@@ -14,7 +14,7 @@ ADRESS = {
 
 CODES = [200,201,202,203,204,205,206]
 
-INTERVAL = 3000
+INTERVAL = 1000
 
 counter = 0
 currency = []
