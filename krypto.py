@@ -3,6 +3,8 @@ import time
 import sys
 import itertools
 
+import numpy as np
+
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -45,7 +47,10 @@ def dynamic_plotting(interval):
     asks = [[] for _ in range(N)]
     avg_bids = [[] for _ in range(N)]
     avg_asks = [[] for _ in range(N)]
-    volumes = [[0] for _ in range(N)]
+    volumes = [0 for _ in range(N)]
+    RSI_values = [[] for _ in range(N)]
+    bid_gains = [[] for _ in range(N)]
+    bid_losses = [[] for _ in range(N)]
 
     fig = plt.figure(figsize=(9, 8), num='Please hire me')
     fig.suptitle('Cryptocurriencies live tracking')
@@ -69,16 +74,16 @@ def dynamic_plotting(interval):
         volume_txt = axes[i].text(1.01, 0, '', transform=axes[i].transAxes)
         volume_textes.append(volume_txt)
 
+    RSI_textes = []
+    for i in range(N):
+        rsi_txt = axes[i].text(1.01, 0.1, '', transform=axes[i].transAxes)
+        RSI_textes.append(rsi_txt)
+
     def _update(frame):
         orders = []
         for i in range(N):
             orders.append(get_bitbay_data('orderbook',
                                           CRYPTO_CURRENCIES[i]+MAIN_CURRENCY))
-
-        for i in range(N):
-            volumes[i][0] += orders[i]['bids'][0][1]
-            new_text = f'Trading volume: {round(volumes[i][0], 4)}'
-            volume_textes[i].set_text(new_text)
 
         # date.append(datetime.now())
         date.append(datetime.now() + timedelta(days=next(counter)))
@@ -94,6 +99,40 @@ def dynamic_plotting(interval):
             line[1].set_data(date, asks[i])
             line[2].set_data(date, avg_bids[i])
             line[3].set_data(date, avg_asks[i])
+
+        for i in range(N):
+            volumes[i] += orders[i]['bids'][0][1]
+            new_text = f'Trading volume: {round(volumes[i], 4)}'
+            volume_textes[i].set_text(new_text)
+
+        print('')
+        for i in range(N):
+            # https://en.wikipedia.org/wiki/Relative_strength_index
+            if len(bids[i]) < 2:
+                continue
+            diff = bids[i][-2] - bids[i][-1]
+            if diff < 0:
+                bid_gains[i].append(diff)
+            elif diff > 0:
+                bid_losses[i].append(diff)
+
+            a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
+            RS = a / b
+            RSI = 100 - (100 / 1+RS)
+            RSI_values[i].append(RSI)
+
+            nan_msg = None
+            a_is_nan = np.isnan(a)
+            b_is_nan = np.isnan(b)
+            if a_is_nan and b_is_nan:
+                nan_msg = 'Bid rate is stable'
+            elif a_is_nan:
+                nan_msg = "No bid rate growth recorded"
+            elif b_is_nan:
+                nan_msg = "No bid rate loss recorded"
+
+            new_text = f'RSI: {nan_msg if nan_msg else round(RSI, 2)}'
+            RSI_textes[i].set_text(new_text)
 
         for ax, crypto_currency in zip(axes, CRYPTO_CURRENCIES):
             xlocator = AutoDateLocator()
