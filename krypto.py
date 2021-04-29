@@ -45,6 +45,7 @@ def dynamic_plotting(interval):
     asks = [[] for _ in range(N)]
     avg_bids = [[] for _ in range(N)]
     avg_asks = [[] for _ in range(N)]
+    volumes = [[0] for _ in range(N)]
 
     fig = plt.figure(figsize=(9, 8), num='Please hire me')
     fig.suptitle('Cryptocurriencies live tracking')
@@ -63,11 +64,21 @@ def dynamic_plotting(interval):
                                      label="asks' avg")
         lines.append((bids_line, asks_line, avg_bid_line, avg_ask_line))
 
+    volume_textes = []
+    for i in range(N):
+        volume_txt = axes[i].text(1.01, 0, '', transform=axes[i].transAxes)
+        volume_textes.append(volume_txt)
+
     def _update(frame):
         orders = []
         for i in range(N):
             orders.append(get_bitbay_data('orderbook',
                                           CRYPTO_CURRENCIES[i]+MAIN_CURRENCY))
+
+        for i in range(N):
+            volumes[i][0] += orders[i]['bids'][0][1]
+            new_text = f'Trading volume: {round(volumes[i][0], 4)}'
+            volume_textes[i].set_text(new_text)
 
         # date.append(datetime.now())
         date.append(datetime.now() + timedelta(days=next(counter)))
@@ -126,7 +137,7 @@ def monitor_offers(resource, interval, mode):
 if __name__ == '__main__':
     MAIN_CURRENCY = 'PLN'
     CRYPTO_CURRENCIES = ['BTC', 'LTC', 'DASH']
-    INTERVAL = 1
+    INTERVAL_SEC = 1
 
     arg = sys.argv[1]
     if arg == '1':
@@ -136,7 +147,7 @@ if __name__ == '__main__':
             print_offers(orders, resource)
     elif arg == '2':
         monitor_offers(resource=CRYPTO_CURRENCIES[0]+MAIN_CURRENCY,
-                       interval=INTERVAL, mode='CLI')
+                       interval=INTERVAL_SEC, mode='CLI')
     elif arg == '3':
         monitor_offers(resource=CRYPTO_CURRENCIES[0]+MAIN_CURRENCY,
-                       interval=INTERVAL, mode='plot')
+                       interval=INTERVAL_SEC, mode='plot')
