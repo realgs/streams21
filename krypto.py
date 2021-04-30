@@ -2,13 +2,27 @@ import requests
 import time
 import sys
 import itertools
-
+import warnings
 import numpy as np
 
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.dates import ConciseDateFormatter, AutoDateLocator
+
+warnings.filterwarnings("ignore")
+
+
+def _max(L):
+    if not L:
+        return 0
+    return max(L)
+
+
+def _min(L):
+    if not L:
+        return 0
+    return min(L)
 
 
 def get_bitbay_data(category, resource):
@@ -59,7 +73,7 @@ def dynamic_plotting(interval):
     for i in range(N):
         axes.append(fig.add_subplot(N, 1, i+1))
 
-    lines = []
+    ax_lines = []
     for i, ax in enumerate(axes):
         bids_line, = ax.plot_date(date, bids[i], '-', label='bids')
         asks_line, = ax.plot_date(date, asks[i], '-', label='asks')
@@ -67,7 +81,9 @@ def dynamic_plotting(interval):
                                      label="bids' avg")
         avg_ask_line, = ax.plot_date(date, avg_asks[i], '--',
                                      label="asks' avg")
-        lines.append((bids_line, asks_line, avg_bid_line, avg_ask_line))
+        RSI_line, = ax.plot_date(date, RSI_values[i], ':', label='RSI')
+        ax_lines.append((bids_line, asks_line, avg_bid_line, avg_ask_line,
+                         RSI_line))
 
     volume_textes = []
     for i in range(N):
@@ -85,7 +101,6 @@ def dynamic_plotting(interval):
             orders.append(get_bitbay_data('orderbook',
                                           CRYPTO_CURRENCIES[i]+MAIN_CURRENCY))
 
-        # date.append(datetime.now())
         date.append(datetime.now() + timedelta(days=next(counter)))
 
         for i in range(N):
@@ -94,12 +109,6 @@ def dynamic_plotting(interval):
             avg_bids[i].append(sum(bids[i])/len(bids[i]))
             avg_asks[i].append(sum(asks[i])/len(asks[i]))
 
-        for i, line in enumerate(lines):
-            line[0].set_data(date, bids[i])
-            line[1].set_data(date, asks[i])
-            line[2].set_data(date, avg_bids[i])
-            line[3].set_data(date, avg_asks[i])
-
         for i in range(N):
             volumes[i] += orders[i]['bids'][0][1]
             new_text = f'Trading volume: {round(volumes[i], 4)}'
@@ -107,19 +116,17 @@ def dynamic_plotting(interval):
 
         print('')
         for i in range(N):
-            # https://en.wikipedia.org/wiki/Relative_strength_index
-            if len(bids[i]) < 2:
-                continue
-            diff = bids[i][-2] - bids[i][-1]
-            if diff < 0:
-                bid_gains[i].append(diff)
-            elif diff > 0:
-                bid_losses[i].append(diff)
+            if len(bids[i]) > 2:
+                diff = bids[i][-2] - bids[i][-1]
+                if diff < 0:
+                    bid_gains[i].append(diff)
+                elif diff > 0:
+                    bid_losses[i].append(diff)
 
+            # https://en.wikipedia.org/wiki/Relative_strength_index
             a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
             RS = a / b
             RSI = 100 - (100 / 1+RS)
-            RSI_values[i].append(RSI)
 
             nan_msg = None
             a_is_nan = np.isnan(a)
@@ -133,6 +140,20 @@ def dynamic_plotting(interval):
 
             new_text = f'RSI: {nan_msg if nan_msg else round(RSI, 2)}'
             RSI_textes[i].set_text(new_text)
+            print(f'plot {i}: RSI=({_min(RSI_values[i])}, {_max(RSI_values[i])})')  # noqa: E501
+            RSI_values[i].append(0.5 if np.isnan(RSI) else RSI)
+
+        for i, lines in enumerate(ax_lines):
+            if bids[i]:
+                lines[0].set_data(date, bids[i])
+            if asks[i]:
+                lines[1].set_data(date, asks[i])
+            if avg_bids[i]:
+                lines[2].set_data(date, avg_bids[i])
+            if avg_asks[i]:
+                lines[3].set_data(date, avg_asks[i])
+            # if RSI_values[i]:
+            #     lines[4].set_data(date, RSI_values[i])
 
         for ax, crypto_currency in zip(axes, CRYPTO_CURRENCIES):
             xlocator = AutoDateLocator()
@@ -150,7 +171,7 @@ def dynamic_plotting(interval):
 
         plt.tight_layout()
 
-        return lines,
+        return ax_lines,
 
     _ = FuncAnimation(fig, _update, interval=interval)
     plt.show()
