@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.dates import ConciseDateFormatter, AutoDateLocator
+from matplotlib.widgets import Slider
 
 warnings.filterwarnings("ignore")
 
@@ -67,47 +68,73 @@ def dynamic_plotting(interval):
     bid_losses = [[] for _ in range(N)]
 
     fig = plt.figure(figsize=(9, 8), num='Please hire me')
-    fig.suptitle('Cryptocurriencies live tracking')
+    fig.suptitle('Cryptocurriencies live tracking\n\n')
+
+    ax_slider = plt.axes([0.78, 0.9, 0.18, 0.02])
+    Y_slider = Slider(ax_slider, label='scan range\n(last days)',
+                      valmin=1, valmax=2, valstep=1, valinit=1)
 
     axes = []
     for i in range(N):
         axes.append(fig.add_subplot(N, 1, i+1))
 
+    RSI_subaxes = []
+    for ax in axes:
+        RSI_subaxes.append(ax.twinx())
+
     ax_lines = []
     for i, ax in enumerate(axes):
-        bids_line, = ax.plot_date(date, bids[i], '-', label='bids')
-        asks_line, = ax.plot_date(date, asks[i], '-', label='asks')
+        bids_line, = ax.plot_date(date, bids[i], '-', label='bids',
+                                  color='royalblue')
+        asks_line, = ax.plot_date(date, asks[i], '-', label='asks',
+                                  color='darkorange')
         avg_bid_line, = ax.plot_date(date, avg_bids[i], '--',
-                                     label="bids' avg")
+                                     label="bids' avg", color='cornflowerblue')
         avg_ask_line, = ax.plot_date(date, avg_asks[i], '--',
-                                     label="asks' avg")
-        RSI_line, = ax.plot_date(date, RSI_values[i], ':', label='RSI')
-        ax_lines.append((bids_line, asks_line, avg_bid_line, avg_ask_line,
-                         RSI_line))
+                                     label="asks' avg", color='orange')
+        RSI_line, = RSI_subaxes[i].plot_date(date, RSI_values[i], ':',
+                                             label='RSI', color='lightgray')
+
+        ax_lines.append((bids_line, asks_line, avg_bid_line,
+                         avg_ask_line, RSI_line))
 
     volume_textes = []
     for i in range(N):
-        volume_txt = axes[i].text(1.01, 0, '', transform=axes[i].transAxes)
+        volume_txt = axes[i].text(1.1, 0, '', transform=axes[i].transAxes)
         volume_textes.append(volume_txt)
 
     RSI_textes = []
     for i in range(N):
-        rsi_txt = axes[i].text(1.01, 0.1, '', transform=axes[i].transAxes)
+        rsi_txt = axes[i].text(1.1, 0.13, '', transform=axes[i].transAxes)
         RSI_textes.append(rsi_txt)
 
     def _update(frame):
+        date.append(datetime.now() + timedelta(days=next(counter)))
+
+        if len(date) <= 50:
+            Y_slider.valmax = len(date)
+        ax_slider.set_xlim(Y_slider.valmin, Y_slider.valmax)
+
         orders = []
         for i in range(N):
             orders.append(get_bitbay_data('orderbook',
                                           CRYPTO_CURRENCIES[i]+MAIN_CURRENCY))
 
-        date.append(datetime.now() + timedelta(days=next(counter)))
-
         for i in range(N):
             bids[i].append(orders[i]['bids'][0][0])
             asks[i].append(orders[i]['asks'][0][0])
-            avg_bids[i].append(sum(bids[i])/len(bids[i]))
-            avg_asks[i].append(sum(asks[i])/len(asks[i]))
+            if len(bids[i]) >= Y_slider.val and \
+                    Y_slider.val != Y_slider.valinit:
+                last_Y_bids = bids[i][-Y_slider.val:]
+                avg_bids[i].append(sum(last_Y_bids)/len(last_Y_bids))
+            else:
+                avg_bids[i].append(sum(bids[i])/len(bids[i]))
+            if len(asks[i]) >= Y_slider.val and \
+                    Y_slider.val != Y_slider.valinit:
+                last_Y_asks = asks[i][-Y_slider.val:]
+                avg_asks[i].append(sum(last_Y_asks)/len(last_Y_asks))
+            else:
+                avg_asks[i].append(sum(asks[i])/len(asks[i]))
 
         for i in range(N):
             volumes[i] += orders[i]['bids'][0][1]
@@ -116,17 +143,26 @@ def dynamic_plotting(interval):
 
         print('')
         for i in range(N):
-            if len(bids[i]) > 2:
-                diff = bids[i][-2] - bids[i][-1]
+            if len(bids[i]) >= 2:
+                if Y_slider.val != Y_slider.valinit and Y_slider.val >= 2:
+                    last_Y_bids = bids[i][-Y_slider.val:]
+                    diff = last_Y_bids[-2] - last_Y_bids[-1]
+                else:
+                    diff = bids[i][-2] - bids[i][-1]
+
                 if diff < 0:
-                    bid_gains[i].append(diff)
+                    bid_gains[i].append(abs(diff))
                 elif diff > 0:
                     bid_losses[i].append(diff)
 
             # https://en.wikipedia.org/wiki/Relative_strength_index
-            a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
+            if Y_slider.val != Y_slider.valinit:
+                a = np.mean(bid_gains[i][-Y_slider.val:])
+                b = np.mean(bid_losses[i][-Y_slider.val:])
+            else:
+                a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
             RS = a / b
-            RSI = 100 - (100 / 1+RS)
+            RSI = 100 - (100 / (1+RS))
 
             nan_msg = None
             a_is_nan = np.isnan(a)
@@ -138,10 +174,11 @@ def dynamic_plotting(interval):
             elif b_is_nan:
                 nan_msg = "No bid rate loss recorded"
 
-            new_text = f'RSI: {nan_msg if nan_msg else round(RSI, 2)}'
+            new_text = f'RSI: {nan_msg if nan_msg else round(RSI)}'
             RSI_textes[i].set_text(new_text)
-            print(f'plot {i}: RSI=({_min(RSI_values[i])}, {_max(RSI_values[i])})')  # noqa: E501
-            RSI_values[i].append(0.5 if np.isnan(RSI) else RSI)
+            RSI_range = (_min(RSI_values[i]), _max(RSI_values[i]))
+            print(f'plot {i}: RSI={RSI_range}')
+            RSI_values[i].append(50 if nan_msg else RSI)
 
         for i, lines in enumerate(ax_lines):
             if bids[i]:
@@ -152,8 +189,8 @@ def dynamic_plotting(interval):
                 lines[2].set_data(date, avg_bids[i])
             if avg_asks[i]:
                 lines[3].set_data(date, avg_asks[i])
-            # if RSI_values[i]:
-            #     lines[4].set_data(date, RSI_values[i])
+            if RSI_values[i]:
+                lines[4].set_data(date, RSI_values[i])
 
         for ax, crypto_currency in zip(axes, CRYPTO_CURRENCIES):
             xlocator = AutoDateLocator()
@@ -162,11 +199,21 @@ def dynamic_plotting(interval):
 
             ax.set(ylabel=f'Rate [{MAIN_CURRENCY}]',
                    title=crypto_currency)
-            ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(handles+[RSI_line], labels+['RSI'], loc='upper left',
+                      bbox_to_anchor=(1.12, 1.05))
             ax.yaxis.set_major_locator(ylocator)
             ax.xaxis.set_major_locator(xlocator)
             ax.xaxis.set_major_formatter(formatter)
             ax.relim()
+            ax.autoscale_view()
+
+        for ax in RSI_subaxes:
+            ax.axhline(y=70, color='lightgray', linestyle='-', linewidth=0.4)
+            ax.axhline(y=30, color='lightgray', linestyle='-', linewidth=0.4)
+            ax.set(ylabel='RSI')
+            ax.relim()
+            ax.set_ylim(0, 100)
             ax.autoscale_view()
 
         plt.tight_layout()
