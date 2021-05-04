@@ -10,7 +10,7 @@ from tabulate import tabulate
 
 SLEEP_VALUE = 0.1
 
-CHECK = 0
+CHECK_LEGEND = 0
 
 
 def add_currency_to_currencies(currencies, currency):
@@ -40,7 +40,9 @@ def fetchFromAPI(currencies, category):
         sleep(SLEEP_VALUE)
         buy_price = data['ask']
         sell_price = data['bid']
-        result.append([currency, buy_price, sell_price])
+        volume = data['volume']
+        result.append([currency, buy_price, sell_price, volume])
+        print_fetched_data(result)
     return result
 
 
@@ -51,17 +53,36 @@ def split_data_into_packages(data):
         name = val[0]
         ask = val[1]
         bid = val[2]
+        volume = val[3]
         time = datetime.now().strftime("%H:%M:%S")
         result.setdefault('name', []).append(name)
         result.setdefault('ask', []).append(ask)
         result.setdefault('bid', []).append(bid)
+        result.setdefault('volume', []).append(volume)
     return result
 
 
-def append_crypto_data_to_lists(names, asks, bids):
+def append_crypto_data_to_lists(names, asks, bids, volumes):
     for i in range(len(names)):
         y_ask_data.setdefault(names[i], []).append(asks[i])
         y_bid_data.setdefault(names[i], []).append(bids[i])
+        y_volume_data.setdefault(names[i], []).append(volumes[i])
+
+
+def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
+    i = 0
+    for plot in plots:
+        plot.plot(x_data, y_ask_data[names[i]],
+                  linewidth=1, label='Buy price of ' + names[i], color='Red')
+        plot.plot(x_data, y_bid_data[names[i]],
+                  linewidth=1, label='Sell price of ' + names[i], color='Blue')
+        plot.set_xticks(x_data)
+        write_volume_rsi(plot, names, i)
+        plot_averages(
+            x_data, plot, y_ask_data[names[i]], y_bid_data[names[i]], names, i)
+        i += 1
+    # plot_rsi(x_data, names)
+
 
 
 def draw_plots(x_data, y_ask_data, y_bid_data, names):
@@ -88,6 +109,7 @@ def animation_frame(i):
     names = splitted_data['name']
     asks = splitted_data['ask']
     bids = splitted_data['bid']
+    volumes = splitted_data['volume']
     x_data.append(datetime.now().strftime("%H:%M:%S"))
 
     append_crypto_data_to_lists(names, asks, bids)
