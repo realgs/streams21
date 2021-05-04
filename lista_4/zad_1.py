@@ -22,8 +22,10 @@ for key in ADRESS.keys():
     currency.append(key)
     amount_of_currencies += 1
 
-print('Wyświetlić RSI(r), czy Wolumen(v)?')
+print('Wyświetlić RSI(r), czy Wolumen(v)? ', end='')
 decision = input()
+print('Przedział do wyświetlenia na wykresie oraz z jakiego liczona bedzie średnia: ', end='')
+part = input()
 
 
 def market():
@@ -85,7 +87,7 @@ def show_plots():
                 volume_table[w].append(volume[i])
                 lines[i*4+3].set_data(req_times[w], volume_table[w])
             
-            if counter > 100:
+            if counter > int(part):
                 bids_table[w].pop(0)
                 asks_table[w].pop(0)
                 req_times[w].pop(0)
