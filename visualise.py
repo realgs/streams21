@@ -84,6 +84,11 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
     # plot_rsi(x_data, names)
 
 
+def plot_averages(x_data, plot, ask_data, bid_data, names, i):
+    average_ask = sum(ask_data)/len(ask_data)
+    y_ask_average_data.setdefault(names[i], []).append(average_ask)
+    plot.plot(x_data, y_ask_average_data[names[i]],
+              color='Orange', linewidth=0.5, label='Average buy price')
 
     average_bid = sum(bid_data)/len(bid_data)
     y_bid_average_data.setdefault(names[i], []).append(average_bid)
@@ -98,6 +103,7 @@ def write_volume_rsi(plot, names, i):
     plot.set_xlabel(
         f'Time                                                          Latest Volume: {y_volume_data[names[i]]}    Latest RSI: {RSI}')
     y_volume_data[names[i]].clear()
+
 
 def plot_rsi(x_data, names):
 
