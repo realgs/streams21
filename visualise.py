@@ -46,6 +46,13 @@ def fetchFromAPI(currencies, category):
     return result
 
 
+def print_fetched_data(result):
+    result = np.array(result)
+    print('======================')
+    print(tabulate(result, headers=[
+          'currency', 'buy_price', 'sell_price', 'volume'], tablefmt='orgtbl'))
+
+
 def split_data_into_packages(data):
     names = []
     result = {}
