@@ -106,9 +106,11 @@ def plot_averages(x_data, plot, ask_data, bid_data, names, i):
 def write_volume_rsi(plot, names, i):
     name = names[i]
     RSI = get_rsi(name[0:3])
-    RSI = RSI['value']
-    plot.set_xlabel(
-        f'Time                                                          Latest Volume: {y_volume_data[names[i]]}    Latest RSI: {RSI}')
+    print(RSI)
+    if RSI != None:
+        RSI = RSI['value']
+        plot.set_xlabel(
+            f'Time                                                          Latest Volume: {y_volume_data[names[i]]}    Latest RSI: {RSI}')
     y_volume_data[names[i]].clear()
 
 
