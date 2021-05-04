@@ -114,6 +114,20 @@ def plot_rsi(x_data, names):
         i += 1
 
 
+def get_rsi(crypto):
+    sleep(SLEEP_VALUE)
+    secret_api_key = apikey()
+    URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval=1h'
+
+    try:
+        response = r.get(URL)
+        response.raise_for_status()
+
+    except HTTPError:
+        print(f'Error: : {HTTPError}')
+
+    else:
+        return response.json()
 
 
 def draw_legend_once():
