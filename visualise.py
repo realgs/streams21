@@ -99,8 +99,21 @@ def write_volume_rsi(plot, names, i):
         f'Time                                                          Latest Volume: {y_volume_data[names[i]]}    Latest RSI: {RSI}')
     y_volume_data[names[i]].clear()
 
-    plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
-    plt.xticks(x_data)
+def plot_rsi(x_data, names):
+
+    i = 0
+    for plot in plots_twinx:
+        name = names[i]
+        RSI = get_rsi(name[0:3])
+        if RSI == None:
+            continue
+        RSI = RSI['value']
+        y_rsi_data.setdefault(name, []).append(RSI)
+        plot.plot(x_data, y_rsi_data[name],
+                  color='Purple', linewidth=0.5, label='RSI')
+        i += 1
+
+
 
 
 def draw_legend_once():
