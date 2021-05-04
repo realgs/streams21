@@ -4,6 +4,9 @@ from matplotlib import pyplot as plt
 from requests.exceptions import HTTPError
 from datetime import datetime
 from matplotlib.animation import FuncAnimation
+from apikey import apikey
+import numpy as np
+from tabulate import tabulate
 
 SLEEP_VALUE = 0.1
 
