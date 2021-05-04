@@ -91,6 +91,13 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
               color='Black', linewidth=0.5, label='Average sell price')
 
 
+def write_volume_rsi(plot, names, i):
+    name = names[i]
+    RSI = get_rsi(name[0:3])
+    RSI = RSI['value']
+    plot.set_xlabel(
+        f'Time                                                          Latest Volume: {y_volume_data[names[i]]}    Latest RSI: {RSI}')
+    y_volume_data[names[i]].clear()
 
     plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
     plt.xticks(x_data)
