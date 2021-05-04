@@ -6,9 +6,8 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.dates import DateFormatter
 
 ADRESS = {
-    'TRX-PLN' : 'https://bitbay.net/API/Public/TRXPLN/orderbook.json',
-    'GRT-PLN' : 'https://bitbay.net/API/Public/GRTPLN/orderbook.json',
-    'GNT-PLN' : 'https://bitbay.net/API/Public/GNTPLN/orderbook.json'
+    'GRT-PLN' : 'https://bitbay.net/API/Public/GRTPLN/ticker.json',
+    'OMG-PLN' : 'https://bitbay.net/API/Public/OMGPLN/ticker.json'
 }
 
 CODES = [200,201,202,203,204,205,206]
@@ -16,85 +15,104 @@ CODES = [200,201,202,203,204,205,206]
 INTERVAL = 1000
 
 counter = 0
+counter2 = 0
 currency = []
+amount_of_currencies = 0
 for key in ADRESS.keys():
     currency.append(key)
+    amount_of_currencies += 1
 
 
 def market():
     bids_table = []
     asks_table = []
-    req_times = []
     volume_table = []
-    volume = 0
+    req_times = []
     for key in ADRESS.keys():
         try:
             request = requests.get(ADRESS[key])
             if request.status_code in CODES:
-                for bids in request.json()['bids']:
-                    volume += 1
-                for asks in request.json()['asks']:
-                    volume += 1
-                bids = request.json()['bids'][0][0]
-                asks = request.json()['asks'][0][0]
+                bids = request.json()['bid']
+                asks = request.json()['ask']
+                volume = request.json()['volume']
                 req_time = datetime.now()
                 bids_table.append(bids)
                 asks_table.append(asks)
-                req_times.append(req_time)
                 volume_table.append(volume)
-                volume = 0
+                req_times.append(req_time)
             else:
                 print('ERROR')
         except HTTPError:
             print('ERROR: ',HTTPError)
-    return bids_table, asks_table, req_times
+    return bids_table, asks_table, req_times, volume_table
 
 
 def arrays(n):
-    return [[] for _ in range(n)]
+    return [[] for _ in range(n*2)]
 
 
 def show_plots():
     def update(_):
-        bids, asks, times = market()
+        bids, asks, times, volume = market()
         global counter
         counter += 1
         for i in range(n):
-            bids_table[i].append(bids[i])
-            asks_table[i].append(asks[i])
-            req_times[i].append(times[i])
+            w = i * 2
+            bids_table[w].append(bids[i])
+            asks_table[w].append(asks[i])
+            req_times[w].append(times[i])
+            volume_table[w].append(volume[i])
+            suma = 0
+            for z in asks_table[w]:
+                suma += z
+            avg_ask = suma/(len(asks_table[w]))
+            avg_asks_table[w].append(avg_ask)
+            suma = 0
 
-            lines[i*2].set_data(req_times[i], bids_table[i])
-            lines[i*2+1].set_data(req_times[i], asks_table[i])
+            lines[i*4].set_data(req_times[w], bids_table[w])
+            lines[i*4+1].set_data(req_times[w], asks_table[w])
+            lines[i*4+2].set_data(req_times[w], avg_asks_table[w])
+            lines[i*4+3].set_data(req_times[w], volume_table[w])
             
-            if counter > 20:
-                bids_table[i].pop(0)
-                asks_table[i].pop(0)
-                req_times[i].pop(0)
+            if counter > 50:
+                bids_table[w].pop(0)
+                asks_table[w].pop(0)
+                req_times[w].pop(0)
+                avg_asks_table[w].pop(0)
+                volume_table[w].pop(0)
                 
 
-            axis[i].relim()
-            axis[i].autoscale_view()
-            
+            axis[w].relim()
+            axis[w].autoscale_view()
+            axis[w+1].relim()
+            axis[w+1].autoscale_view()
         return lines
 
-    n = 3
-    counter = 0
-    req_times, bids_table, asks_table, volume_table = arrays(n), arrays(n), arrays(n), arrays(n)
 
-    fig, axis = plt.subplots(n,figsize=(16,9))
+    n = amount_of_currencies
+    counter = 0
+    req_times, bids_table, asks_table, avg_asks_table, volume_table = arrays(n), arrays(n), arrays(n), arrays(n), arrays(n)
+
+    fig, axis = plt.subplots(2*n,figsize=(16,9))
     lines = []
 
     for i in range(n):
-        bids_part, = axis[i].plot([], [],'g-d', label='Best bid')
-        asks_part, = axis[i].plot([], [],'r-d', label='Best ask')
+        bids_part, = axis[2*i].plot([], [],'g-d', label='Best bid')
+        asks_part, = axis[2*i].plot([], [],'r-d', label='Best ask')
+        asks_avg, = axis[2*i].plot([], [], 'k-d', label='Avg ask')
+        volume_part, = axis[2*i+1].plot([], [], 'b-d', label='Volume')
         lines.append(bids_part)
         lines.append(asks_part)
+        lines.append(asks_avg)
+        lines.append(volume_part)
         
-        axis[i].set_title(currency[i])
-        axis[i].grid()
-        axis[i].legend(loc=6)
-        axis[i].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
+        axis[2*i].set_title(currency[i])
+        axis[2*i].grid()
+        axis[2*i].legend(loc=6)
+        axis[2*i].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
+        axis[2*i+1].grid()
+        axis[2*i+1].legend(loc=6)
+        axis[2*i+1].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
 
     fig.autofmt_xdate()
     anim = FuncAnimation(fig, update, interval=INTERVAL)
