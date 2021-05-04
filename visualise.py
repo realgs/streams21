@@ -85,22 +85,25 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
 
 
 
-def draw_plots(x_data, y_ask_data, y_bid_data, names):
-    for i in range(len(names)):
-        plt.plot(x_data, y_ask_data[names[i]],
-                 linewidth=1, label='Buy price of ' + names[i])
-        plt.plot(x_data, y_bid_data[names[i]],
-                 linewidth=1, label='Sell price of ' + names[i])
+    average_bid = sum(bid_data)/len(bid_data)
+    y_bid_average_data.setdefault(names[i], []).append(average_bid)
+    plot.plot(x_data, y_bid_average_data[names[i]],
+              color='Black', linewidth=0.5, label='Average sell price')
+
+
 
     plt.subplots_adjust(bottom=0.2, left=0.2, right=0.9)
     plt.xticks(x_data)
 
 
 def draw_legend_once():
-    global CHECK
-    if CHECK == 0:
-        plt.legend()
-        CHECK = 1
+    global CHECK_LEGEND
+    if CHECK_LEGEND == 0:
+        for plot in plots:
+            plot.legend()
+        for plot in plots_twinx:
+            plot.legend()
+        CHECK_LEGEND = 1
 
 
 def animation_frame(i):
@@ -112,25 +115,57 @@ def animation_frame(i):
     volumes = splitted_data['volume']
     x_data.append(datetime.now().strftime("%H:%M:%S"))
 
-    append_crypto_data_to_lists(names, asks, bids)
+    append_crypto_data_to_lists(names, asks, bids, volumes)
 
-    draw_plots(x_data, y_ask_data, y_bid_data, names)
-
-    plt.xlabel('Time')
-    plt.ylabel('Value in USD')
+    draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names)
 
     draw_legend_once()
 
 
+def plot_setup():
+    plt.style.use('seaborn')
+    fig.suptitle('Cryptocurrencies in real time')
+    for plot in plots:
+        plot.set_xlabel('Time')
+        plot.set_ylabel('Value in PLN')
+        plt.setp(plot.xaxis.get_majorticklabels(), rotation=45)
+    plt.tight_layout()
+
+
+def animate_plots():
+    plot_setup()
+    anim = FuncAnimation(plt.gcf(), animation_frame, interval=5000)
+    plt.show()
+
+
+def set_plots():
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1)
+    plots = []
+    plots.append(ax1)
+    plots.append(ax2)
+    plots.append(ax3)
+
+    plots_twinx = []
+    plots_twinx.append(ax1.twinx())
+    plots_twinx.append(ax2.twinx())
+    plots_twinx.append(ax3.twinx())
+
+    return fig, plots, plots_twinx
+
+
 if __name__ == "__main__":
-    currencies = ['LSK', 'LTC', 'DASH']
+    currencies = ['LSK', 'LTC', 'BTC']
     category = 'ticker'
-    currency = 'USD'
+    currency = 'PLN'
     currencies = add_currency_to_currencies(currencies, currency)
 
     x_data = []
     y_ask_data = {}
     y_bid_data = {}
+    y_ask_average_data = {}
+    y_bid_average_data = {}
+    y_volume_data = {}
+    y_rsi_data = {}
+    fig, plots, plots_twinx = set_plots()
 
-    anim = FuncAnimation(plt.gcf(), animation_frame, interval=5000)
-    plt.show()
+    animate_plots()
