@@ -85,7 +85,7 @@ def show_plots():
                 volume_table[w].append(volume[i])
                 lines[i*4+3].set_data(req_times[w], volume_table[w])
             
-            if counter > 50:
+            if counter > 100:
                 bids_table[w].pop(0)
                 asks_table[w].pop(0)
                 req_times[w].pop(0)
