@@ -22,6 +22,9 @@ for key in ADRESS.keys():
     currency.append(key)
     amount_of_currencies += 1
 
+print('Wyświetlić RSI(r), czy Wolumen(v)?')
+decision = input()
+
 
 def market():
     bids_table = []
@@ -61,7 +64,6 @@ def show_plots():
             bids_table[w].append(bids[i])
             asks_table[w].append(asks[i])
             req_times[w].append(times[i])
-            volume_table[w].append(volume[i])
             suma = 0
             for z in asks_table[w]:
                 suma += z
@@ -72,14 +74,27 @@ def show_plots():
             lines[i*4].set_data(req_times[w], bids_table[w])
             lines[i*4+1].set_data(req_times[w], asks_table[w])
             lines[i*4+2].set_data(req_times[w], avg_asks_table[w])
-            lines[i*4+3].set_data(req_times[w], volume_table[w])
+
+            if decision == 'r':
+                for z in asks_table[w]:
+                    rs = abs(bids[i]/asks[i])
+                rsi = 100 - (100 / (1 + rs))
+                rsi_table[w].append(rsi)
+                lines[i*4+3].set_data(req_times[w], rsi_table[w])
+            elif decision == 'v':
+                volume_table[w].append(volume[i])
+                lines[i*4+3].set_data(req_times[w], volume_table[w])
             
             if counter > 50:
                 bids_table[w].pop(0)
                 asks_table[w].pop(0)
                 req_times[w].pop(0)
                 avg_asks_table[w].pop(0)
-                volume_table[w].pop(0)
+                if decision == 'r':
+                    rsi_table[w].pop(0)
+                elif decision == 'v':   
+                    volume_table[w].pop(0)
+                
                 
 
             axis[w].relim()
@@ -91,7 +106,7 @@ def show_plots():
 
     n = amount_of_currencies
     counter = 0
-    req_times, bids_table, asks_table, avg_asks_table, volume_table = arrays(n), arrays(n), arrays(n), arrays(n), arrays(n)
+    req_times, bids_table, asks_table, avg_asks_table, volume_table, rsi_table = arrays(n), arrays(n), arrays(n), arrays(n), arrays(n), arrays(n)
 
     fig, axis = plt.subplots(2*n,figsize=(16,9))
     lines = []
@@ -100,12 +115,17 @@ def show_plots():
         bids_part, = axis[2*i].plot([], [],'g-d', label='Best bid')
         asks_part, = axis[2*i].plot([], [],'r-d', label='Best ask')
         asks_avg, = axis[2*i].plot([], [], 'k-d', label='Avg ask')
-        volume_part, = axis[2*i+1].plot([], [], 'b-d', label='Volume')
         lines.append(bids_part)
         lines.append(asks_part)
         lines.append(asks_avg)
-        lines.append(volume_part)
+        if decision == 'r':
+            rsi_part, = axis[2*i+1].plot([], [], 'b-d', label='RSI')
+            lines.append(rsi_part)
+        elif decision == 'v':
+            volume_part, = axis[2*i+1].plot([], [], 'b-d', label='Volume')
+            lines.append(volume_part)
         
+
         axis[2*i].set_title(currency[i])
         axis[2*i].grid()
         axis[2*i].legend(loc=6)
