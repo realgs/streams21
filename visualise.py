@@ -225,7 +225,48 @@ def set_plots():
     return fig, plots, plots_twinx
 
 
+def what_to_plot():
+    root = tk.Tk()
+    canvas1 = tk.Canvas(root, width=300, height=300,
+                        bg='gray90', relief='raised')
+    canvas1.pack()
+    button1 = tk.Button(text='      Plot Volume      ', command=decide_to_plot_volume,
+                        bg='green', fg='white', font=('helvetica', 12, 'bold'))
+    button2 = tk.Button(text='      Plot RSI      ', command=decide_to_plot_rsi,
+                        bg='green', fg='white', font=('helvetica', 12, 'bold'))
+    button3 = tk.Button(text='      Plot Averages      ', command=decide_to_plot_averages,
+                        bg='green', fg='white', font=('helvetica', 12, 'bold'))
+    canvas1.create_window(150, 100, window=button1)
+    canvas1.create_window(150, 200, window=button2)
+    canvas1.create_window(150, 290, window=button3)
+    root.mainloop()
+
+
+def decide_to_plot_volume():
+    global PLOT_VOLUME
+    global PLOT_RSI
+    PLOT_VOLUME = 1
+    PLOT_RSI = 0
+    print('Choosed volume')
+
+
+def decide_to_plot_rsi():
+    global PLOT_VOLUME
+    global PLOT_RSI
+    PLOT_RSI = 1
+    PLOT_VOLUME = 0
+    print('Choosed RSI')
+
+
+def decide_to_plot_averages():
+    global PLOT_AVERAGES
+    PLOT_AVERAGES = 1
+    print('Choosed to plot averages')
+
+
 if __name__ == "__main__":
+    what_to_plot()
+
     currencies = ['LSK', 'LTC', 'BTC']
     category = 'ticker'
     currency = 'PLN'
@@ -239,5 +280,4 @@ if __name__ == "__main__":
     y_volume_data = {}
     y_rsi_data = {}
     fig, plots, plots_twinx = set_plots()
-
     animate_plots()
