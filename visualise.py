@@ -93,14 +93,15 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
         plot.plot(x_data, y_bid_data[names[i]],
                   linewidth=1, label='Sell price of ' + names[i], color='Blue')
         plot.set_xticks(x_data)
-        write_volume_rsi(plot, names, i)
         plot_averages(
             x_data, plot, y_ask_data[names[i]], y_bid_data[names[i]], names, i)
         i += 1
-    # plot_rsi(x_data, names)
+    plot_volume_rsi(x_data, names, i)
 
 
 def plot_averages(x_data, plot, ask_data, bid_data, names, i):
+    if PLOT_AVERAGES == 0:
+        return 0
     average_ask = sum(ask_data)/len(ask_data)
     y_ask_average_data.setdefault(names[i], []).append(average_ask)
     plot.plot(x_data, y_ask_average_data[names[i]],
@@ -112,15 +113,6 @@ def plot_averages(x_data, plot, ask_data, bid_data, names, i):
               color='Black', linewidth=0.5, label='Average sell price')
 
 
-def write_volume_rsi(plot, names, i):
-    name = names[i]
-    RSI = get_rsi(name[0:3])
-    print(RSI)
-    if RSI != None:
-        RSI = RSI['value']
-        plot.set_xlabel(
-            f'Time                                                          Latest Volume: {y_volume_data[names[i]]}    Latest RSI: {RSI}')
-    y_volume_data[names[i]].clear()
 
 
 def plot_rsi(x_data, names):
