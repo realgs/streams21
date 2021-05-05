@@ -5,12 +5,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime, timedelta
 import time
+import warnings
+
+warnings.filterwarnings("ignore")
+
 
 RSI_SAMPLES_NUMBER = 3
 AVERAGE_SAMPLES_NUMBER = 3
 TIME_IN_VOLUME = 5
 BASE_CURRENCY = "PLN"
-FIRST_CRYPTO = "LINK"
+FIRST_CRYPTO = "LTC"
 SECOND_CRYPTO = "ETH"
 THIRD_CRYPTO = "LSK"
 
@@ -25,11 +29,9 @@ def connect():
         print("No internet connection")
         sys.exit()
 
-def theGreatest(a, b):
-    if a > b:
-        return a
-    else:
-        return b
+def theGreatest(array):
+    Lmax = max(array)
+    return Lmax
 
 def getVolumeNewAPI(fromCurrancy, toCurrancy, time):
     url = f"https://api.bitbay.net/rest/trading/transactions/{fromCurrancy}-{toCurrancy}"
@@ -37,12 +39,14 @@ def getVolumeNewAPI(fromCurrancy, toCurrancy, time):
     now = datetime.now()
     before = now - timedelta(0, time)
     before -= timedelta(0, time) - timedelta(0, time)
-
     querystring = {"from": int(before.timestamp()) * 1000, "to": int(now.timestamp()) * 1000}
 
-    response = requests.request("GET", url, params=querystring)
-
-    return response.json()['items'][0]['a']
+    try:
+        response = requests.request("GET", url, params=querystring)
+        a = response.json()['items'][0]['a']
+    except:
+        a = 0
+    return a
 
 def calculateAverage(arraySell, arrayBuy, samplesNumber):
     valueBuy = 0
@@ -79,7 +83,7 @@ def calculateRSI(DecreaseArray, IncreaseArray, buyArray, samplesNumber):
     else:
         a = 1
         b = 1
-    RSI = 100 - (100 / (1 + (a/b)))
+    RSI = 100 - (100 / (1 + (a + 1/b + 1)))
     return RSI
 
 def getCurrencyData(currency, category):
@@ -238,6 +242,7 @@ if __name__ == "__main__":
         axes[1][0].set_yscale('log')
         axes[1][1].set_yscale('log')
         axes[1][2].set_yscale('log')
+
 
         i += 1
         plt.draw()
