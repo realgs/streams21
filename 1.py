@@ -26,7 +26,7 @@ def append_not_none(values, a):
             values.append(values[-1])
 
 def append_mean(mean_values, values,mean_elements):
-    if len(values)>5:
+    if len(values)>mean_elements:
         mean_values.append(np.mean(values[-(mean_elements):]))
     else:
         mean_values.append(np.mean(values))
