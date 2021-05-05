@@ -113,6 +113,11 @@ def plot_averages(x_data, plot, ask_data, bid_data, names, i):
               color='Black', linewidth=0.5, label='Average sell price')
 
 
+def plot_volume_rsi(x_data, names, i):
+    if PLOT_RSI == 1:
+        plot_rsi(x_data, names)
+    if PLOT_VOLUME == 1:
+        plot_volume(x_data, names)
 
 
 def plot_rsi(x_data, names):
