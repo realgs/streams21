@@ -37,19 +37,19 @@ def plot():
 
     lines.append(ax[0].plot(BTCBuy, color='purple', label='Buy BTC'))
     lines.append(ax[0].plot(BTCSell, color='blue', label='Sell BTC'))
-    ax[0].set_title("Quotation Chart BTC")
+    ax[0].set_title("Quotation Chart BTC USD")
     ax[0].legend(loc=1)
     ax[0].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
     lines.append(ax[1].plot(LTCBuy, color='silver', label='Buy LTC'))
     lines.append(ax[1].plot(LTCSell, color='red', label='Sell LTC'))
-    ax[1].set_title("Quotation Chart LTC")
+    ax[1].set_title("Quotation Chart LTC USD")
     ax[1].legend(loc=1)
     ax[1].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
     lines.append(ax[2].plot(DASHBuy, color='pink', label='Buy DASH'))
     lines.append(ax[2].plot(DASHSell, color='gold', label='Sell DASH'))
-    ax[2].set_title("Quotation Chart DASH")
+    ax[2].set_title("Quotation Chart DASH USD")
     ax[2].legend(loc=1)
     ax[2].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
     fig.autofmt_xdate()
