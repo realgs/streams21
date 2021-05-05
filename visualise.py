@@ -235,19 +235,34 @@ def gui_plot_decide():
     root = tk.Tk()
     root.title(
         'Cryptocurrency in real time startup, choose what you want then close this window')
+    canvas1 = setup_canvas(root)
+    button1, button2, button3 = setup_buttons()
+    canvas1 = create_windows(canvas1,button1,button2,button3)
+    root.mainloop()
+
+
+def setup_canvas(root):
     canvas1 = tk.Canvas(root, width=600, height=320,
                         bg='gray90', relief='raised')
     canvas1.pack()
+    return canvas1
+
+
+def setup_buttons():
     button1 = tk.Button(text='      Plot Volume      ', command=decide_to_plot_volume,
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
     button2 = tk.Button(text='      Plot RSI      ', command=decide_to_plot_rsi,
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
     button3 = tk.Button(text='      Plot Averages      ', command=decide_to_plot_averages,
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
+    return button1,button2,button3
+
+
+def create_windows(canvas1,button1,button2,button3):
     canvas1.create_window(2*150, 100, window=button1)
     canvas1.create_window(2*150, 200, window=button2)
     canvas1.create_window(2*150, 290, window=button3)
-    root.mainloop()
+    return canvas1
 
 
 def decide_to_plot_volume():
