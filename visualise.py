@@ -46,6 +46,8 @@ def fetchFromAPI(currencies, category):
     result = []
     for currency in currencies:
         data = download_data(currency, category)
+        while data == None:
+            data = download_data(currency, category)
         sleep(SLEEP_VALUE)
         buy_price = data['ask']
         sell_price = data['bid']
@@ -170,7 +172,7 @@ def draw_legend_once():
             if PLOT_AVERAGES == 0:
                 plot.legend(loc=2, bbox_to_anchor=(0, 1.5))
             else:
-                plot.legend(loc=2, bbox_to_anchor=(0, 1.8))
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.75))
         for plot in plots_twinx:
             plot.legend(loc=1, bbox_to_anchor=(1, 1.4))
         CHECK_LEGEND = 1
