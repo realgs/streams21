@@ -25,8 +25,8 @@ def choiceState():
 BITBAY_ADRES = 'https://bitbay.net/API/Public'
 NEW_BITBAY_ADRES = 'https://api.bitbay.net/rest/trading'
 FREQUENCY = 5
-MOVING_AVR_SCALE = 3
-Y_RSI = choiceState()['y']
+MOVING_AVR_SCALE = choiceState()['yMovAv']
+Y_RSI = choiceState()['yRsi']
 
 def dataPicker(resource, currency, format):
     try:
@@ -62,7 +62,7 @@ def volumePicker(resource, currency, fromTime):
         try:
             volume = _DATA['items'][0]['a']
         except IndexError:
-            volume = 0
+            volume = str(0.0)
         return volume
 
 def RSIcalculator(decrease, increase, buyArray, period):
@@ -87,8 +87,8 @@ def movingAverage(currencyList):
         if i >= 0:
             currentAverage += currencyList[i]
 
-    if len(currencyList) > 3:
-        currentAverage /= 3
+    if len(currencyList) > MOVING_AVR_SCALE:
+        currentAverage /= MOVING_AVR_SCALE
         return currentAverage
     else:
         return currencyList[-1]
@@ -131,6 +131,7 @@ def animate(i):
     points_DASH_ask_avr.append(movingAverage(points_DASH_ask))
 
 
+    print(i)
     # Plots
     with plt.style.context('seaborn'):
         plt.cla()
@@ -164,29 +165,28 @@ def animate(i):
         ax3.legend()
 
         if choiceState()['type'] == 'volume':
-            ax4.plot(points_x, points_BTC_volume, color='#969696', alpha=0.5, label='Wolumen BTC' if i == 0 else "")
+            ax4.bar(points_x, points_BTC_volume, color='#969696', alpha=0.5, label='Wolumen BTC' if i == 0 else "")
             ax4.set_xlim(left= left, right= right)
             ax4.set_ylabel('Ilość wolumenu', fontsize=12)
             ax4.set_xlabel('Czas', fontsize=12)
             ax4.legend()
-            ax5.plot(points_x, points_LTC_volume, color='#969696', alpha=0.5)
+            ax5.bar(points_x, points_LTC_volume, color='#969696', alpha=0.5, label='Wolumen LTC' if i == 0 else "")
             ax5.set_xlim(left= left, right= right)
             ax5.set_xlabel('Czas', fontsize=12)
-            # ax5.legend()
-            ax6.plot(points_x, points_DASH_volume, color='#969696', alpha=0.5)
+            ax5.legend()
+            ax6.bar(points_x, points_DASH_volume, color='#969696', alpha=0.5, label='Wolumen DASH' if i == 0 else "")
             ax6.set_xlim(left= left, right= right)
             ax6.set_xlabel('Czas', fontsize=12)
-            # ax6.legend()
+            ax6.legend()
         elif choiceState()['type'] == 'rsi':
-
-            ax4.plot(points_x, RSI_BTC, color='#6600ff')
+            ax4.plot(points_x, RSI_BTC, color='#6600ff', label='RSI BTC' if i == 0 else "")
             ax4.set_xlim(left= left, right= right)
             ax4.set_ylabel('Wskaźnik siły względnej', fontsize=12)
             ax4.set_xlabel('Czas', fontsize=12)
-            ax5.plot(points_x, RSI_LTC, color='#6600ff')
+            ax5.plot(points_x, RSI_LTC, color='#6600ff', label='RSI LTC' if i == 0 else "")
             ax5.set_xlim(left= left, right= right)
             ax5.set_xlabel('Czas', fontsize=12)
-            ax6.plot(points_x, RSI_DASH, color='#6600ff')
+            ax6.plot(points_x, RSI_DASH, color='#6600ff', label='RSI DASH' if i == 0 else "")
             ax6.set_xlim(left= left, right= right)
             ax6.set_xlabel('Czas', fontsize=12)
 

@@ -1,1 +1,1 @@
-{"type": "volume", "y": 5}
+{"type": "volume", "yRsi": 5, "yMovAv": 4}
