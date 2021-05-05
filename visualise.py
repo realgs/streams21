@@ -15,7 +15,7 @@ SLEEP_VALUE = 0.1
 
 CHECK_LEGEND = 0
 
-PLOT_VOLUME = 0
+PLOT_VOLUME = 1
 
 PLOT_RSI = 0
 
@@ -225,9 +225,9 @@ def set_plots():
     return fig, plots, plots_twinx
 
 
-def what_to_plot():
+def gui_plot_decide():
     root = tk.Tk()
-    canvas1 = tk.Canvas(root, width=300, height=300,
+    canvas1 = tk.Canvas(root, width=300, height=320,
                         bg='gray90', relief='raised')
     canvas1.pack()
     button1 = tk.Button(text='      Plot Volume      ', command=decide_to_plot_volume,
@@ -265,7 +265,7 @@ def decide_to_plot_averages():
 
 
 if __name__ == "__main__":
-    what_to_plot()
+    gui_plot_decide()
 
     currencies = ['LSK', 'LTC', 'BTC']
     category = 'ticker'
@@ -279,5 +279,6 @@ if __name__ == "__main__":
     y_bid_average_data = {}
     y_volume_data = {}
     y_rsi_data = {}
+
     fig, plots, plots_twinx = set_plots()
     animate_plots()
