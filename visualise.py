@@ -124,7 +124,7 @@ def plot_rsi(x_data, names):
 
     i = 0
     for plot in plots_twinx:
-        plot.set_xlabel('RSI value')
+        plot.set_ylabel('RSI value')
         name = names[i]
         RSI = get_rsi(name[0:3])
         while RSI == 0:
@@ -140,7 +140,7 @@ def plot_volume(x_data, names):
 
     i = 0
     for plot in plots_twinx:
-        plot.set_xlabel('Volume value')
+        plot.set_ylabel('Volume value')
         name = names[i]
         plot.plot(x_data, y_volume_data[name],
                   color='Purple', linewidth=1, label='Volume')
