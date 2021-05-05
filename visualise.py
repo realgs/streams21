@@ -128,9 +128,9 @@ def plot_rsi(x_data, names):
     for plot in plots_twinx:
         plot.set_ylabel('RSI value')
         name = names[i]
-        RSI = get_rsi(name[0:3])
+        RSI = get_rsi(name[0:3],interval)
         while RSI == 0:
-            RSI = get_rsi(name[0:3])
+            RSI = get_rsi(name[0:3],interval)
         RSI = RSI['value']
         y_rsi_data.setdefault(name, []).append(RSI)
         plot.plot(x_data, y_rsi_data[name],
@@ -149,10 +149,10 @@ def plot_volume(x_data, names):
         i += 1
 
 
-def get_rsi(crypto):
+def get_rsi(crypto, interval):
     sleep(SLEEP_VALUE)
     secret_api_key = apikey()
-    URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval=1h'
+    URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval={interval}'
 
     try:
         response = r.get(URL)
@@ -286,10 +286,14 @@ def decide_to_plot_averages():
     PLOT_AVERAGES = 1
     print('Choosed to plot averages')
 
+def ask_for_interval():
+    print('Choice RSI interval: ')
+    interval = str(input())
+    return interval
 
 if __name__ == "__main__":
     gui_plot_decide()
-
+    interval = ask_for_interval()
     currencies = ['LSK', 'LTC', 'BTC']
     category = 'ticker'
     currency = 'PLN'
