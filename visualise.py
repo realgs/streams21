@@ -36,7 +36,7 @@ def download_data(currency, caregory):
         response.raise_for_status()
 
     except HTTPError:
-        print(f'Error: : {HTTPError}')
+        print(f'Bitbay error: : {HTTPError}')
 
     else:
         return response.json()
@@ -124,6 +124,7 @@ def plot_rsi(x_data, names):
 
     i = 0
     for plot in plots_twinx:
+        plot.set_xlabel('RSI value')
         name = names[i]
         RSI = get_rsi(name[0:3])
         while RSI == 0:
@@ -139,6 +140,7 @@ def plot_volume(x_data, names):
 
     i = 0
     for plot in plots_twinx:
+        plot.set_xlabel('Volume value')
         name = names[i]
         plot.plot(x_data, y_volume_data[name],
                   color='Purple', linewidth=1, label='Volume')
@@ -146,6 +148,7 @@ def plot_volume(x_data, names):
 
 
 def get_rsi(crypto):
+    sleep(SLEEP_VALUE)
     secret_api_key = apikey()
     URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval=1h'
 
@@ -154,6 +157,7 @@ def get_rsi(crypto):
         response.raise_for_status()
 
     except HTTPError:
+        print('RSI ERROR', response.json())
         return 0
     else:
         return response.json()
@@ -227,7 +231,9 @@ def set_plots():
 
 def gui_plot_decide():
     root = tk.Tk()
-    canvas1 = tk.Canvas(root, width=300, height=320,
+    root.title(
+        'Cryptocurrency in real time startup, choose what you want then close this window')
+    canvas1 = tk.Canvas(root, width=600, height=320,
                         bg='gray90', relief='raised')
     canvas1.pack()
     button1 = tk.Button(text='      Plot Volume      ', command=decide_to_plot_volume,
@@ -236,9 +242,9 @@ def gui_plot_decide():
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
     button3 = tk.Button(text='      Plot Averages      ', command=decide_to_plot_averages,
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
-    canvas1.create_window(150, 100, window=button1)
-    canvas1.create_window(150, 200, window=button2)
-    canvas1.create_window(150, 290, window=button3)
+    canvas1.create_window(2*150, 100, window=button1)
+    canvas1.create_window(2*150, 200, window=button2)
+    canvas1.create_window(2*150, 290, window=button3)
     root.mainloop()
 
 
