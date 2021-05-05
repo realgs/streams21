@@ -7,10 +7,19 @@ from matplotlib.animation import FuncAnimation
 from apikey import apikey
 import numpy as np
 from tabulate import tabulate
+import os
+import tkinter as tk
+from matplotlib.ticker import FormatStrFormatter
 
 SLEEP_VALUE = 0.1
 
 CHECK_LEGEND = 0
+
+PLOT_VOLUME = 0
+
+PLOT_RSI = 0
+
+PLOT_AVERAGES = 0
 
 
 def add_currency_to_currencies(currencies, currency):
