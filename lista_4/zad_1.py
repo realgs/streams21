@@ -6,7 +6,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.dates import DateFormatter
 
 ADRESS = {
-    'GRT-PLN' : 'https://bitbay.net/API/Public/GRTPLN/ticker.json',
+    'LTC-PLN' : 'https://bitbay.net/API/Public/LTCPLN/ticker.json',
     'OMG-PLN' : 'https://bitbay.net/API/Public/OMGPLN/ticker.json'
 }
 
