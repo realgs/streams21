@@ -1,19 +1,31 @@
 import time
 import requests
+import statistics
 from requests.exceptions import HTTPError
 import matplotlib.pyplot as plt
 
 
 data_currency = {
-    "BTC": [],
-    "LTC": [],
-    "DASH": [],
+    "LSK": [],
+    "BCP": [],
+    "GNT": [],
 }
 
 
-def data(lines):
-    currency_1 = ['BTC', 'LTC', 'DASH']
-    currency_2 = 'USD'
+data_currency_extra = {
+    "LSK": [],
+    "BCP": [],
+    "GNT": [],
+}
+
+
+# beginning = 0
+# end = 0
+
+
+def data(lines, beginning, end):
+    currency_1 = ['LSK', 'BCP', 'GNT']
+    currency_2 = 'PLN'
     category = 'orderbook'
     iterator = 0
     while True:
@@ -21,7 +33,7 @@ def data(lines):
         for c in currency_1:
             data = download_data(c, currency_2, category)
             if data is not None:
-                diffrence = calculate(data, c)
+                diffrence = calculate(data, c, beginning, end)
         create_graph(iterator, lines)
         time.sleep(5)
     return diffrence
@@ -31,17 +43,71 @@ def download_data(currency_1, currency_2, category):
     try:
         response = requests.get(url=f'https://bitbay.net/API/Public/{currency_1}{currency_2}/{category}.json')
         data = response.json()
+
     except HTTPError:
         print('HTTP error:', HTTPError)
         return None
     return data
 
 
-def calculate(data, currency_1):
+def get_volumen(currency):
+    try:
+        response = requests.get(url=f'https://api.bitbay.net/rest/trading/transactions/{currency}-PLN')
+        data = response.json()
+
+    except HTTPError:
+        print('HTTP error:', HTTPError)
+        return None
+    return data['items'][1]['a']
+
+
+def calculate_averange(currency, beginning, end):
+    data = data_currency[currency]
+    data_points_ctr = len(data)
+    print(data_points_ctr)
+    if beginning > end or beginning >= data_points_ctr:
+        return 0, 0
+
+    end = min(data_points_ctr, end+1)
+    b_avg = statistics.mean([dp["buy_price"] for dp in data[beginning:end]])
+    s_avg = statistics.mean([dp["sell_price"] for dp in data[beginning:end]])
+
+    print(data[beginning:end])
+    return b_avg, s_avg
+
+
+def calculate_RSI(currency, beginning, end):
+    average_price_increase = []
+    average_price_decrease = []
+    data = data_currency[currency]
+    data_points_ctr = len(data)
+
+    if beginning > end or beginning >= data_points_ctr:
+        return 0
+
+    end = min(data_points_ctr, end+1)
+
+    if len(data) >= (end-beginning+1):
+        value = data[end-1]["buy_price"] - data[beginning]["buy_price"]
+        if value > 0:
+            average_price_increase.append(value)
+        elif value <= 0:
+            average_price_decrease.append(value)
+        a = (sum(average_price_increase) + 1)/(len(average_price_increase) + 1)
+        b = (sum(average_price_decrease) + 1)/(len(average_price_decrease) + 1)
+    else:
+        a = 1
+        b = 1
+    RSI = 100 - (100 / (1 + (a/b)))
+    return RSI
+
+
+def calculate(data, currency, beginning, end):
     buy = data['bids'][0][0]
     sell = data['asks'][0][0]
     procenty = (1-(sell-buy)/sell) * 100
     t = time.strftime("%H:%M:%S", time.localtime())
+
     diffrence = {
         'buy_price': data['bids'][0][0],
         'sell_price': data['asks'][0][0],
@@ -49,29 +115,93 @@ def calculate(data, currency_1):
         'time': str(t),
     }
 
-    data_currency[f"{currency_1}"].append(diffrence)
-    print(diffrence)
+    data_currency[currency].append(diffrence)
+    print(beginning, end)
+    value_buy, value_sell = calculate_averange(currency, beginning, end)
+    RSI = calculate_RSI(currency, beginning, end)
+
+    volumen = get_volumen(currency)
+    diffrence2 = {
+        'buy_averange': value_buy,
+        'sell_averange': value_sell,
+        'RSI': RSI,
+        'volumen': volumen,
+    }
+
+    data_currency_extra[currency].append(diffrence2)
+
+    print(diffrence, diffrence2)
     return diffrence
 
 
-def create_graph(iterator, lines):
+xrang = 8
 
+
+def create_graph(j, lines):
     for c, l in lines.items():
-        data = data_currency[c][0:iterator]
+        data = data_currency[c]
+        data2 = data_currency_extra[c]
         buy = []
         sell = []
-        t = []
-        for i in range(len(data)):
-            buy.append(data[i]["buy_price"])
-            sell.append(data[i]["sell_price"])
-            tim = data[i]["time"]
-            t.append(i+1)
+        tim = []
+        buy_average = []
+        sell_average = []
+        # RSI1 = []
+        RSI2 = []
+        volumen = []
+        width = 0.35
+        if len(data) > 0:
+            itr = range(xrang)
+            if len(data) < xrang:
+                itr = range(len(data))
+            for i in itr:
+                buy.append(data[i-len(itr)]["buy_price"])
+                sell.append(data[i-len(itr)]["sell_price"])
+                tim.append(data[i-len(itr)]["time"])
+                buy_average.append(data2[i-len(itr)]["buy_averange"])
+                sell_average.append(data2[i-len(itr)]["sell_averange"])
+                # RSI1.append(0.1*data2[i-len(itr)]["RSI"])
+                RSI2.append(data2[i-len(itr)]["RSI"])
+                volumen.append(float(data2[i-len(itr)]["volumen"]))
 
-        l[0].set_data(t, buy)
-        l[1].set_data(t, sell)
-        plts[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
-        plts[c].set_xlim([max(iterator-8, 1), iterator+3])
-        plts[c].set_ylim([min(buy)*0.95, max(sell)*1.05])
+            l[0].set_data(itr, buy)
+            l[1].set_data(itr, sell)
+            l[2].set_data(itr, buy_average)
+            l[3].set_data(itr, sell_average)
+            plts[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
+            plts[c].set_xlim(0, xrang-1)
+
+            if min(buy) >= min(buy_average):
+                bottom = min(buy_average)
+            else:
+                bottom = min(buy)
+
+            if max(sell) <= max(sell_average):
+                top = max(sell_average)
+            else:
+                top = max(sell)
+            plts[c].set_ylim([bottom*0.95, top*1.05])
+
+            br1 = itr
+            br2 = [x + width for x in br1]
+
+            plts_ex[c].bar(br1, volumen, width, align='center', color='blue', label=volumen)
+            plts_ex[c].bar(br2, RSI2, width, align='center', color='orange', label=RSI2)
+
+            plts_ex[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
+            plts_ex[c].set_xlim(0, xrang-1)
+
+            if min(RSI2) >= min(volumen):
+                bottom1 = min(volumen)
+            else:
+                bottom1 = min(RSI2)
+
+            if max(RSI2) <= max(volumen):
+                top1 = max(volumen)
+            else:
+                top1 = max(RSI2)
+            plts_ex[c].legend(labels=[volumen[-1], RSI2[-1]])
+            plts_ex[c].set_ylim([bottom1*0.95, top1*1.05])
 
     plt.draw()
     plt.pause(1e-17)
@@ -79,28 +209,60 @@ def create_graph(iterator, lines):
 
 if __name__ == "__main__":
 
+    beginning = int(input("podaj początek zakresu z którego chcesz otrzymać średnią: "))
+    end = int(input("podaj koniec zakresu z którego chcesz otrzymać średnią: "))
+
     plt.ion()
 
     plts = {}
+    plts_ex = {}
     lines = {}
+    lines_ex = {}
 
-    fig = plt.figure()
+    fig1 = plt.figure()
+    fig2 = plt.figure()
 
     itr = 1
+    itr2 = 1
+
     for c in data_currency.keys():
-        plts[c] = fig.add_subplot(len(data_currency), 1, itr)
-        buy_line, = plts[c].plot([0], [0])
-        sell_line, = plts[c].plot([0], [0])
-        lines[c] = [buy_line, sell_line]
+        plts[c] = fig1.add_subplot(len(data_currency), 1, itr)
+        buy_line, = plts[c].plot([0], [0], label='buy')
+        sell_line, = plts[c].plot([0], [0], label='sell')
+        buy_average, = plts[c].plot([0], [0], label='buy_average')
+        sell_average, = plts[c].plot([0], [0], label='sell_average')
+        # RSI, = plts[c].plot([0], [0], label='RSI')
+        lines[c] = [buy_line, sell_line, buy_average, sell_average]
 
         plts[c].set_ylim([1, 5])
-        plts[c].set_title(f"{c} - USD")
+        plts[c].set_title(f"{c} - PLN")
 
         plts[c].set_xlabel("time")
         plts[c].set_ylabel("value")
 
+        plts[c].legend()
+
         itr += 1
 
-    fig.tight_layout(h_pad=0.5)
+    fig1.tight_layout(h_pad=0.5)
 
-    data(lines)
+    for c in data_currency.keys():
+        plts_ex[c] = fig2.add_subplot(len(data_currency), 1, itr2)
+
+        volumen, = plts_ex[c].plot([0], [0], label='Volumen')
+        RSI, = plts_ex[c].plot([0], [0], label='RSI')
+        lines_ex[c] = [volumen, RSI]
+
+        plts_ex[c].set_ylim([1, 5])
+        plts_ex[c].set_title(f"{c} - PLN")
+
+        plts_ex[c].set_xlabel("time")
+        plts_ex[c].set_ylabel("value")
+
+        plts_ex[c].legend()
+
+        itr2 += 1
+
+    fig2.tight_layout(h_pad=0.5)
+
+    data(lines, beginning, end)
