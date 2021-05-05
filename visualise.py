@@ -193,7 +193,6 @@ def animation_frame(i):
 
 
 def plot_setup():
-    plt.style.use('seaborn')
     fig.suptitle('Cryptocurrencies in real time')
     i = 0
     for plot in plots:
@@ -215,6 +214,7 @@ def animate_plots():
 
 
 def set_plots():
+    plt.style.use('seaborn')
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1)
     plots = []
     plots.append(ax1)
