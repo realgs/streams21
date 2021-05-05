@@ -1,10 +1,16 @@
 from datetime import datetime
 import time
+from threading import Thread
 
 import numpy as np
 import requests
 from requests.exceptions import HTTPError
 import matplotlib.pyplot as plt
+from pynput.keyboard import Key, Listener
+
+
+active_charts = [True] * 8
+refresh = True
 
 
 def get_data(currency_l, url_l):
@@ -89,9 +95,6 @@ def create_rsi(values, values_range, index_l):
 def draw_calculations_helper(buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l, index_l):
     values_amount = min(len(buy_prices_l[index_l]), len(sell_prices_l[index_l]))
 
-    print("Average", create_average(buy_prices_l[0:values_amount], 5, index_l))
-    print("RSI", create_rsi(buy_prices_l[0:values_amount], 5, index_l))
-
     x = range(values_amount)
     y1_np = np.array(buy_prices_l[index_l])
     y2_np = np.array(sell_prices_l[index_l])
@@ -99,7 +102,7 @@ def draw_calculations_helper(buy_prices_l, sell_prices_l, buy_prices_amount_l, s
     y4_np = np.array(sell_prices_amount_l[index_l])
     y5_np = np.array(create_average(buy_prices_l[0:values_amount], 5, index_l))
     y6_np = np.array(create_average(sell_prices_l[0:values_amount], 5, index_l))
-    y7_np = np.array(create_rsi(sell_prices_l[0:values_amount], 5, index_l))
+    y7_np = np.array(create_rsi(buy_prices_l[0:values_amount], 5, index_l))
     y8_np = np.array(create_rsi(sell_prices_l[0:values_amount], 5, index_l))
     # Buy price
     y1 = y1_np[0:values_amount]
@@ -121,8 +124,10 @@ def draw_calculations_helper(buy_prices_l, sell_prices_l, buy_prices_amount_l, s
     return [x, y1, y2, y3, y4, y5, y6, y7, y8, values_amount]
 
 
-def draw_constructor(currency_l, buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l, fig_l, line_l, ax_l, index_l):
-    plot_parameters = draw_calculations_helper(buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l, index_l)
+def draw_constructor(currency_l, buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l, fig_l, line_l,
+                     ax_l, index_l):
+    plot_parameters = draw_calculations_helper(buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l,
+                                               index_l)
 
     ax_l.append(fig_l.add_subplot(3, 1, index_l + 1))
 
@@ -135,14 +140,14 @@ def draw_constructor(currency_l, buy_prices_l, sell_prices_l, buy_prices_amount_
     line_l[index_l].append([])
     line_l[index_l].append([])
     line_l[index_l].append([])
-    line_l[index_l][0], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[1], label="Buy price USD " + currency_l)
-    line_l[index_l][1], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[2], label="Sell price USD " + currency_l)
-    line_l[index_l][2], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[3], label="Buy amount")
-    line_l[index_l][3], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[4], label="Sell amount ")
-    line_l[index_l][4], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[5], label="Sell average " + currency_l)
-    line_l[index_l][5], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[6], label="Sell average " + currency_l)
-    line_l[index_l][6], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[7], label="Buy based RSI")
-    line_l[index_l][7], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[8], label="Sell based RSI")
+    line_l[index_l][0], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[1], label="0. Buy price USD " + currency_l)
+    line_l[index_l][1], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[2], label="1. Sell price USD " + currency_l)
+    line_l[index_l][2], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[3], label="2. Buy amount")
+    line_l[index_l][3], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[4], label="3. Sell amount ")
+    line_l[index_l][4], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[5], label="4. Sell average " + currency_l)
+    line_l[index_l][5], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[6], label="5. Sell average " + currency_l)
+    line_l[index_l][6], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[7], label="6. Buy based RSI")
+    line_l[index_l][7], = ax_l[index_l].plot(plot_parameters[0], plot_parameters[8], label="7. Sell based RSI")
 
     ax_l[index_l].legend(loc="upper left")
 
@@ -150,27 +155,34 @@ def draw_constructor(currency_l, buy_prices_l, sell_prices_l, buy_prices_amount_
 def draw_values_refresh(buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l, line_l, ax_l, index_l):
     plot_parameters = draw_calculations_helper(buy_prices_l, sell_prices_l, buy_prices_amount_l, sell_prices_amount_l, index_l)
 
-    line_l[index_l][0].set_xdata(plot_parameters[0])
-    line_l[index_l][0].set_ydata(plot_parameters[1])
-    line_l[index_l][1].set_xdata(plot_parameters[0])
-    line_l[index_l][1].set_ydata(plot_parameters[2])
-    line_l[index_l][2].set_xdata(plot_parameters[0])
-    line_l[index_l][2].set_ydata(plot_parameters[3])
-    line_l[index_l][3].set_xdata(plot_parameters[0])
-    line_l[index_l][3].set_ydata(plot_parameters[4])
-    line_l[index_l][4].set_xdata(plot_parameters[0])
-    line_l[index_l][4].set_ydata(plot_parameters[5])
-    line_l[index_l][5].set_xdata(plot_parameters[0])
-    line_l[index_l][5].set_ydata(plot_parameters[6])
-    line_l[index_l][6].set_xdata(plot_parameters[0])
-    line_l[index_l][6].set_ydata(plot_parameters[7])
-    line_l[index_l][7].set_xdata(plot_parameters[0])
-    line_l[index_l][7].set_ydata(plot_parameters[8])
+    for i in range(len(active_charts)):
+        if active_charts[i]:
+            line_l[index_l][i].set_xdata(plot_parameters[0])
+            line_l[index_l][i].set_ydata(plot_parameters[i + 1])
+        else:
+            line_l[index_l][i].set_xdata([])
+            line_l[index_l][i].set_ydata([])
 
     ax_l[index_l].set_xlim(0, plot_parameters[9])
+
+
 # Oznaczenia osi
 # Tytuły wykresów
 # Nachodzenie na siebie wartości na osi X
+
+
+def on_press(key):
+    key_value = ord(key.char) - ord('0')
+    if key_value in range(0, len(active_charts)):
+        active_charts[key_value] = not(active_charts[key_value])
+    global refresh
+    refresh = True
+
+
+def key_listener():
+    with Listener(on_press=on_press) as listener:
+        listener.join()
+
 
 if __name__ == "__main__":
     currencies = ["BTC", "LTC", "DASH"]
@@ -185,20 +197,33 @@ if __name__ == "__main__":
     line = []
     ax = []
 
+    thread = Thread(target=key_listener)
+    thread.start()
+
     try:
         for currency in currencies:
             import_values(currency, buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, URL, currencies.index(currency))
             draw_constructor(currency, buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, fig, line, ax, currencies.index(currency))
 
+        get_new_data = 0
+        get_new_at = 5
         while True:
             fig.canvas.draw()
             fig.canvas.flush_events()
-            time.sleep(5)
+            time.sleep(0.1)
 
-            for currency in currencies:
-                import_values(currency, buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, URL, currencies.index(currency))
-                draw_values_refresh(buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, line, ax, currencies.index(currency))
+            if get_new_data >= get_new_at:
+                for currency in currencies:
+                    import_values(currency, buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, URL, currencies.index(currency))
+                    draw_values_refresh(buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, line, ax, currencies.index(currency))
+                get_new_data = 0
+            else:
+                get_new_data += 0.1
+
+            if refresh:
+                for currency in currencies:
+                    draw_values_refresh(buy_prices, sell_prices, buy_prices_amount, sell_prices_amount, line, ax, currencies.index(currency))
+                refresh = False
 
     except KeyboardInterrupt:
         pass
-
