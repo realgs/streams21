@@ -126,12 +126,22 @@ def plot_rsi(x_data, names):
     for plot in plots_twinx:
         name = names[i]
         RSI = get_rsi(name[0:3])
-        if RSI == None:
-            continue
+        while RSI == 0:
+            RSI = get_rsi(name[0:3])
         RSI = RSI['value']
         y_rsi_data.setdefault(name, []).append(RSI)
         plot.plot(x_data, y_rsi_data[name],
-                  color='Purple', linewidth=0.5, label='RSI')
+                  color='Purple', linewidth=1, label='RSI')
+        i += 1
+
+
+def plot_volume(x_data, names):
+
+    i = 0
+    for plot in plots_twinx:
+        name = names[i]
+        plot.plot(x_data, y_volume_data[name],
+                  color='Purple', linewidth=1, label='Volume')
         i += 1
 
 
