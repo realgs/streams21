@@ -146,7 +146,6 @@ def plot_volume(x_data, names):
 
 
 def get_rsi(crypto):
-    sleep(SLEEP_VALUE)
     secret_api_key = apikey()
     URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval=1h'
 
@@ -155,8 +154,7 @@ def get_rsi(crypto):
         response.raise_for_status()
 
     except HTTPError:
-        print(f'Error: : {HTTPError}')
-
+        return 0
     else:
         return response.json()
 
@@ -165,9 +163,12 @@ def draw_legend_once():
     global CHECK_LEGEND
     if CHECK_LEGEND == 0:
         for plot in plots:
-            plot.legend()
+            if PLOT_AVERAGES == 0:
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.5))
+            else:
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.8))
         for plot in plots_twinx:
-            plot.legend()
+            plot.legend(loc=1, bbox_to_anchor=(1, 1.4))
         CHECK_LEGEND = 1
 
 
@@ -190,10 +191,16 @@ def animation_frame(i):
 def plot_setup():
     plt.style.use('seaborn')
     fig.suptitle('Cryptocurrencies in real time')
+    i = 0
     for plot in plots:
         plot.set_xlabel('Time')
         plot.set_ylabel('Value in PLN')
+        plot.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         plt.setp(plot.xaxis.get_majorticklabels(), rotation=45)
+        plot.set_title(currencies[i])
+        i += 1
+    for plot in plots_twinx:
+        plot.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     plt.tight_layout()
 
 
