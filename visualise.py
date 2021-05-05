@@ -51,7 +51,7 @@ def fetchFromAPI(currencies, category):
         sell_price = data['bid']
         volume = data['volume']
         result.append([currency, buy_price, sell_price, volume])
-        print_fetched_data(result)
+    print_fetched_data(result)
     return result
 
 
