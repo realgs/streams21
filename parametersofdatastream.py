@@ -10,13 +10,49 @@ all_data = []
 mlwinwsize = 4
 meanlist = []
 volstor = []
+rsisize = 4
+rsistore = []
 
 
-def maxwinsize(size):
-    assert type(size) == int
-    assert size >= 2
-    if size > 8:
-        size = 8
+def rsicount(all_data, store,size):
+    nr = len(all_data[0])
+    if len(all_data) >= size:
+        shift = len(all_data) - size
+        reg = []
+        for c in range(nr):
+            cry = []
+            for n in range(2):
+                p = 0
+                m = 0
+                pc = 0
+                mc = 0
+                for i in range(0 + shift, size + shift-1):
+                    change = float(all_data[i+1][c][1][n]) - float(all_data[i][c][1][n])
+                    if change > 0:
+                        p += change
+                        pc += 1
+                    elif change < 0:
+                        m -= change
+                        mc += 1
+                if pc == 0:
+                    pc = 1
+                if mc == 0:
+                    mc= 1
+                a = p/pc
+                b = m/mc
+                if b == 0:
+                    b = 1
+                rsi = 100 - 100/(1+a/b)
+                cry.append(rsi)
+            reg.append(cry)
+        store.append(reg)
+
+    else:
+        r = []
+        for c in range(nr):
+            r.append([None,None])
+        store.append(r)
+
 
 def handlemean(all_data,winsize,meanlist):
     nr = len(all_data[0])
@@ -81,15 +117,16 @@ def cryptostream_to_plot(crypto_set, currency, all_data):
 
 
 def graph_gen(a):
+    t.append(time.strftime("%H:%M:%S", time.localtime()))
     cryptostream_to_plot(cryptos,currency,all_data)
     handlemean(all_data, mlwinwsize, meanlist)
-    t.append(time.strftime("%H:%M:%S", time.localtime()))
+    rsicount(all_data, rsistore, rsisize)
     plt.ion()
     plt.clf()
     plt.suptitle("Wykresy notowań kryptowalut")
     nr = len(all_data[0])
     for c in range(nr):
-        plt.subplot(2,nr, c+1)
+        plt.subplot(3,nr, c+1)
         ys = []
         yb =[]
         yas = []
@@ -104,26 +141,36 @@ def graph_gen(a):
         plt.plot(t, yb, "-o", label=all_data[0][c][0] + ": buy")
         plt.plot(t, yas, "o--", label=all_data[0][c][0] + ": sell avarage")
         plt.plot(t, yab, "o--", label=all_data[0][c][0] + ": buy avarage")
-        plt.ylabel("Value")
-        plt.xticks(rotation = 40, fontsize= 7 )
+        plt.xticks(rotation = 30, fontsize= 6 )
         plt.legend()
     for c in range(nr):
-        plt.subplot(2,nr, c+1+nr)
+        plt.subplot(3,nr, c+1+nr)
         yv = []
         for vset in volstor:
             yv.append(vset[c])
         plt.bar(t, yv, align="center")
-        plt.ylabel("volume")
-        plt.xticks(rotation=40, fontsize=7)
-#na wykresie lub pod wykresem dodać wolumen transakcji
-
+        plt.ylabel("Volume")
+        axes = plt.gca()
+        axes.set_ylim([500, 2000])
+        plt.xticks(rotation=30, fontsize=6)
+    for c in range(nr):
+        plt.subplot(3,nr, c+1+2*nr)
+        yrsis = []
+        yrsib = []
+        for rsiset in rsistore:
+            yrsis.append(rsiset[c][0])
+            yrsib.append(rsiset[c][1])
+        plt.plot(t, yrsis,"o--",label = all_data[0][c][0] + ": sell RSI")
+        plt.plot(t, yrsib, "o--",label = all_data[0][c][0] + ": but RSI")
+        plt.ylabel("RSI")
+        plt.legend()
+        plt.xticks(rotation=30, fontsize=6)
 
 
 #dodać oscylator RSI. Przedział y do ustalenia przez użytkownika
 
 
 def main():
-    maxwinsize(mlwinwsize)
     animation = FuncAnimation(plt.figure(), graph_gen, interval= 5000)
     plt.show()
 
