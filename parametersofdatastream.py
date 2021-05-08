@@ -9,6 +9,7 @@ t = []
 all_data = []
 mlwinwsize = 4
 meanlist = []
+volstor = []
 
 
 def maxwinsize(size):
@@ -18,9 +19,9 @@ def maxwinsize(size):
         size = 8
 
 def handlemean(all_data,winsize,meanlist):
+    nr = len(all_data[0])
     if len(all_data) >= winsize:
         shift = len(all_data) - winsize
-        nr = len(all_data[0])
         reg = []
         for c in range(nr):
             cry = []
@@ -34,7 +35,10 @@ def handlemean(all_data,winsize,meanlist):
         meanlist.append(reg)
 
     else:
-        meanlist.append([[None,None],[None,None],[None,None]])
+        v = []
+        for c in range(nr):
+            v.append([None,None])
+        meanlist.append(v)
 
 
 def sellbuy(sells, buys):
@@ -63,13 +67,16 @@ def handle_exceptions(req):
 
 
 def cryptostream_to_plot(crypto_set, currency, all_data):
+    v_list = []
     c_list = []
     for crypto in crypto_set:
         response = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/orderbook.json", timeout=5)
         handle_exceptions(response)
         vol = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/ticker.json", timeout=5)
-        #print(vol.json()['volume'])
+        handle_exceptions(vol)
+        v_list.append(vol.json()['volume'])
         c_list.append([crypto,sellbuy(response.json()['asks'], response.json()['bids'])])
+    volstor.append(v_list)
     all_data.append(c_list)
 
 
@@ -77,13 +84,12 @@ def graph_gen(a):
     cryptostream_to_plot(cryptos,currency,all_data)
     handlemean(all_data, mlwinwsize, meanlist)
     t.append(time.strftime("%H:%M:%S", time.localtime()))
-    #
     plt.ion()
     plt.clf()
     plt.suptitle("Wykresy notowań kryptowalut")
     nr = len(all_data[0])
     for c in range(nr):
-        plt.subplot(int(nr/2+1),int(nr/2+1), c+1)
+        plt.subplot(2,nr, c+1)
         ys = []
         yb =[]
         yas = []
@@ -96,18 +102,22 @@ def graph_gen(a):
             yab.append(aveset[c][1])
         plt.plot(t,ys,"-o",label = all_data[0][c][0] + ": sell")
         plt.plot(t, yb, "-o", label=all_data[0][c][0] + ": buy")
-        plt.plot(t, yas, "--o", label=all_data[0][c][0] + ": sell avarage")
-        plt.plot(t, yab, "--o", label=all_data[0][c][0] + ": buy avarage")
-        plt.xlabel("Time")
+        plt.plot(t, yas, "o--", label=all_data[0][c][0] + ": sell avarage")
+        plt.plot(t, yab, "o--", label=all_data[0][c][0] + ": buy avarage")
         plt.ylabel("Value")
-        plt.xticks(rotation = 30)
+        plt.xticks(rotation = 40, fontsize= 7 )
         plt.legend()
-
+    for c in range(nr):
+        plt.subplot(2,nr, c+1+nr)
+        yv = []
+        for vset in volstor:
+            yv.append(vset[c])
+        plt.bar(t, yv, align="center")
+        plt.ylabel("volume")
+        plt.xticks(rotation=40, fontsize=7)
 #na wykresie lub pod wykresem dodać wolumen transakcji
 
-#na wykres oprócz linii wartości osiąganych przez zasób dodać
-# innym kolorem średnią ruchomą z wybranego przedziału próbek.
-# Przedział do ustalenia przez użytkownika, można ograniczyć zakres
+
 
 #dodać oscylator RSI. Przedział y do ustalenia przez użytkownika
 
