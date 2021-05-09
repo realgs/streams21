@@ -14,3 +14,8 @@ class BitBayService:
 
     def get_crypto_trade_sell(self, cryptocurrency, currency):
         return self.get_crypto_trade(cryptocurrency, currency, BitBayUrl.SELL, 50)
+
+    def get_crypto_volume(self, cryptocurrency, currency):
+        request = requests.get(BitBayUrl.get_url_stats(cryptocurrency, currency))
+        json = request.json()
+        return json['stats']['v']

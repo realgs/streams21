@@ -9,19 +9,27 @@ class DownloadTradeInfoJob:
     def execute(self):
         try:
             trade_buy, trade_sell = self.download_trade()
-            self.visualizer.visualize(trade_buy, trade_sell)
+            volume = self.download_volume()
+            self.visualizer.visualize(trade_buy, trade_sell, volume)
         except:
             print("Download or visualize trade Fail")
 
     def download_trade(self):
         trade_buy = {
-            'BTC': self.bit_bay_service.get_crypto_trade_buy('USD', 'BTC'),
-            'LTC': self.bit_bay_service.get_crypto_trade_buy('USD', 'LTC'),
-            'DASH': self.bit_bay_service.get_crypto_trade_buy('USD', 'DASH'),
+            'BTC': self.bit_bay_service.get_crypto_trade_buy('EUR', 'BTC'),
+            'LTC': self.bit_bay_service.get_crypto_trade_buy('EUR', 'LTC'),
+            'DASH': self.bit_bay_service.get_crypto_trade_buy('EUR', 'DASH'),
         }
         trade_sell = {
-            'BTC': self.bit_bay_service.get_crypto_trade_sell('USD', 'BTC'),
-            'LTC': self.bit_bay_service.get_crypto_trade_sell('USD', 'LTC'),
-            'DASH': self.bit_bay_service.get_crypto_trade_sell('USD', 'DASH'),
+            'BTC': self.bit_bay_service.get_crypto_trade_sell('EUR', 'BTC'),
+            'LTC': self.bit_bay_service.get_crypto_trade_sell('EUR', 'LTC'),
+            'DASH': self.bit_bay_service.get_crypto_trade_sell('EUR', 'DASH'),
         }
         return trade_buy, trade_sell
+
+    def download_volume(self):
+        return {
+            'BTC': self.bit_bay_service.get_crypto_volume('EUR', 'BTC'),
+            'LTC': self.bit_bay_service.get_crypto_volume('EUR', 'LTC'),
+            'DASH': self.bit_bay_service.get_crypto_volume('EUR', 'DASH'),
+        }

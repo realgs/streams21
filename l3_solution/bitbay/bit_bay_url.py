@@ -1,9 +1,7 @@
 import requests
 
 
-
 class BitBayUrl:
-
     URL = "https://bitbay.net/API/Public/"
     URL_SCHEMA = "https"
     URL_BASE_PATH = "API/Public/"
@@ -20,3 +18,6 @@ class BitBayUrl:
         response = requests.get(url, params=payload)
 
         return response.url
+
+    def get_url_stats(currency, type):
+        return f'https://api.bitbay.net/rest/trading/stats/{type}-{currency}'
