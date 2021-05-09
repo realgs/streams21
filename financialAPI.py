@@ -11,7 +11,6 @@ data_currency = {
     "GNT": [],
 }
 
-
 data_currency_extra = {
     "LSK": [],
     "BCP": [],
@@ -19,11 +18,7 @@ data_currency_extra = {
 }
 
 
-# beginning = 0
-# end = 0
-
-
-def data(lines, beginning, end):
+def data(lines, window, zakres):
     currency_1 = ['LSK', 'BCP', 'GNT']
     currency_2 = 'PLN'
     category = 'orderbook'
@@ -33,7 +28,7 @@ def data(lines, beginning, end):
         for c in currency_1:
             data = download_data(c, currency_2, category)
             if data is not None:
-                diffrence = calculate(data, c, beginning, end)
+                diffrence = calculate(data, c, window, zakres)
         create_graph(iterator, lines)
         time.sleep(5)
     return diffrence
@@ -61,34 +56,28 @@ def get_volumen(currency):
     return data['items'][1]['a']
 
 
-def calculate_averange(currency, beginning, end):
+def calculate_averange(currency, window_len):
     data = data_currency[currency]
     data_points_ctr = len(data)
-    print(data_points_ctr)
-    if beginning > end or beginning >= data_points_ctr:
-        return 0, 0
+    if window_len >= data_points_ctr:
+        window_len = data_points_ctr
 
-    end = min(data_points_ctr, end+1)
-    b_avg = statistics.mean([dp["buy_price"] for dp in data[beginning:end]])
-    s_avg = statistics.mean([dp["sell_price"] for dp in data[beginning:end]])
+    window = data[-window_len:]
 
-    print(data[beginning:end])
+    b_avg = statistics.mean([dp["buy_price"] for dp in window])
+    s_avg = statistics.mean([dp["sell_price"] for dp in window])
+
     return b_avg, s_avg
 
 
-def calculate_RSI(currency, beginning, end):
+def calculate_RSI(currency, window_len):
     average_price_increase = []
     average_price_decrease = []
     data = data_currency[currency]
     data_points_ctr = len(data)
 
-    if beginning > end or beginning >= data_points_ctr:
-        return 0
-
-    end = min(data_points_ctr, end+1)
-
-    if len(data) >= (end-beginning+1):
-        value = data[end-1]["buy_price"] - data[beginning]["buy_price"]
+    if len(data) >= window_len:
+        value = data[-1]["buy_price"] - data[data_points_ctr-window_len]["buy_price"]
         if value > 0:
             average_price_increase.append(value)
         elif value <= 0:
@@ -116,9 +105,8 @@ def calculate(data, currency, beginning, end):
     }
 
     data_currency[currency].append(diffrence)
-    print(beginning, end)
-    value_buy, value_sell = calculate_averange(currency, beginning, end)
-    RSI = calculate_RSI(currency, beginning, end)
+    value_buy, value_sell = calculate_averange(currency, window)
+    RSI = calculate_RSI(currency, zakres)
 
     volumen = get_volumen(currency)
     diffrence2 = {
@@ -146,8 +134,7 @@ def create_graph(j, lines):
         tim = []
         buy_average = []
         sell_average = []
-        # RSI1 = []
-        RSI2 = []
+        RSI = []
         volumen = []
         width = 0.35
         if len(data) > 0:
@@ -160,10 +147,9 @@ def create_graph(j, lines):
                 tim.append(data[i-len(itr)]["time"])
                 buy_average.append(data2[i-len(itr)]["buy_averange"])
                 sell_average.append(data2[i-len(itr)]["sell_averange"])
-                # RSI1.append(0.1*data2[i-len(itr)]["RSI"])
-                RSI2.append(data2[i-len(itr)]["RSI"])
+                RSI.append(data2[i-len(itr)]["RSI"])
                 volumen.append(float(data2[i-len(itr)]["volumen"]))
-
+            # dodać przerywane linie
             l[0].set_data(itr, buy)
             l[1].set_data(itr, sell)
             l[2].set_data(itr, buy_average)
@@ -184,23 +170,22 @@ def create_graph(j, lines):
 
             br1 = itr
             br2 = [x + width for x in br1]
-
             plts_ex[c].bar(br1, volumen, width, align='center', color='blue', label=volumen)
-            plts_ex[c].bar(br2, RSI2, width, align='center', color='orange', label=RSI2)
+            plts_ex[c].bar(br2, RSI, width, align='center', color='orange', label=RSI)
 
             plts_ex[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
             plts_ex[c].set_xlim(0, xrang-1)
 
-            if min(RSI2) >= min(volumen):
+            if min(RSI) >= min(volumen):
                 bottom1 = min(volumen)
             else:
-                bottom1 = min(RSI2)
+                bottom1 = min(RSI)
 
-            if max(RSI2) <= max(volumen):
+            if max(RSI) <= max(volumen):
                 top1 = max(volumen)
             else:
-                top1 = max(RSI2)
-            plts_ex[c].legend(labels=[volumen[-1], RSI2[-1]])
+                top1 = max(RSI)
+            plts_ex[c].legend(labels=[f'Volumen: {volumen[-1]}', f'RSI: {RSI[-1]}'])
             plts_ex[c].set_ylim([bottom1*0.95, top1*1.05])
 
     plt.draw()
@@ -209,9 +194,8 @@ def create_graph(j, lines):
 
 if __name__ == "__main__":
 
-    beginning = int(input("podaj początek zakresu z którego chcesz otrzymać średnią: "))
-    end = int(input("podaj koniec zakresu z którego chcesz otrzymać średnią: "))
-
+    window = int(input("podaj koniec zakresu z którego chcesz otrzymać średnią: "))
+    zakres = int(input("podaj koniec zakresu z którego chcesz otrzymać RSI: "))
     plt.ion()
 
     plts = {}
@@ -231,7 +215,6 @@ if __name__ == "__main__":
         sell_line, = plts[c].plot([0], [0], label='sell')
         buy_average, = plts[c].plot([0], [0], label='buy_average')
         sell_average, = plts[c].plot([0], [0], label='sell_average')
-        # RSI, = plts[c].plot([0], [0], label='RSI')
         lines[c] = [buy_line, sell_line, buy_average, sell_average]
 
         plts[c].set_ylim([1, 5])
@@ -265,4 +248,4 @@ if __name__ == "__main__":
 
     fig2.tight_layout(h_pad=0.5)
 
-    data(lines, beginning, end)
+    data(lines, window, zakres)
