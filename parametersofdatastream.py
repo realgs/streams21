@@ -167,9 +167,6 @@ def graph_gen(a):
         plt.xticks(rotation=30, fontsize=6)
 
 
-#dodać oscylator RSI. Przedział y do ustalenia przez użytkownika
-
-
 def main():
     animation = FuncAnimation(plt.figure(), graph_gen, interval= 5000)
     plt.show()
