@@ -9,7 +9,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-
 RSI_SAMPLES_NUMBER = 3
 AVERAGE_SAMPLES_NUMBER = 3
 TIME_IN_VOLUME = 5
@@ -242,7 +241,6 @@ if __name__ == "__main__":
         axes[1][0].set_yscale('log')
         axes[1][1].set_yscale('log')
         axes[1][2].set_yscale('log')
-
 
         i += 1
         plt.draw()
