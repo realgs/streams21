@@ -2,9 +2,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+def every_nth_func(x_val):
+    x_val = list(x_val)
+    if x_val:
+        if len(x_val)//10 == 0:
+            return 1
+        else:
+            return len(x_val)//10
+    else:
+        return 1
+
 def animate(i):
     data = pd.read_csv('data.csv')
-    x = data['x_val']
+    x = data['time']
     bid_cur1 = data['bid_cur1']
     ask_cur1 = data['ask_cur1']
     bid_cur2 = data['bid_cur2']
@@ -33,12 +43,19 @@ def animate(i):
         ax.legend(loc="upper left")
         ax.set_xlabel('Time')
         ax.set_ylabel('Price')
+        plt.sca(ax)
+        plt.xticks(rotation=45)
 
+        every_nth = every_nth_func(x)
+        for n, label in enumerate(ax.xaxis.get_ticklabels()):
+            if n % every_nth != 0:
+                label.set_visible(False)
     plt.tight_layout()
 
 
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=3,ncols=1)
 fig.set_size_inches(12, 8, forward=True)
+plt.locator_params(axis='x', nbins=10)
 anim = FuncAnimation(plt.gcf(), animate, interval=1000)
 plt.show()
 

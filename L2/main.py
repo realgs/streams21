@@ -2,7 +2,7 @@ import requests
 import time
 from requests.exceptions import HTTPError
 import csv
-import pandas as pd
+from datetime import datetime, date
 
 class Finance():
 
@@ -37,7 +37,7 @@ class Finance():
         return self.pre_url + cur + self.post_url
 
     def create_csv(self):
-        fieldnames = ['x_val', 'bid_cur1', 'ask_cur1','bid_cur2', 'ask_cur2','bid_cur3', 'ask_cur3']
+        fieldnames = ['x_val', 'bid_cur1', 'ask_cur1','bid_cur2', 'ask_cur2','bid_cur3', 'ask_cur3', 'time', 'date']
 
         with open('data.csv', 'w') as csv_file:
             csv_writer = csv.DictWriter(csv_file,fieldnames=fieldnames)
@@ -45,10 +45,15 @@ class Finance():
 
 
     def write_csv(self, all_content, x_value):
-        fieldnames = ['x_val', 'bid_cur1', 'ask_cur1','bid_cur2', 'ask_cur2','bid_cur3', 'ask_cur3']
+        fieldnames = ['x_val', 'bid_cur1', 'ask_cur1','bid_cur2', 'ask_cur2','bid_cur3', 'ask_cur3', 'time', 'date']
 
         with open('data.csv', 'a+') as csv_file:
             csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+            current_time = datetime.now()
+            current_time = current_time.strftime("%m/%d/%Y \n %H:%M:%S")
+
+            today = date.today()
 
             info = {
                 'x_val': x_value,
@@ -58,6 +63,8 @@ class Finance():
                 'ask_cur2': all_content[1]['ask'],
                 'bid_cur3': all_content[2]['bid'],
                 'ask_cur3': all_content[2]['ask'],
+                'time': current_time,
+                'date': today
             }
 
             csv_writer.writerow(info)
@@ -76,7 +83,7 @@ class Finance():
                 self.print_percentage(percentage,currency)
                 time.sleep(1)
             self.write_csv(all_content, x_val)
-            time.sleep(5)
+            time.sleep(1)
             x_val += 1
 
 curr = Finance()
