@@ -109,10 +109,15 @@ def plot(data,y_data,volumes,window_mean,currency,axs,l,sell_mean,buy_mean,wzros
         axs[1][l].plot(data, RSI_vol)
         axs[1][l].set_ylim(0, 100)
         axs[1][l].set_ylabel('RSI')
+        val=f'RSI: {round((RSI_vol[-1]),2)}'
+        axs[1][l].annotate(val, xy=(1.01,0.1),xycoords='axes fraction')
     if choice=='volume':
         axs[1][l].bar(data, volume)
         axs[1][l].set_ylim(bottom=0,top=None)
         axs[1][l].set_ylabel('Wolumen')
+        val=f'Wolumen: {round(sum(volume[-12:]),3)}'
+        axs[1][l].annotate(val,xy=(1.01,0.1),xycoords='axes fraction')
+        print(sum(volume[-12:]))
 
 
     axs[1][l].set_xlabel('Godzina')
