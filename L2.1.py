@@ -30,9 +30,9 @@ def Value_RSI(bessa, hossa, buyArray, stepback):
         y = 1
     RSI = 100 - (100 / (1 + (x/y)))
     return RSI
-def volumePicker(resource, currency, fromTime):
+def Volume_get(resource, currency, fromTime):
     try:
-        _ADRES = f'{NEW_BITBAY_ADRES}/{resource}/{currency}'
+        _ADRES = f'{Volume_bitbay}/{resource}/{currency}'
 
         now = datetime.now()
         before = int((now - timedelta(0, fromTime)).timestamp()) * 1000
@@ -43,8 +43,7 @@ def volumePicker(resource, currency, fromTime):
         response.raise_for_status()
     except HTTPError as http_err:
         print(f'HTTP error occurred: {http_err}')
-    except Exception as err:
-        print(f'Other error occurred: {err}')
+
     else:
         _DATA = response.json()
         try:
