@@ -31,7 +31,6 @@ def animate(i):
 
     for ax in (ax1, ax2, ax3):
         ax.legend(loc="upper left")
-        ax.set_xticks([])
         ax.set_xlabel('Time')
         ax.set_ylabel('Price')
 

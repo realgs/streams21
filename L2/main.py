@@ -62,13 +62,10 @@ class Finance():
 
             csv_writer.writerow(info)
 
-    def get_last_x_val(self):
-        data = pd.read_csv('data.csv')
-        x = list(data['x_val'])
-        return x[-1]
 
     def main(self):
-        x_val = self.get_last_x_val()+1
+        x_val = 1
+        self.create_csv()
         while True:
             all_content = []
             for currency in self.currencies:
@@ -77,8 +74,8 @@ class Finance():
                 all_content.append(content)
                 percentage = self.get_percentage(content)
                 self.print_percentage(percentage,currency)
+                time.sleep(1)
             self.write_csv(all_content, x_val)
-            self.get_last_x_val()
             time.sleep(5)
             x_val += 1
 
