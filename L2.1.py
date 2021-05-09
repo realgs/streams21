@@ -65,9 +65,13 @@ def crypto_get(data, cryptovault, json):
         return originalData["bid"], originalData["ask"]
 
 def animate(i):
-    bid_BTC, ask_BTC, volume_BTC = crypto_get(f'BTC', 'PLN', 'ticker.json')
-    bid_BAT, ask_BAT, volume_BAT = crypto_get(f'BAT', 'PLN', 'ticker.json')
-    bid_ZRX, ask_ZRX, volume_ZRX = crypto_get(f'ZRX', 'PLN', 'ticker.json')
+    bid_BTC, ask_BTC = crypto_get(f'BTC', 'PLN', 'ticker.json')
+    bid_BAT, ask_BAT = crypto_get(f'BAT', 'PLN', 'ticker.json')
+    bid_ZRX, ask_ZRX = crypto_get(f'ZRX', 'PLN', 'ticker.json')
+
+    volume_BTC = Volume_get(f'transactions', 'BTC-PLN', 60)
+    volume_BAT = Volume_get(f'transactions', 'BAT-PLN', 60)
+    volume_ZRX = Volume_get(f'transactions', 'ZRX-PLN', 60)
 
     x_axis.append(datetime.now().strftime("%H:%M:%S"))
 
@@ -86,6 +90,8 @@ def animate(i):
     left = max(0, len(x_axis) - 5)
     right = (len(x_axis))
 
+    lefty = 5
+    righty = 5
     with plt.style.context('seaborn'):
         plt.cla()
 
@@ -139,6 +145,7 @@ def animate(i):
         if wone == 'V':
             plot4.bar(x_axis, crypto_BTC_volume, color='#969696')
             plot4.set_xlim(left=left, right=right)
+            plot4.set_ylim( top=righty)
             plot4.set_ylabel('Volume of volumen', fontsize=15)
             plot4.set_xlabel('Time', fontsize=15)
 
@@ -165,7 +172,6 @@ def animate(i):
             plot6.set_xlabel('Time', fontsize=15)
 
         plt.suptitle("Best bids and asks offers / Volumen / RSI")
-
 
 if __name__ == '__main__':
     x_axis = []
