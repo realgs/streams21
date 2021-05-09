@@ -57,15 +57,24 @@ if __name__=="__main__":
 
     def plots():
         data = []
-
-
         BTCSell = []
         BTCBuy = []
 
-        plt.show()
-        axes = plt.gca()
-        line1, = axes.plot(data, BTCSell, label='Sell BTC', color='green')
-        line2, = axes.plot(data, BTCBuy, label='Buy BTC', color='grey')
+        ETHSell = []
+        ETHBuy = []
+
+        LTCSell = []
+        LTCBuy = []
+
+        plt.figure(figsize=(15, 8))
+
+        plt.suptitle('Vertically stacked subplots')
+        plt.plot(data, BTCSell, label='Sell BTC', color='green')
+        plt.plot(data, BTCBuy, label='Buy BTC', color='grey')
+        plt.plot(data, ETHSell, label='Sell ETH', color='yellow')
+        plt.plot(data, ETHBuy, label='Buy ETH', color='green')
+        plt.plot(data, LTCSell, label='Sell LSK', color='black')
+        plt.plot(data, LTCBuy, label='Buy LSK', color='magenta')
 
         plt.legend()
         plt.title("Stock Plot")
@@ -74,25 +83,41 @@ if __name__=="__main__":
 
         while True:
             data.append(datetime.datetime.now())
+            #plt.xticks(data, data, rotation= 45)
 
             bBTC, sBTC = secbreak()
-
+            bETH, sETH = secbreak()
+            bLTC, sLTC = secbreak()
 
             BTCSell.append(sBTC)
             BTCBuy.append(bBTC)
 
-            axes.set_ylim(-10000, weight(bBTC, sBTC) + 50000)
+            ETHSell.append(sETH)
+            ETHBuy.append(bETH)
+
+            LTCSell.append(sLTC)
+            LTCBuy.append(bLTC)
+
+            plt.figure(figsize=(15, 8))
+            plt.ylim(40000, weight(bBTC, sBTC) + 50000)
 
             plt.plot(data, BTCSell, color='green')
             plt.plot(data, BTCBuy, color='grey')
+            plt.plot(data, ETHSell, color='green')
+            plt.plot(data, ETHBuy, color='grey')
+            plt.plot(data, LTCSell, color='green')
+            plt.plot(data, LTCBuy, color='grey')
 
 
-            plt.draw()
+            #plt.draw()
             plt.pause(1e-17)
             time.sleep(5)
 
-    plots()
 
+
+
+
+plots()
 
 #if __name__=="__main__":
 
