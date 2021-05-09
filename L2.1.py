@@ -62,7 +62,7 @@ def crypto_get(data, cryptovault, json):
 
     else:
         originalData = response.json()
-        return originalData["bid"], originalData["ask"], originalData["volume"]
+        return originalData["bid"], originalData["ask"]
 
 def animate(i):
     bid_BTC, ask_BTC, volume_BTC = crypto_get(f'BTC', 'PLN', 'ticker.json')
