@@ -112,10 +112,6 @@ CURRENCY = "PLN"
 if __name__ == '__main__':
     x = []
 
-    asks = []
-    bids = []
-
-
     BTCbid = []
     BTCask = []
     BTCvol = []
@@ -133,6 +129,6 @@ if __name__ == '__main__':
     OMGaskavg = []
 
     fig, ax = plt.subplots(3)
-    ani = FuncAnimation(fig, plot, save_count=10, interval=5000)
+    ani = FuncAnimation(fig, plot, interval=5000)
 
     plt.show()
