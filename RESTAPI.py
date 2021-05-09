@@ -1,3 +1,5 @@
+from typing import List, Any
+
 import requests
 import sys
 import urllib.request
@@ -85,6 +87,99 @@ def calculateRSI(DecreaseArray, IncreaseArray, buyArray, samplesNumber):
     RSI = 100 - (100 / (1 + (a + 1/b + 1)))
     return RSI
 
+def checkWhatTrend(RSIArray):
+
+    downHillsPoints = []
+    upHillsPoints = []
+
+    for items in range(1, len(RSIArray) - 1):
+        if (RSIArray[items - 1] > RSIArray[items]) and (RSIArray[items] < RSIArray[items + 1]):  # sprawdzam czy to dołek
+            downHillsPoints.append(items)
+        else:
+            downHillsPoints.append(0)  # wyrównuję indeksy
+
+        if (RSIArray[items - 1] < RSIArray[items]) and (RSIArray[items] > RSIArray[items + 1]):  # sprawdzam czy to wierzchołek
+            upHillsPoints.append(items)
+        else:
+            upHillsPoints.append(0) # wyrównuję indeksy
+
+    # Sprawdzam czy nastapił spadek
+    if (downHillsPoints[len(downHillsPoints) - 1] < downHillsPoints[len(downHillsPoints) - 2]) and \
+            (downHillsPoints[len(downHillsPoints) - 1] != 0 and downHillsPoints[len(downHillsPoints) - 2] != 0):
+        print("down")
+        return "Downward trend"
+    # Sprawdzam czy nastapił wzrost
+    elif (upHillsPoints[len(upHillsPoints) - 1] > upHillsPoints[len(upHillsPoints) - 2]) and \
+            (upHillsPoints[len(upHillsPoints) - 1] != 0 and upHillsPoints[len(upHillsPoints) - 2] != 0):
+        print("up")
+        return "Rising trend"
+    # Sprawdzam czy osięgnęliśmy trend boczny
+    elif ((upHillsPoints[len(upHillsPoints) - 1] == upHillsPoints[len(upHillsPoints) - 2]) or (downHillsPoints[len(downHillsPoints) - 1] == downHillsPoints[len(downHillsPoints) - 2])) \
+            and (upHillsPoints[len(upHillsPoints) - 1] != 0 and upHillsPoints[len(upHillsPoints) - 2] != 0) \
+            and (downHillsPoints[len(downHillsPoints) - 1] != 0 and downHillsPoints[len(downHillsPoints) - 2] != 0):
+        print("side")
+        return "Sideways trend"
+    else:
+        print("error")
+        return "Small amount of data"
+
+def defineCandidate(BTCTrend, ETHTrend, LSKTrend, BTCVolume, ETHVolume, LSKVolume):
+    BTC = False
+    ETH = False
+    LSK = False
+
+    BTCLastVolume = float(BTCVolume[len(BTCVolume) - 1])
+    ETHLastVolume = float(ETHVolume[len(BTCVolume) - 1])
+    LSKLastVolume = float(LSKVolume[len(BTCVolume) - 1])
+    max = ""
+
+    if BTCTrend[len(BTCTrend) - 1] != "Downward trend":
+        BTC = True
+    if ETHTrend[len(ETHTrend) - 1] != "Downward trend":
+        ETH = True
+    if LSKTrend[len(LSKTrend) - 1] != "Downward trend":
+        LSK = True
+
+    if BTC and ETH and LSK:
+        array = [BTCLastVolume, ETHLastVolume, LSKLastVolume]
+        print(array)
+        print(array[0])
+        out = array.index(np.max(array))
+        if out == 0:
+            max = "BTC"
+        elif out == 1:
+            max = "ETH"
+        else:
+            max = "LSK"
+    elif BTC and ETH:
+        array = [BTCLastVolume, ETHLastVolume]
+        out = array.index(np.max(array))
+        if out == 0:
+            max = "BTC"
+        else:
+            max = "ETH"
+    elif BTC and LSK:
+        array = [BTCLastVolume, LSKLastVolume]
+        out = array.index(np.max(array))
+        if out == 0:
+            max = "BTC"
+        else:
+            max = "LSK"
+    elif ETH and LSK:
+        array = [ETHLastVolume, LSKLastVolume]
+        out = array.index(np.max(array))
+        if out == 0:
+            max = "ETH"
+        else:
+            max = "LSK"
+    elif BTC:
+        max = "BTC"
+    elif ETH:
+        max = "ETH"
+    elif LSK:
+        max = "LSK"
+    return max
+
 def getCurrencyData(currency, category):
     connect()
     url = f"https://bitbay.net/API/Public/{currency}PLN/{category}.json"
@@ -117,6 +212,7 @@ if __name__ == "__main__":
     BTCVolumeArray = []
     BTCAverageArraySell = []
     BTCAverageArrayBuy = []
+    BTCTrendArray = []
 
     BTCDecreaseArray = []
     BTCIncreaseArray = []
@@ -127,6 +223,7 @@ if __name__ == "__main__":
     ETHVolumeArray = []
     ETHAverageArraySell = []
     ETHAverageArrayBuy = []
+    ETHTrendArray = []
 
     ETHDecreaseArray = []
     ETHIncreaseArray = []
@@ -137,6 +234,7 @@ if __name__ == "__main__":
     LSKVolumeArray = []
     LSKAverageArraySell = []
     LSKAverageArrayBuy = []
+    LSKTrendArray = []
 
     LSKDecreaseArray = []
     LSKIncreaseArray = []
@@ -180,6 +278,7 @@ if __name__ == "__main__":
 
         RSIB = calculateRSI(BTCDecreaseArray, BTCIncreaseArray, BTCSellArray, RSI_SAMPLES_NUMBER)
         BTCRSIArray.append(RSIB)
+
         # Ether
         ETHSellArray.append(sellETH)
         ETHBuyArray.append(buyETH)
@@ -202,6 +301,27 @@ if __name__ == "__main__":
 
         RSI = calculateRSI(LSKDecreaseArray, LSKIncreaseArray, LSKSellArray, RSI_SAMPLES_NUMBER)
         LSKRSIArray.append(RSI)
+
+        if len(LSKRSIArray) > 3 and len(ETHRSIArray) > 3 and len(BTCRSIArray) > 3:
+            trendB = checkWhatTrend(BTCRSIArray)
+            BTCTrendArray.append(trendB)
+            axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB}')
+
+            trendE = checkWhatTrend(ETHRSIArray)
+            ETHTrendArray.append(trendE)
+            axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE}')
+
+            trendL = checkWhatTrend(LSKRSIArray)
+            LSKTrendArray.append(trendL)
+            axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL}')
+
+            out = defineCandidate(trendB, trendE, trendL, BTCVolumeArray, ETHVolumeArray, LSKVolumeArray)
+            if out == "BTC":
+                axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB}!!!')
+            elif out == "ETH":
+                axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE}!!!')
+            else:
+                axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL}!!!')
 
         axes[0][0].plot(x, BTCSellArray, color='red')
         axes[0][0].plot(x, BTCBuyArray, color='magenta')
