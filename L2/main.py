@@ -7,9 +7,8 @@ from datetime import datetime, date
 class Finance():
 
     def __init__(self):
-        self.currencies = ['BTC','GNT','DASH']
-        self.pre_url = 'https://bitbay.net/API/Public/'
-        self.post_url = '/ticker.json'
+        self.currencies = ['ETH-PLN', 'BTC-PLN', 'DASH-PLN']
+        self.pre_url = 'https://api.bitbay.net/rest/trading/ticker/'
 
     def get_data(self, url):
         try:
@@ -23,18 +22,18 @@ class Finance():
         except Exception as err:
             print(f'Other error occurred: {err}')
             return 0
-        return content
+        return content['ticker']
 
     def get_percentage(self, content):
-        percentage = round(((content["ask"] / content["bid"]) - 1) * 100, 2)
+        percentage = round(((float(content["lowestAsk"]) / float(content["highestBid"])) - 1) * 100, 2)
         return percentage
 
 
     def print_percentage(self, value, cur):
-        print(f"Różnica między kupnem a sprzedażą {cur} za USD wynosi {value}%")
+        print(f"Różnica między kupnem a sprzedażą {cur} wynosi {value}%")
 
     def get_full_url(self, cur):
-        return self.pre_url + cur + self.post_url
+        return self.pre_url + cur
 
     def create_csv(self):
         fieldnames = ['x_val', 'bid_cur1', 'ask_cur1','bid_cur2', 'ask_cur2','bid_cur3', 'ask_cur3', 'time', 'date']
@@ -57,12 +56,12 @@ class Finance():
 
             info = {
                 'x_val': x_value,
-                'bid_cur1': all_content[0]['bid'],
-                'ask_cur1': all_content[0]['ask'],
-                'bid_cur2': all_content[1]['bid'],
-                'ask_cur2': all_content[1]['ask'],
-                'bid_cur3': all_content[2]['bid'],
-                'ask_cur3': all_content[2]['ask'],
+                'bid_cur1': all_content[0]['highestBid'],
+                'ask_cur1': all_content[0]['lowestAsk'],
+                'bid_cur2': all_content[1]['highestBid'],
+                'ask_cur2': all_content[1]['lowestAsk'],
+                'bid_cur3': all_content[2]['highestBid'],
+                'ask_cur3': all_content[2]['lowestAsk'],
                 'time': current_time,
                 'date': today
             }
@@ -80,10 +79,10 @@ class Finance():
                 content = self.get_data(url)
                 all_content.append(content)
                 percentage = self.get_percentage(content)
-                self.print_percentage(percentage,currency)
+                self.print_percentage(percentage, currency)
                 time.sleep(1)
             self.write_csv(all_content, x_val)
-            time.sleep(1)
+            time.sleep(5)
             x_val += 1
 
 curr = Finance()

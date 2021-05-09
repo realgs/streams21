@@ -27,7 +27,7 @@ def animate(i):
     ax3.cla()
 
     plt.style.use('seaborn')
-    currencies = ['BTC', 'GNT', 'DASH']
+    currencies = ['ETH-PLN', 'BTC-PLN', 'DASH-PLN']
     ax1.plot(x, bid_cur1, label=f'Bid')
     ax1.plot(x, ask_cur1, label=f'Ask')
     ax2.plot(x, bid_cur2, label=f'Bid')
@@ -35,9 +35,9 @@ def animate(i):
     ax3.plot(x, bid_cur3, label=f'Bid')
     ax3.plot(x, ask_cur3, label=f'Ask')
 
-    ax1.set_title(f'{currencies[0]} and USD')
-    ax2.set_title(f'{currencies[1]} and USD')
-    ax3.set_title(f'{currencies[2]} and USD')
+    ax1.set_title(f'{currencies[0]}')
+    ax2.set_title(f'{currencies[1]}')
+    ax3.set_title(f'{currencies[2]}')
 
     for ax in (ax1, ax2, ax3):
         ax.legend(loc="upper left")
