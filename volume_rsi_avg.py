@@ -30,10 +30,8 @@ def average(data, n):
     return avg
 
 
-def rsi_calc(data, start, end):
-    data = data[-20:]
-    rsi_data = data[start:end]
-
+def rsi_calc(data, p):
+    rsi_data = data[-p:]
     print(rsi_data)
     ups = 0
     up_count = 0
@@ -57,12 +55,15 @@ def rsi_calc(data, start, end):
         b = 1
     else:
         b = downs/down_count
-    rsi = 100 - (100/(1+(a/b)))
+    if 1+(a/b) != 0:
+        rsi = 100 - (100/(1+(a/b)))
+    else:
+        print("Division by zero!")
     print(rsi)
     return rsi
 
 
-def plot_data(currencies, p_currency, k, o, start, end):
+def plot_data(currencies, p_currency, k, o, p):
     bid = []
     ask = []
     vol = []
@@ -74,7 +75,7 @@ def plot_data(currencies, p_currency, k, o, start, end):
     times = []
 
     plt.subplots(nrows=len(currencies), ncols=2, figsize=(20, len(currencies) * 3.5))
-
+    plt.tight_layout()
     while True:
         b = []
         a = []
@@ -96,8 +97,8 @@ def plot_data(currencies, p_currency, k, o, start, end):
                 b_avg.append([currency, bids])
                 a_avg.append([currency, asks])
 
-                b_rsi.append([currency, rsi_calc([bids], start, end)])
-                a_rsi.append([currency, rsi_calc([asks], start, end)])
+                b_rsi.append([currency, rsi_calc([bids], p)])
+                a_rsi.append([currency, rsi_calc([asks], p)])
             else:
                 for i in range(len(bid)):
                     b_to_avg.append(bid[i][currencies.index(currency)][1])
@@ -105,18 +106,14 @@ def plot_data(currencies, p_currency, k, o, start, end):
                     a_to_avg.append(ask[i][currencies.index(currency)][1])
                     a_to_avg.append(asks)
 
-                print("BBBBBBBB TO AVG ", b_to_avg)
                 b_avg.append([currency, average(b_to_avg, o)])
                 a_avg.append([currency, average(a_to_avg, o)])
 
-                b_rsi.append([currency, rsi_calc(b_to_avg, start, end)])
-                a_rsi.append([currency, rsi_calc(a_to_avg, start, end)])
-
-
+                b_rsi.append([currency, rsi_calc(b_to_avg, p)])
+                a_rsi.append([currency, rsi_calc(a_to_avg, p)])
 
 
         bid.append(b)
-        print("BIIIIIIIDDDDDDD", bid)
         ask.append(a)
         vol.append(v)
 
@@ -133,8 +130,8 @@ def plot_data(currencies, p_currency, k, o, start, end):
 
 def plot(currencies, bid, ask, vol, times, k, bid_avg, ask_avg, bid_rsi, ask_rsi, o):
     s = 1
-    n = 2
-    t = 3
+    n = 4
+    t = 7
     for p in range(len(currencies)):
         y1 = []
         y2 = []
@@ -165,7 +162,7 @@ def plot(currencies, bid, ask, vol, times, k, bid_avg, ask_avg, bid_rsi, ask_rsi
             y_ask_rsi.append(a[p][1])
             x_ask_rsi = [i for i in range(len(y_ask_rsi))]
 
-        l = max(0, len(x)-20)
+        l = max(0, len(x)-9)
         r = (len(x))
 
         plt.subplot(len(currencies), 3, s)
@@ -173,24 +170,25 @@ def plot(currencies, bid, ask, vol, times, k, bid_avg, ask_avg, bid_rsi, ask_rsi
         plt.plot(x, y1, "-", label=f"Bids of {currencies[p]}", color="#1f77b4")
         plt.plot(x, y2, "-", label=f"Asks of {currencies[p]}", color="#9467bd")
 
-        plt.plot(x_bid_avg, y_bid_avg, "--", label=f"Average of last {o} {currencies[p]} bids", color="#FFD700")
-        plt.plot(x_ask_avg, y_ask_avg, "--", label=f"Average of last {o} {currencies[p]} asks", color="#7BC8F6")
+        plt.plot(x_bid_avg, y_bid_avg, "--", label=f"Avg of last {o} {currencies[p]} bids", color="#FFD700")
+        plt.plot(x_ask_avg, y_ask_avg, "--", label=f"Avg of last {o} {currencies[p]} asks", color="#7BC8F6")
 
         plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
         # plt.legend()
         plt.xticks(ticks=x, labels=times, rotation=50)
         plt.xlabel("Time")
-        plt.ylabel(f"Bids, asks {currencies[p]} value [PLN]")
+        plt.ylabel(f"Bids, asks [PLN]")
         plt.xlim(left=l, right=r)
-        s += 3
+        s += 1
 
         plt.subplot(len(currencies), 3, n)
-
+        plt.xlabel("Time")
+        plt.ylabel(f"Volume [PLN]")
         plt.bar(x_vol, y_vol, label=f"Volume of {currencies[p]}")
-        plt.legend()
+        plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
         plt.xticks(ticks=x_vol, labels=times, rotation=50)
-        plt.xlim(left=max(0, len(x_vol)-20), right=len(x_vol))
-        n += 3
+        plt.xlim(left=max(0, len(x_vol)-9), right=len(x_vol))
+        n += 1
 
         plt.subplot(len(currencies), 3, t)
 
@@ -201,23 +199,22 @@ def plot(currencies, bid, ask, vol, times, k, bid_avg, ask_avg, bid_rsi, ask_rsi
         # plt.legend()
         plt.xticks(ticks=x, labels=times, rotation=50)
         plt.xlabel("Time")
-        plt.ylabel(f"RSI bids, asks {currencies[p]} value [PLN]")
+        plt.ylabel(f"RSI  [PLN]")
         plt.xlim(left=l, right=r)
-        t += 3
+        t += 1
 
     plt.tight_layout()
     plt.pause(k)
     plt.clf()
 
 def main():
-    currencies = ['BTC', 'ETH', 'USDT']
+    currencies = ['BTC', 'ETH', 'LSK']
     p_currency = 'PLN'
     k = 0.5
     # n = int(input("Podaj z ilu ostatnich danych chcesz liczyć średnią: "))
     o = 6
-    start = 0
-    end = 20
-    plot_data(currencies, p_currency, k, o, start, end)
+    p = 10
+    plot_data(currencies, p_currency, k, o, p)
 
 
 if __name__ == '__main__':
