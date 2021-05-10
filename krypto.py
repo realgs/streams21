@@ -74,16 +74,18 @@ def dynamic_plotting(interval):
     Y_slider = Slider(ax_slider, label='scan range\n(last days)',
                       valmin=1, valmax=2, valstep=1, valinit=1)
 
-    axes = []
-    for i in range(N):
-        axes.append(fig.add_subplot(N, 1, i+1))
+    main_axes = []
+    volume_axes = []
+    for i in range(1, 2*N, 2):
+        main_axes.append(fig.add_subplot(2*N, 1, i))
+        volume_axes.append(fig.add_subplot(2*N, 1, i+1))
 
     RSI_subaxes = []
-    for ax in axes:
+    for ax in main_axes:
         RSI_subaxes.append(ax.twinx())
 
     ax_lines = []
-    for i, ax in enumerate(axes):
+    for i, ax in enumerate(main_axes):
         bids_line, = ax.plot_date(date, bids[i], '-', label='bids',
                                   color='royalblue')
         asks_line, = ax.plot_date(date, asks[i], '-', label='asks',
@@ -100,12 +102,14 @@ def dynamic_plotting(interval):
 
     volume_textes = []
     for i in range(N):
-        volume_txt = axes[i].text(1.1, 0, '', transform=axes[i].transAxes)
+        volume_txt = main_axes[i].text(1.1, 0, '',
+                                       transform=main_axes[i].transAxes)
         volume_textes.append(volume_txt)
 
     RSI_textes = []
     for i in range(N):
-        rsi_txt = axes[i].text(1.1, 0.13, '', transform=axes[i].transAxes)
+        rsi_txt = main_axes[i].text(1.1, 0.13, '',
+                                    transform=main_axes[i].transAxes)
         RSI_textes.append(rsi_txt)
 
     def _update(frame):
@@ -141,7 +145,6 @@ def dynamic_plotting(interval):
             new_text = f'Trading volume: {round(volumes[i], 4)}'
             volume_textes[i].set_text(new_text)
 
-        print('')
         for i in range(N):
             if len(bids[i]) >= 2:
                 if Y_slider.val != Y_slider.valinit and Y_slider.val >= 2:
@@ -176,8 +179,6 @@ def dynamic_plotting(interval):
 
             new_text = f'RSI: {nan_msg if nan_msg else round(RSI)}'
             RSI_textes[i].set_text(new_text)
-            RSI_range = (_min(RSI_values[i]), _max(RSI_values[i]))
-            print(f'plot {i}: RSI={RSI_range}')
             RSI_values[i].append(50 if nan_msg else RSI)
 
         for i, lines in enumerate(ax_lines):
@@ -192,7 +193,7 @@ def dynamic_plotting(interval):
             if RSI_values[i]:
                 lines[4].set_data(date, RSI_values[i])
 
-        for ax, crypto_currency in zip(axes, CRYPTO_CURRENCIES):
+        for ax, crypto_currency in zip(main_axes, CRYPTO_CURRENCIES):
             xlocator = AutoDateLocator()
             ylocator = plt.LinearLocator(numticks=3)
             formatter = ConciseDateFormatter(xlocator)
