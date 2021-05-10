@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import datetime
 from matplotlib.animation import FuncAnimation
-from matplotlib import style
 from matplotlib.dates import DateFormatter
+import requests
 
 
 def currency_data(currency, category, file_ext):
@@ -56,7 +56,6 @@ def animated_chart():
         axs[2].autoscale_view()
 
     fig, axs = plt.subplots(len(CRYPTO_LIST))
-    lines = []
 
     lines.append(axs[0].plot(time_list, bidbtc_list, color='green', label='bid'))
     lines.append(axs[0].plot(time_list, askbtc_list, color='red', label='ask'))
@@ -97,6 +96,7 @@ if __name__ == "__main__":
     bidzec_list = list()
     askzec_list = list()
     time_list = list()
+    lines = list()
 
     crypto_values = {"BTCpack": "btcpln", "ETHpack": "ethpln", "ZECpack": "zecpln"}
     CRYPTO_LIST = ["btcpln", "ethpln", "zecpln"]
@@ -106,4 +106,3 @@ if __name__ == "__main__":
         dict_of_ask_bid_lists[crypto] = [list(), list(), list()]
 
     animated_chart()
-    style.use('ggplot')
