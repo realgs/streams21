@@ -11,7 +11,7 @@ y = "LTCPLN"
 z = "DASHPLN"
 dat = [x, y, z]
 P = []
-#timediff = dt.timedelta(0, time)
+#timediff = dt.timedelta(0, time)gg
 
 def weight(a, b):
     if a > b:
