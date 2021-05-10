@@ -5,96 +5,135 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 from itertools import count
 import copy
+import time
 
 
-def get_data(crypt, req_type):
-    url = "https://bitbay.net/API/Public/{Currency[0]}{Currency[1]}/{Category}.json?sort=desc".format(Currency=[crypt, 'PLN'],
-                                                                                            Category=req_type)
+
+def get_data(crypt):
+    url = "https://bitbay.net/API/Public/{Currency}/{Category}.json".format(Currency=crypt,
+                                                                                            Category= 'ticker')
     response = requests.get(url)
     if response.status_code == 200:
-        data = response.json()
-        return data
+        response = response.json()
+        buy = response['ask']
+        sell = response['bid']
+        return buy, sell
     else:
         print("Can't get data from API \n status code: ", response.status_code)
 
-
-def last_trades(data):
-    sell, buy = None, None
-    sell_01 = 0
-    buy_01 = 0
-    for trade in data:
-        if (sell_01, buy_01) == (1, 1):
-            break
-        if sell_01 == 0:
-            if trade['type'] == 'sell':
-                sell = trade['price']
-                sell_01 = 1
-        if buy_01 == 0:
-            if trade['type'] == 'buy':
-                buy = trade['price']
-                buy_01 = 1
-    return sell, buy
+def get_volume(crypt):
+    url = "https://api.bitbay.net/rest/trading/transactions/{currency}".format(currency= crypt)
+    response = requests.get(url)
+    response = response.json()
+    if response['status'] == 'Ok':
+        volume = float(response['items'][1]['a'])
+        return volume
+    else:
+        print("Can't get data from API \n status code: ", response['status'])
 
 
-def data_stream(crypt, x, y_1, y_2, i, range=5):
-    x.append(i)
-    data = get_data(crypt, 'trades')
-    min, max = last_trades(data)
-    y_1.append(min)
-    y_2.append(max)
-    if len(x) > range:
-        x.pop(0)
-        y_1.pop(0)
-        y_2.pop(0)
-    return [x, y_1, y_2]
+def average(data_list, n):
+    sub_data = data_list[-n:]
+    avg = sum(sub_data)/len(sub_data)
+    return avg
+
+
+def count_rsi(data_list, start, stop):
+    sub_data = data_list[-10:]
+    sub_data = sub_data[start:stop]
+    rises = 0
+    rises_counter = 0
+    losses = 0
+    losses_counter = 0
+    for i in range(1, len(sub_data)):
+        if sub_data[i - 1] < sub_data[i]:
+            rise = sub_data[i] - sub_data[i - 1]
+            rises += rise
+            rises_counter += 1
+        elif sub_data[i - 1] > sub_data[i]:
+            loss = sub_data[i - 1] - sub_data[i]
+            losses += loss
+            losses_counter += 1
+    if rises_counter == 0:
+        a = 1
+    else:
+        a = rises/rises_counter
+    if losses_counter == 0:
+        b = 1
+    else:
+        b = losses/losses_counter
+    rsi = 100 - (100 / (1 + (a / b)))
+    return rsi
+
+def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list):
+    buy, sell = get_data(crypt)
+    buy_list.append(buy)
+    sell_list.append(sell)
+    buy_avg = average(buy_list, N)
+    sell_avg = average(sell_list, N)
+
+    avg_buy_list.append(buy_avg)
+    avg_sell_list.append(sell_avg)
+    volume_list.append(get_volume(crypt))
+
+    rsi_buy_list.append(count_rsi(buy_list, START, STOP))
+    rsi_sell_list.append(count_rsi(sell_list, START, STOP))
+    return buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list
 
 
 def animate(i):
-    global x, x_2, y_1, y_2, y_3, y_4, y_5, y_6
+    buy, sell, avg1, avg2, vol, rsi_buy, rsi_sell = data_stream(CURRENCY[1], buys, sells, avg_buy, avg_sell, volume, rsi_buy_values, rsi_sell_values)
+    t.append(time.strftime("%H:%M:%S", time.localtime()))
+    for i in [buy, sell, avg1, avg2, vol, rsi_buy, rsi_sell, t]:
+        if len(i) > 10:
+            i.pop(0)
+    plt.clf()
+    plt.subplot(311)
+    plt.title(f'{CURRENCY[1]} chart')
+    plt.plot(t, buy, label="buys", color="green")
+    plt.plot(t, sell, label="sells", color="red")
+    plt.plot(t, avg1, '--', label='buy avg', color='yellow')
+    plt.plot(t, avg2, '--', label='sell avg', color='pink')
+    plt.ylabel("Currency rate")
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.xticks([])
 
-    print('LTC: ', x, y_1, y_2)
-    print('BTC: ', x_2, y_3, y_4)
-    print('DASH: ', x_3, y_5, y_6, '\n')
+    plt.subplot(312)
+    plt.title('Volume chart')
+    plt.bar(t, vol, label='volume', color='gray')
+    plt.xticks([])
+    plt.ylabel("Volume values")
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
 
-    temp_LTC = data_stream('LTC', x, y_1, y_2, i)
-    temp_BTC = data_stream('BTC', x_2, y_3, y_4, i)
-    temp_DASH = data_stream('DASH', x_3, y_5, y_6, i)
-
-    x, y_1, y_2 = temp_LTC[0], temp_LTC[1], temp_LTC[2]
-    y_3, y_4 = temp_BTC[1], temp_BTC[2]
-    y_5, y_6 = temp_DASH[1], temp_DASH[2]
-
-    ax1.plot(x, y_1, label='LTC_sell', color='red')
-    ax1.plot(x, y_2, label='LTC_buy', color='blue')
-
-    ax2.plot(x_2, y_3, label='BTC_sell', color='green')
-    ax2.plot(x_2, y_4, label='BTC_buy', color='yellow')
-
-    ax3.plot(x_3, y_5, label='DASH_sell', color='pink')
-    ax3.plot(x_3, y_6, label='DASH_buy', color='brown')
-
-    ax1.set_xlim([0, 5])
-    ax2.set_xlim([0, 5])
-    ax3.set_xlim([0, 5])
-
-    ax1.legend(['LTC_sell', 'LTC_buy'])
-    ax2.legend(['BTC_sell', 'BTC_buy'])
-    ax3.legend(['DASH_sell', 'DASH_buy'])
-
-def plot_data(x_label, y_label, title):
-    ani = FuncAnimation(fig, func=animate, interval=1000)
-
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
+    plt.subplot(313)
+    plt.title('RSI chart')
+    plt.plot(t, rsi_buy, label='buy RSI', color='orange')
+    plt.plot(t, rsi_sell, ':', label='sell RSI', color='purple')
+    plt.ylabel("RSI value")
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.xticks(rotation='vertical')
+    plt.xlabel("Time")
     plt.tight_layout()
+
+
+def plot_data():
+    animation = FuncAnimation(plt.figure(), func=animate, interval=1000)
     plt.show()
 
 
 if __name__ == "__main__":
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
-    #line, = axs.plot([], [], lw=3)
-    x, x_2, x_3 = [], [], []
-    y_1, y_2, y_3, y_4, y_5, y_6 = [], [], [], [], [], []
+    CURRENCY = ["OMG-PLN", "BTC-PLN", "ETH-PLN"]
+    N = 5 #average
+    START = 0 #rsi start
+    STOP = 10 #rsi stop
+    buys = []
+    sells = []
+    avg_buy = []
+    avg_sell = []
+    volume = []
+    rsi_buy_values = []
+    rsi_sell_values = []
+    t = []
 
-    plot_data('', 'PLN', 'Trades')
+    plot_data()
+
