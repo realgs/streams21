@@ -1,16 +1,19 @@
 import requests
 import time
 from sys import exit
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 def link(currency_type):
-    return f'https://bitbay.net/API/Public/{currency_type}/orderbook.json'
+    return f'https://bitbay.net/API/Public/{currency_type}/orderbook.json'#rozdzielic na pol do stalych co sie da obiekt (moe byc krotka)
 
-def get_data(currency_type):#jeżeli printować wszystkie to tu
+def get_data(currency_type): # jeżeli printować wszystkie to tu
     try:
         req = requests.get(link(currency_type)).json()
         bid = req['bids']
         ask = req['asks']
-    except Exception as e:# obsługa błęów
+    except Exception as e: # obsługa błęów
         print(e)
         return {}
 
@@ -18,28 +21,61 @@ def get_data(currency_type):#jeżeli printować wszystkie to tu
 
 def print_offers(offers):
     if len(offers) > 6:
-        short_offers = offers[:3]+['...']+offers[-3:]
+        short_offers = offers[:3] + ['...'] + offers[-3:]
     for offer in short_offers:
         print(offer)
 
+
 if __name__ == '__main__':
-    currency = ['BTCUSD', 'LTCUSD', 'ETHUSD']
-    sleeping_time = 5
-    for c in currency:
-        all_bid, all_ask = get_data(c)
-        print(c, '\n bid: ')
-        print_offers(all_bid)
-        print('\n ask: ')
-        print_offers(all_ask)
-        print('\n')
+    SLEEPING_TIME = 5
+
+    currency1 = ['BTC', 'LTC', 'ETH']
+    currency2 = 'PLN'
+    currency = [c + currency2 for c in currency1]
+
+    bids = []
+    asks = []
+
+    plt.ion()
+    fig, ax = plt.subplots()
+    x, ys, lines = [],[],[]
+    line_bids, = ax.plot([],[], label='ETH_bids', marker='o')
+    line_asks, = ax.plot([],[], label='ETH_asks', marker='o', linestyle='--')
+    lines.append([line_bids,line_asks])
+
+    ax.set_title('Crypto')
+    ax.set_xlabel('time [s]')
+    ax.set_ylabel('value')
+    ax.legend()
+
+    i = 0
     while True:
-        try:
-            for c in currency:
-                all_bid, all_ask = get_data(c)
-                bid = all_bid[0][0]
-                ask = all_ask[0][0]
-                difference = ( ( ask - bid ) / bid ) * 100
-                print (c, '\n bid: ', bid, '    ask: ', ask, '  difference[%]: ', difference, '    round difference: ', round(difference, 2), '\n')
-            time.sleep(sleeping_time)
-        except KeyboardInterrupt:
-            exit()
+        x.append(i * SLEEPING_TIME)
+
+        j = 0
+        for a, c in enumerate(currency):
+            dataset = get_data(c)
+            if len(dataset):
+                all_bid, all_ask = dataset
+                bids.append(all_bid [0] [0])
+                asks.append(all_ask [0] [0])
+            else:
+                print("nie")
+                bids.append(None)
+                asks.append(None)
+
+ 
+            ax.set_xlim(min(x) * 1.1  , max(x) * 1.1 )
+            ax.set_ylim(min(min(asks), min(bids)) * 1.1 , max(max(asks), max(bids)) * 1.1 )
+
+            lines[0][0].set_xdata(x)
+            lines[0][0].set_ydata(asks)
+            lines[0][1].set_xdata(x)
+            lines[0][1].set_ydata(bids)
+
+            plt.pause(0.1)  # so that I don't get blocked on the API
+            j += 1
+        time.sleep(SLEEPING_TIME)
+
+        i += 1
+        plt.pause(SLEEPING_TIME)
