@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import numpy as np
 
 
 def every_nth_func(x_val):
@@ -70,6 +69,10 @@ def animate(i):
     ask_cur3 = data['ask_cur3']
 
     volume = count_volumen()
+    rsi = pd.read_csv('rsi.csv')
+    rs1 = rsi['rsi1'][0]
+    rs2 = rsi['rsi2'][0]
+    rs3 = rsi['rsi3'][0]
 
     ax1.cla()
     ax2.cla()
@@ -116,15 +119,15 @@ def animate(i):
 
     ax2.barh('-', volume[0], align='edge')
     ax2.set_title(f'VOLUMEN {currencies[0]}')
-    ax2.set_xlabel(f'Amount of crypto tranferred {round(volume[0], 4)}')
+    ax2.set_xlabel(f'Amount of crypto tranferred {round(volume[0], 4)} \n RSI: {rs1}')
 
     ax4.barh('-', volume[1], align='edge')
     ax4.set_title(f'VOLUMEN {currencies[1]}')
-    ax4.set_xlabel(f'Amount of crypto tranferred {round(volume[1], 4)}')
+    ax4.set_xlabel(f'Amount of crypto tranferred {round(volume[1], 4)} \n RSI: {rs2}')
 
     ax6.barh('-', volume[2], align='edge')
     ax6.set_title(f'VOLUMEN {currencies[2]}')
-    ax6.set_xlabel(f'Amount of crypto tranferred {round(volume[2], 4)}')
+    ax6.set_xlabel(f'Amount of crypto tranferred {round(volume[2], 4)} \n RSI: {rs3}')
 
     for ax in (ax2, ax4, ax6):
         plt.sca(ax)
