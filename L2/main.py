@@ -9,6 +9,7 @@ class Finance():
     def __init__(self):
         self.currencies = ['ETH-PLN', 'BTC-PLN', 'DASH-PLN']
         self.pre_url = 'https://api.bitbay.net/rest/trading/ticker/'
+        self.volumen_url = 'https://api.bitbay.net/rest/trading/transactions/'
 
     def get_data(self, url):
         try:
@@ -24,6 +25,20 @@ class Finance():
             return 0
         return content['ticker']
 
+    def get_last_transaction(self, url):
+        try:
+            response = requests.get(url, params={'limit': 1})
+            content = response.json()
+
+            response.raise_for_status()
+        except HTTPError as http_err:
+            print(f'HTTP error occurred: {http_err}')
+            return 0
+        except Exception as err:
+            print(f'Other error occurred: {err}')
+            return 0
+        return content['items'][0]
+
     def get_percentage(self, content):
         percentage = round(((float(content["lowestAsk"]) / float(content["highestBid"])) - 1) * 100, 2)
         return percentage
@@ -35,11 +50,19 @@ class Finance():
     def get_full_url(self, cur):
         return self.pre_url + cur
 
+    def get_volumen_url(self, cur):
+        return self.volumen_url + cur
+
     def create_csv(self):
         fieldnames = ['x_val', 'bid_cur1', 'ask_cur1','bid_cur2', 'ask_cur2','bid_cur3', 'ask_cur3', 'time', 'date']
+        fieldnames2 = ['last_1_id', 'last_1_val', 'last_2_id', 'last_2_val', 'last_3_id', 'last_3_val']
 
         with open('data.csv', 'w') as csv_file:
             csv_writer = csv.DictWriter(csv_file,fieldnames=fieldnames)
+            csv_writer.writeheader()
+
+        with open('volumen.csv', 'w') as csv_file:
+            csv_writer = csv.DictWriter(csv_file,fieldnames=fieldnames2)
             csv_writer.writeheader()
 
 
@@ -68,20 +91,45 @@ class Finance():
 
             csv_writer.writerow(info)
 
+    def write_volumen(self, all_content):
+        fieldnames2 = ['last_1_id', 'last_1_val', 'last_2_id', 'last_2_val', 'last_3_id', 'last_3_val']
+
+        with open('volumen.csv', 'a+') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames2)
+
+
+            info = {
+                'last_1_id': all_content[0]['id'],
+                'last_1_val': all_content[0]['a'],
+                'last_2_id': all_content[1]['id'],
+                'last_2_val': all_content[1]['a'],
+                'last_3_id': all_content[2]['id'],
+                'last_3_val': all_content[2]['a'],
+
+            }
+
+            csv_writer.writerow(info)
+
 
     def main(self):
         x_val = 1
         self.create_csv()
         while True:
             all_content = []
+            all_volumen =[]
             for currency in self.currencies:
                 url = self.get_full_url(currency)
                 content = self.get_data(url)
                 all_content.append(content)
                 percentage = self.get_percentage(content)
                 self.print_percentage(percentage, currency)
+
+                volumen_url = self.get_volumen_url(currency)
+                volumen = self.get_last_transaction(volumen_url)
+                all_volumen.append(volumen)
                 time.sleep(1)
             self.write_csv(all_content, x_val)
+            self.write_volumen(all_volumen)
             time.sleep(5)
             x_val += 1
 
