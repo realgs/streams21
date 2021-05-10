@@ -44,18 +44,18 @@ def calculate_averange(data_list):
 
 def calculate_RSI(data_list):
     interval_data = data_list[-20:]
-    part_data = interval_data[start:end]
+    interval_data = interval_data[start:end]
     rises = 0
     rises_count = 0
     losses = 0
     losses_count = 0
-    for i in range(1, len(part_data)):
-        if part_data[i - 1] < part_data[i]:
-            rise = part_data[i] - part_data[i - 1]
+    for i in range(1, len(interval_data)):
+        if interval_data[i - 1] < interval_data[i]:
+            rise = interval_data[i] - interval_data[i - 1]
             rises += rise
             rises_count += 1
-        elif part_data[i - 1] > part_data[i]:
-            loss = part_data[i - 1] - part_data[i]
+        elif interval_data[i - 1] > interval_data[i]:
+            loss = interval_data[i - 1] - interval_data[i]
             losses += loss
             losses_count += 1
     if rises_count == 0:
@@ -149,7 +149,7 @@ def draw_plot(time_interval):
 if __name__ == '__main__':
     try:
         list_currencies = ['BTC-PLN', 'LTC-PLN', 'TRX-PLN']
-        time_interval = 5
+        time_interval = 2
         i = int(input('Podaj dla jakiej waluty wykres chcesz wyswietlic 0-BTC, 1-LTC, 2-TRX: '))
         qty = int(input('Ilość próbek do wyliczenia średniej: '))
         start = int(input('Początek przedziału y do wyliczenia RSI: '))
