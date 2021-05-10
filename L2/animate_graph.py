@@ -148,9 +148,9 @@ def animate(i):
                 label.set_visible(False)
     plt.tight_layout()
 
-
-fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows=3, ncols=2, gridspec_kw={'width_ratios': [5, 1]})
-fig.set_size_inches(12, 8, forward=True)
-plt.locator_params(axis='x', nbins=10)
-anim = FuncAnimation(plt.gcf(), animate, interval=1000)
-plt.show()
+if __name__ == '__main__':
+    fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows=3, ncols=2, gridspec_kw={'width_ratios': [5, 1]})
+    fig.set_size_inches(12, 8, forward=True)
+    plt.locator_params(axis='x', nbins=10)
+    anim = FuncAnimation(plt.gcf(), animate, interval=1000)
+    plt.show()
