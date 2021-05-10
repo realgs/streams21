@@ -10,9 +10,11 @@ import matplotlib.gridspec as gridspec
 BIDS = "bid"
 ASKS = "ask"
 VOLUME = "volume"
-TIMELINE_SHIFT = 20
+TIMELINE_SHIFT = 10
 LOWER_RSI = 0
 UPPER_RSI = 20
+LOWER_AVG = 0
+UPPER_AVG = 20
 BASE_URL = "https://bitbay.net/API/Public/"
 REGUESTED_JSON= "ticker.json"
 STYLE_NAME = 'dark_background'
@@ -37,9 +39,10 @@ def extract_best_trade(trades):
     
     return trades[BIDS], trades[ASKS], trades[VOLUME]
 
-def calculate_avg(data):
-    
-    return  sum(data)/len(data)
+def calculate_avg(data, lower, upper):
+    sub_data = data[-20:]
+
+    return  sum(sub_data[lower:upper])/len(sub_data[lower:upper])
 
 def calculate_RSI(data, lower, upper):
     sub_data = data[-20:]
@@ -80,8 +83,8 @@ def add_data(cryptocurrency, currency, best_bids, best_asks, volumes, bids_avg, 
         best_bids.append(best_bid)
         best_asks.append(best_ask)
         volumes.append(volume)
-        bids_avg.append(calculate_avg(best_bids))
-        asks_avg.append(calculate_avg(best_asks))
+        bids_avg.append(calculate_avg(best_bids, LOWER_AVG, UPPER_AVG))
+        asks_avg.append(calculate_avg(best_asks, LOWER_AVG, UPPER_AVG))
         bids_rsis.append(calculate_RSI(best_bids, LOWER_RSI, UPPER_RSI))
         asks_rsis.append(calculate_RSI(best_asks, LOWER_RSI, UPPER_RSI))
 
@@ -92,7 +95,7 @@ def visualize(i, cryptocurrency, currency, best_bids, best_asks, volumes, bids_a
         
         plt.gcf().canvas.set_window_title(TITLE)
 
-        gs  =  gridspec.GridSpec ( 3 ,  1, height_ratios=[1,5,1])
+        gs  =  gridspec.GridSpec ( 3 ,  1, height_ratios=[2,5,2])
 
         plt.subplot(gs[0])
         plt.cla()
