@@ -1,103 +1,201 @@
-import requests
 import matplotlib.pyplot as plt
+import requests
+import datetime
 from matplotlib.animation import FuncAnimation
-from datetime import datetime
-import numpy as np
+from matplotlib.dates import DateFormatter
 
-fig, axs = plt.subplots(3)
+def Dates():
+    time_list_BTC.append(datetime.datetime.now())
+    buy, sell,volume = Values("BTCPLN")
+    BTCBuy.append(buy)
+    BTCSell.append(sell)
+    BTCVolume.append(volume)
 
+    time_list_LTC.append(datetime.datetime.now())
+    buy, sell,volume = Values("LTCPLN")
+    LTCBuy.append(buy)
+    LTCSell.append(sell)
+    LTCVolume.append(volume)
 
-def downloadData(waluty):
-    response = requests.get(f'https://bitbay.net/API/Public/{waluty}/ticker.json')
-    data = response.json()
-    return data
+    time_list_DASH.append(datetime.datetime.now())
+    buy, sell,volume = Values("DASHPLN")
+    DASHBuy.append(buy)
+    DASHSell.append(sell)
+    DASHVolume.append(volume)
+    print(volume)
 
-def append_not_none(values, a):
-    if a != None:
-        values.append(a)
+def Values(currency):
+    r = requests.get(f"https://bitbay.net/API/Public/{currency}/ticker.json")
+    try:
+        values = r.json()
+        buy = values["bid"]
+        sell = values["ask"]
+        volume = values["volume"]
+        return buy, sell,volume
+    except requests.exceptions.HTTPError:
+        print("Something went wrong")
+
+def Avarage(list_buy,list_sell,user_parameter):
+    buy = []
+    sell = []
+    if len(list_sell) <= user_parameter:
+        for i in list_buy:
+            buy.append(i)
+        for i in list_sell:
+            sell.append(i)
+        buy = sum(buy) / len(list_sell)
+        sell = sum(sell) / len(list_buy)
+        return buy, sell
     else:
-        if len(values)>1:
-            values.append(values[-1])
+        for i in range(-1,-(user_parameter+1),-1):
+            buy.append(list_buy[i])
+            sell.append(list_sell[i])
+        buy = sum(buy) / user_parameter
+        sell = sum(sell) / user_parameter
+        return buy, sell
 
-def append_mean(mean_values, values,liczba_elementow):
-    if len(values)>liczba_elementow:
-        mean_values.append(np.mean(values[-(liczba_elementow):]))
+
+def RSI(sell_list, user_parameter):
+    if len(sell_list) > user_parameter:
+        value = sell_list[len(sell_list) - 1] - sell_list[len(sell_list) - user_parameter]
+        if value > 0:
+            Increase_list.append(value)
+        elif value < 0:
+            Decrease_list.append(value)
+        print(Increase_list,Decrease_list)
+        a = (sum(Increase_list) + 1) / (len(Increase_list) + 1)
+        b = (sum(Decrease_list) + 1) / (len(Decrease_list) + 1)
     else:
-        mean_values.append(np.mean(values))
+        a = 1
+        b = 1
+    print(a,b)
+    RSI = 100 - (100 / (1 + (a / b)))
+    return RSI
 
-def prepare_data(ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values, ask1_mean,bid1_mean,ask2_mean,bid2_mean,ask3_mean,bid3_mean):
-    data1 = downloadData(waluty[0])
-    data2 = downloadData(waluty[1])
-    data3 = downloadData(waluty[2])
-    append_not_none(ask1_values, data1.get('ask'))
-    append_not_none(bid1_values, data1.get('bid'))
-    append_not_none(ask2_values, data2.get('ask'))
-    append_not_none(bid2_values, data2.get('bid'))
-    append_not_none(ask3_values, data3.get('ask'))
-    append_not_none(bid3_values, data3.get('bid'))
-    append_mean(ask1_mean,ask1_values,liczba_elementow)
-    append_mean(bid1_mean, bid1_values,liczba_elementow)
-    append_mean(ask2_mean,ask2_values,liczba_elementow)
-    append_mean(bid2_mean,bid2_values,liczba_elementow)
-    append_mean(ask3_mean,ask3_values,liczba_elementow)
-    append_mean(bid3_mean,bid3_values,liczba_elementow)
-    return ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bid3_values, ask1_mean,bid1_mean,ask2_mean,bid2_mean,ask3_mean,bid3_mean
+def plot():
+    global ax
+    fig, ax = plt.subplots(2,3, figsize=(14,6))
+    fig.tight_layout(pad=2)
 
-def make_plot(i):
-    now.append(datetime.now().strftime("%H:%M:%S"))
-    plt1_ask, plt1_bid,plt2_ask, plt2_bid, plt3_ask, plt3_bid, plt1_ask_mean,plt1_bid_mean,plt2_ask_mean,plt2_bid_mean,plt3_ask_mean,plt3_bid_mean = prepare_data(ask1_values, bid1_values, ask2_values, bid2_values, ask3_values, bid3_values,ask1_mean,bid1_mean, ask2_mean,bid2_mean,ask3_mean,bid3_mean)
-    #plt.cla()
+    lines.append(ax[0][0].plot(time_list_BTC, BTCBuy, color='red', label='Buy BTC',linewidth = 5))
+    lines.append(ax[0][0].plot(time_list_BTC, BTCSell, color='royalblue', label='Sell BTC', linewidth = 5))
+    lines.append(ax[0][0].plot(time_list_BTC, BTCAVG_buy, color='gold', label='Avg buy BTC'))
+    lines.append(ax[0][0].plot(time_list_BTC, BTCAVG_sell, color='lime', label='Avg sell BTC'))
+    ax[0][0].set_title("Quotation Chart BTC PLN")
+    ax[0][0].legend(loc=1)
+    ax[0][0].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
-    axs[0].cla()
-    axs[0].plot(now,plt1_ask, label = f'{waluty[0]}:Ask')
-    axs[0].plot(now,plt1_bid, label = f'{waluty[0]}:Bid')
-    axs[0].plot(now,plt1_ask_mean,label = f'{waluty[0]}:Ask Mean')
-    axs[0].plot(now, plt1_bid_mean, label=f'{waluty[0]}:Bid Mean')
-    axs[0].text(now[-1], plt1_ask[-1], s=f"{downloadData(waluty[0]).get('volume')}")
-    axs[0].set_xlim(auto = 1)
-    axs[0].set_title(f"{waluty[0]} values")
-    axs[0].set_ylabel('Value [PLN]')
-    axs[0].set_xlabel('Time')
+    lines.append(ax[1][0].plot(time_list_BTC, BTCVolume, color='green', label='Volume BTC'))
+    ax[1][0].set_title("Volume BTC PLN")
+    ax[1][0].legend(loc=1)
+    ax[1][0].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
-    axs[1].cla()
-    axs[1].plot(now,plt2_ask, label=f'{waluty[1]}:Ask')
-    axs[1].plot(now,plt2_bid, label=f'{waluty[1]}:Bid')
-    axs[1].plot(now, plt2_ask_mean, label=f'{waluty[1]}:Ask Mean')
-    axs[1].plot(now, plt2_bid_mean, label=f'{waluty[1]}:Bid Mean')
-    axs[1].text(now[-1], plt2_ask[-1], s=f"{downloadData(waluty[1]).get('volume')}")
-    axs[1].set_title(f"{waluty[1]} values")
-    axs[1].set_ylabel('Value [PLN]')
-    axs[1].set_xlabel('Time')
+    lines.append(ax[0][1].plot(time_list_LTC, LTCBuy, color='red', label='Buy LTC', linewidth = 5))
+    lines.append(ax[0][1].plot(time_list_LTC, LTCSell, color='royalblue', label='Sell LTC', linewidth = 5))
+    lines.append(ax[0][1].plot(time_list_LTC, LTCAVG_buy, color='gold', label='Avg buy LTC'))
+    lines.append(ax[0][1].plot(time_list_LTC, LTCAVG_sell, color='lime', label='Avg sell LTC'))
+    lines.append(ax[0][1].plot(time_list_LTC, RSI_list, color='purple', label='RSI LTC'))
 
-    axs[2].cla()
-    axs[2].plot(now,plt3_ask, label=f'{waluty[2]}:Ask')
-    axs[2].plot(now,plt3_bid, label=f'{waluty[2]}:Bid')
-    axs[2].plot(now, plt3_ask_mean, label=f'{waluty[2]}:Ask Mean')
-    axs[2].plot(now, plt3_bid_mean, label=f'{waluty[2]}:Bid Mean')
-    axs[2].text(now[-1], plt3_ask[-1],s=f"{downloadData(waluty[2]).get('volume')}")
-    axs[2].set_title(f"{waluty[2]} values")
-    axs[2].set_ylabel('Value [PLN]')
-    axs[2].set_xlabel('Time')
+    ax[0][1].set_title("Quotation Chart LTC PLN")
+    ax[0][1].legend(loc=1)
+    ax[0][1].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
-    fig.legend(loc='lower right')
+    lines.append(ax[1][1].plot(time_list_LTC, LTCVolume, color='green', label='Volume LTC'))
+    ax[1][1].set_title("Volume LTC PLN")
+    ax[1][1].legend(loc=1)
+    ax[1][1].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
+    lines.append(ax[0][2].plot(time_list_DASH, DASHBuy, color='red', label='Buy DASH', linewidth = 5))
+    lines.append(ax[0][2].plot(time_list_DASH, DASHSell, color='royalblue', label='Sell DASH', linewidth = 5))
+    lines.append(ax[0][2].plot(time_list_DASH, DASHAVG_buy, color='gold', label='Avg buy DASH'))
+    lines.append(ax[0][2].plot(time_list_DASH, DASHAVG_sell, color='lime', label='Avg sell DASH'))
+    ax[0][2].set_title("Quotation Chart DASH PLN")
+    ax[0][2].legend(loc=1)
+    ax[0][2].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
+    lines.append(ax[1][2].plot(time_list_LTC, LTCVolume, color='green', label='Volume DASH'))
 
-if __name__ == "__main__":
-    liczba_elementow = 15
-    waluty = ['ZECPLN', 'LTCPLN', 'DASHPLN']
-    now = []
-    ask1_values = []
-    ask1_mean = []
-    bid1_mean = []
-    bid1_values = []
-    ask2_values = []
-    ask2_mean = []
-    bid2_mean = []
-    bid2_values = []
-    ask3_values = []
-    ask3_mean = []
-    bid3_mean = []
-    bid3_values = []
-    animations = FuncAnimation(fig, make_plot, interval=3000)
+    ax[1][2].set_title("Volume DASH PLN")
+    ax[1][2].legend(loc=1)
+    ax[1][2].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
+
+    fig.autofmt_xdate()
+
+    a = FuncAnimation(fig, func=update_plot, interval=5000)
+    plt.autoscale()
     plt.show()
+
+def update_plot(i):
+    Dates()
+    buy, sell = Avarage(BTCBuy, BTCSell, 3)
+    BTCAVG_buy.append(buy)
+    BTCAVG_sell.append(sell)
+    buy, sell = Avarage(LTCBuy, LTCSell, 3)
+    LTCAVG_buy.append(buy)
+    LTCAVG_sell.append(sell)
+    buy, sell = Avarage(DASHBuy, DASHSell, 3)
+    DASHAVG_buy.append(buy)
+    DASHAVG_sell.append(sell)
+
+    rsi = RSI(LTCSell, 2)
+    print(rsi)
+    RSI_list.append(rsi)
+
+    lines[0][0].set_data(time_list_BTC, BTCBuy)
+    lines[1][0].set_data(time_list_BTC, BTCSell)
+    lines[2][0].set_data(time_list_BTC, BTCAVG_buy)
+    lines[3][0].set_data(time_list_BTC, BTCAVG_sell)
+    lines[4][0].set_data(time_list_BTC, BTCVolume)
+    lines[5][0].set_data(time_list_LTC, LTCBuy)
+    lines[6][0].set_data(time_list_LTC, LTCSell)
+    lines[7][0].set_data(time_list_LTC, LTCAVG_buy)
+    lines[8][0].set_data(time_list_LTC, LTCAVG_sell)
+    lines[9][0].set_data(time_list_LTC, RSI_list)
+    lines[10][0].set_data(time_list_LTC, LTCVolume)
+    lines[11][0].set_data(time_list_DASH, DASHBuy)
+    lines[12][0].set_data(time_list_DASH, DASHSell)
+    lines[13][0].set_data(time_list_DASH, DASHAVG_sell)
+    lines[14][0].set_data(time_list_DASH, DASHAVG_buy)
+    lines[15][0].set_data(time_list_DASH, DASHVolume)
+
+    ax[1][0].fill_between(time_list_BTC, BTCVolume, color='green')
+    ax[1][1].fill_between(time_list_LTC,LTCVolume, color='green')
+    ax[1][2].fill_between(time_list_DASH, DASHVolume, color='green')
+
+    ax[0][0].relim()
+    ax[0][1].relim()
+    ax[0][2].relim()
+    ax[1][0].relim()
+    ax[1][1].relim()
+    ax[1][2].relim()
+    ax[0][0].autoscale_view()
+    ax[0][1].autoscale_view()
+    ax[0][2].autoscale_view()
+    ax[1][0].autoscale_view()
+    ax[1][1].autoscale_view()
+    ax[1][2].autoscale_view()
+
+
+time_list_BTC = []
+time_list_LTC = []
+time_list_DASH = []
+BTCBuy = []
+BTCSell = []
+LTCBuy = []
+LTCSell = []
+DASHBuy = []
+DASHSell = []
+lines = []
+BTCVolume = []
+LTCVolume = []
+DASHVolume = []
+BTCAVG_buy = []
+BTCAVG_sell = []
+LTCAVG_buy = []
+LTCAVG_sell = []
+DASHAVG_buy = []
+DASHAVG_sell = []
+RSI_list = []
+Decrease_list = []
+Increase_list = []
+plot()
