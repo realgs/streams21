@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt
-import configparser
 import requests
 import time
 
 base_currency = 'PLN'
 url = 'https://bitbay.net/API/Public/'
 post = '/trades.json'
-time_interval = 1
+time_interval = 3
+
+w_volume = int(input('Okno przesuwne dla wolumenu: '))
+w_mean = int(input('Okno przesuwne dla średniej: '))
+w_rsi = int(input('Okno przesuwne dla RSI: '))
 
 
 def get_data(currency_list, pos):
@@ -79,13 +82,6 @@ def create_plot(currency_list):
     return figure, axis, line
 
 
-def read_ini(file_path):
-    conf = configparser.ConfigParser()
-    conf.read(file_path)
-
-    return conf
-
-
 if __name__ == '__main__':
     currencies = ['DASH', 'OMG', 'BTC']
     n = len(currencies)
@@ -110,11 +106,6 @@ if __name__ == '__main__':
 
     while True:
         for i in range(50):
-            config = read_ini('config.ini')
-            w_volume = int(config['WINDOW']['VOLUME'])
-            w_mean = int(config['WINDOW']['MEAN'])
-            w_rsi = int(config['WINDOW']['RSI'])
-
             t += 1
             times.append(t)
             for currency in currencies:
