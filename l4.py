@@ -99,7 +99,7 @@ def plot(i):
     ax[0].cla()
     ax[0].plot(x,BTCbid,'b', label = "BTCbid")
     ax[0].plot(x,BTCask,'r',label = "BTCask")
-    if a == 1:
+    if a == "1":
         ax[0].plot(x,BTCaskavg,'k--',label = "BTCavgask")
     else:
         ax[0].plot(x,rsi_bidBTC,'k--',label = "RSIbidBTC")
@@ -115,7 +115,7 @@ def plot(i):
     ax[1].cla()
     ax[1].plot(x,ETHbid, 'g', label = "ETHbid")
     ax[1].plot(x,ETHask, 'y',label = "ETHask")
-    if a == 1:
+    if a == "1":
         ax[1].plot(x,ETHaskavg,'k--',label = "ETHavgask")
     else:    
         ax[1].plot(x,rsi_bidBTC,'k--',label = "RSIbidETH")
@@ -129,7 +129,7 @@ def plot(i):
     ax[2].cla()
     ax[2].plot(x,OMGbid, 'm',label = "OMGbid")
     ax[2].plot(x,OMGask, 'c',label = "OMGask")
-    if a == 1:
+    if a == "1":
         ax[2].plot(x,OMGaskavg,'k--',label = "OMGavgask")
     else:
         ax[2].plot(x,rsi_bidOMG,'k--',label = "RSIbidOMG")
