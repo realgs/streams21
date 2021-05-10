@@ -57,28 +57,32 @@ def dynamic_plotting(interval):
     counter = itertools.count()
     N = len(CRYPTO_CURRENCIES)
 
+    volume_chunk_size = 10
+
     date = []
     bids = [[] for _ in range(N)]
     asks = [[] for _ in range(N)]
     avg_bids = [[] for _ in range(N)]
     avg_asks = [[] for _ in range(N)]
-    volumes = [0 for _ in range(N)]
+    volumes = [[] for _ in range(N)]
     RSI_values = [[] for _ in range(N)]
     bid_gains = [[] for _ in range(N)]
     bid_losses = [[] for _ in range(N)]
 
-    fig = plt.figure(figsize=(9, 8), num='Please hire me')
-    fig.suptitle('Cryptocurriencies live tracking\n\n')
+    fig = plt.figure(figsize=(99, 99), num='Please hire me',
+                     constrained_layout=True)
+    fig.suptitle('\nCryptocurriencies live tracking\n\n')
+    fig_grid_spec = fig.add_gridspec(3*N, 1)
 
-    ax_slider = plt.axes([0.78, 0.9, 0.18, 0.02])
+    ax_slider = plt.axes([0.78, 0.95, 0.18, 0.02])
     Y_slider = Slider(ax_slider, label='scan range\n(last days)',
                       valmin=1, valmax=2, valstep=1, valinit=1)
 
     main_axes = []
     volume_axes = []
-    for i in range(1, 2*N, 2):
-        main_axes.append(fig.add_subplot(2*N, 1, i))
-        volume_axes.append(fig.add_subplot(2*N, 1, i+1))
+    for i in range(2, 3*N+1, 3):
+        main_axes.append(fig.add_subplot(fig_grid_spec[i-2:i, 0]))
+        volume_axes.append(fig.add_subplot(fig_grid_spec[i:i+1, 0]))
 
     RSI_subaxes = []
     for ax in main_axes:
@@ -100,20 +104,10 @@ def dynamic_plotting(interval):
         ax_lines.append((bids_line, asks_line, avg_bid_line,
                          avg_ask_line, RSI_line))
 
-    volume_textes = []
-    for i in range(N):
-        volume_txt = main_axes[i].text(1.1, 0, '',
-                                       transform=main_axes[i].transAxes)
-        volume_textes.append(volume_txt)
-
-    RSI_textes = []
-    for i in range(N):
-        rsi_txt = main_axes[i].text(1.1, 0.13, '',
-                                    transform=main_axes[i].transAxes)
-        RSI_textes.append(rsi_txt)
-
     def _update(frame):
-        date.append(datetime.now() + timedelta(days=next(counter)))
+        next_frame = next(counter)
+
+        date.append(datetime.now() + timedelta(days=next_frame))
 
         if len(date) <= 50:
             Y_slider.valmax = len(date)
@@ -140,10 +134,16 @@ def dynamic_plotting(interval):
             else:
                 avg_asks[i].append(sum(asks[i])/len(asks[i]))
 
-        for i in range(N):
-            volumes[i] += orders[i]['bids'][0][1]
-            new_text = f'Trading volume: {round(volumes[i], 4)}'
-            volume_textes[i].set_text(new_text)
+        for i, ax in enumerate(volume_axes):
+            if len(volumes[i]) < volume_chunk_size:
+                volumes[i].append(orders[i]['bids'][0][1])
+
+            if len(volumes[i]) >= volume_chunk_size:
+                ax.bar(date[-1], sum(volumes[i]), align='edge',
+                       width=0.95*volume_chunk_size, color='powderblue')
+
+            if len(volumes[i]) == volume_chunk_size:
+                volumes[i] = []
 
         for i in range(N):
             if len(bids[i]) >= 2:
@@ -177,8 +177,6 @@ def dynamic_plotting(interval):
             elif b_is_nan:
                 nan_msg = "No bid rate loss recorded"
 
-            new_text = f'RSI: {nan_msg if nan_msg else round(RSI)}'
-            RSI_textes[i].set_text(new_text)
             RSI_values[i].append(50 if nan_msg else RSI)
 
         for i, lines in enumerate(ax_lines):
@@ -196,13 +194,13 @@ def dynamic_plotting(interval):
         for ax, crypto_currency in zip(main_axes, CRYPTO_CURRENCIES):
             xlocator = AutoDateLocator()
             ylocator = plt.LinearLocator(numticks=3)
-            formatter = ConciseDateFormatter(xlocator)
+            formatter = ConciseDateFormatter(xlocator, show_offset=False)
 
             ax.set(ylabel=f'Rate [{MAIN_CURRENCY}]',
                    title=crypto_currency)
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(handles+[RSI_line], labels+['RSI'], loc='upper left',
-                      bbox_to_anchor=(1.12, 1.05))
+                      bbox_to_anchor=(1.08, 1.06))
             ax.yaxis.set_major_locator(ylocator)
             ax.xaxis.set_major_locator(xlocator)
             ax.xaxis.set_major_formatter(formatter)
@@ -217,7 +215,21 @@ def dynamic_plotting(interval):
             ax.set_ylim(0, 100)
             ax.autoscale_view()
 
-        plt.tight_layout()
+        for ax in volume_axes:
+            xlocator = AutoDateLocator()
+            ylocator = plt.LinearLocator(numticks=3)
+            formatter = ConciseDateFormatter(xlocator)
+            ax.set(ylabel='Volume')
+            ax.yaxis.set_major_locator(ylocator)
+            ax.xaxis.set_major_locator(xlocator)
+            ax.xaxis.set_major_formatter(formatter)
+            ax.xaxis.set_visible(False)
+            ax.relim()
+            ax.autoscale_view()
+
+        plt.subplots_adjust(left=0.15, right=0.8,
+                            bottom=0.02, top=0.92,
+                            wspace=0.4, hspace=0.4)
 
         return ax_lines,
 
