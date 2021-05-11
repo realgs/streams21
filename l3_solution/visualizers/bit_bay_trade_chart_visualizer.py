@@ -175,7 +175,9 @@ class BitbayTradeChartVisualizer:
             self.config["is_volume_active"] = True
         else:
             self.config["is_volume_active"] = False
-        self.config["range"] = int(input('Ile punktów chcesz liczyć? [int] : '))
+        self.config["range"] = int(input('Ile punktów chcesz liczyć? [int] (max 20) : '))
+        if self.config["range"] > 20:
+            self.config["range"] = 20
 
     def rsi(self, price):
         price = price[-1 * self.config["range"]:]
