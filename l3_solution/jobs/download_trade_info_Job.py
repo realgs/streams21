@@ -9,7 +9,6 @@ class DownloadTradeInfoJob:
 
     def execute(self):
         try:
-            self.bit_bay_service.update_crypto_trades()
             self.visualizer.visualize(self.bit_bay_service)
         except:
             print("Download or visualize trade Fail")
