@@ -1,23 +1,18 @@
-import requests
+import time as timelib
 
 
 class BitBayUrl:
-    URL = "https://bitbay.net/API/Public/"
-    URL_SCHEMA = "https"
-    URL_BASE_PATH = "API/Public/"
-    JSON_SUFFIX = ".json"
-    LIMIT = "limit"
-    TYPE = "type"
-    TRADES_NAME = "trades"
-    BUY = "buy"
-    SELL = "sell"
+    URL = 'https://api.bitbay.net/rest/trading/'
 
-    def get_url(cryptocurrency, currency, type, limit):
-        payload = {'type': type, 'limit': limit}
-        url = BitBayUrl.URL + currency + cryptocurrency + '/' + BitBayUrl.TRADES_NAME + BitBayUrl.JSON_SUFFIX
-        response = requests.get(url, params=payload)
+    @staticmethod
+    def get_url_trades(currency, crypto_currency, limit):
+        return BitBayUrl.URL + f'orderbook-limited/{crypto_currency}-{currency}/{limit}'
 
-        return response.url
+    @staticmethod
+    def get_url_stats(currency, crypto_currency):
+        return BitBayUrl.URL + f'stats/{crypto_currency}-{currency}'
 
-    def get_url_stats(currency, type):
-        return f'https://api.bitbay.net/rest/trading/stats/{type}-{currency}'
+    @staticmethod
+    def get_url_candle(currency, crypto_currency, time_ms):
+        time = int(str(timelib.time() * 1000)[:9] + '0000')
+        return BitBayUrl.URL + f'candle/history/{crypto_currency}-{currency}/60?from={time - time_ms}&to={time}'

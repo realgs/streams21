@@ -1,21 +1,31 @@
-import datetime
+import time as timelib
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+from matplotlib.animation import FuncAnimation
 
 
 class BitbayTradeChartVisualizer:
     trade_buy = {
         'BTC': list(),
         'LTC': list(),
-        'DASH': list(),
+        'ETH': list(),
     }
     trade_sell = {
         'BTC': list(),
         'LTC': list(),
-        'DASH': list(),
+        'ETH': list(),
     }
-    plot_trade_buy = {
+    rsi_val = {
+        'BTC': list(),
+        'LTC': list(),
+        'ETH': list(),
+    }
+    volume_val = {
+        'BTC': list(),
+        'LTC': list(),
+        'ETH': list(),
+    }
+    plot_trade = {
         'BTC': {
             'BUY': None,
             'SELL': None,
@@ -24,25 +34,17 @@ class BitbayTradeChartVisualizer:
             'BUY': None,
             'SELL': None,
         },
-        'DASH': {
+        'ETH': {
             'BUY': None,
             'SELL': None,
         },
     }
-    plot_trade_sell = {
-        'BTC': {
-            'BUY': None,
-            'SELL': None,
-        },
-        'LTC': {
-            'BUY': None,
-            'SELL': None,
-        },
-        'DASH': {
-            'BUY': None,
-            'SELL': None,
-        },
+    additional_plot = {
+        'BTC': None,
+        'LTC': None,
+        'ETH': None,
     }
+
     plot_trade_avg = {
         'BTC': {
             'BUY': None,
@@ -52,175 +54,151 @@ class BitbayTradeChartVisualizer:
             'BUY': None,
             'SELL': None,
         },
-        'DASH': {
+        'ETH': {
             'BUY': None,
             'SELL': None,
         },
     }
-    is_visualized = False
     fig, axs = None, None
+    animation = None
+    ax = None
+    i = 1
+    bit_bay_service = None
 
     # Config
     config = {
-        "range_elements": None,
-        "range_rsi": None
+        "range": None,
+        "is_volume_active": False
     }
 
     volume = {
-        'BTC': None,
-        'LTC': None,
-        'DASH': None,
+        'BTC': list(),
+        'LTC': list(),
+        'ETH': list(),
     }
 
-    def update_crypto_values(self, buy_crypto_trades, sell_crypto_trades):
-        for crypto in buy_crypto_trades.keys():
-            self.trade_buy[crypto].extend(buy_crypto_trades[crypto])
-        for crypto in sell_crypto_trades.keys():
-            self.trade_sell[crypto].extend(sell_crypto_trades[crypto])
-
-    def visualize(self, buy_crypto_trades, sell_crypto_trades, volume):
+    def visualize(self, bit_bay_service):
         self.set_config()
-        self.volume = volume
-        self.update_crypto_values(buy_crypto_trades, sell_crypto_trades)
+        self.bit_bay_service = bit_bay_service
+        self.trade_sell = self.bit_bay_service.get_trades_buy()
+        self.trade_buy = self.bit_bay_service.get_trades_sell()
         self.plot_charts()
 
-    ax = None
-    i = 1
-
     def plot_charts(self):
-        if self.is_visualized:
-            self.update_plot()
-        else:
-            self.first_plot()
-
-    def first_plot(self):
-        plt.ion()
-        self.fig, self.axs = plt.subplots(3, 1)
+        self.fig, self.axs = plt.subplots(6, 1, sharex=True, figsize=(25, 15))
 
         for i in range(len(self.trade_buy.keys())):
             crypto_name = list(self.trade_buy.keys())[i]
-            buy = self.trade_buy[crypto_name][-1 * 20:]
-            sell = self.trade_sell[crypto_name][-1 * 20:]
 
-            price_buy = list(map(lambda price: price['price'], buy))
-            price_sell = list(map(lambda price: price['price'], sell))
+            price_buy = list(map(lambda price: price['price'], self.trade_buy[crypto_name]))[-20:]
+            price_sell = list(map(lambda price: price['price'], self.trade_sell[crypto_name]))[-20:]
+            range_avg = int(self.config["range"])
+            sell_avg = sum(price_sell[-1 * range_avg:]) / len(price_sell[-1 * range_avg:])
+            buy_avg = sum(price_buy[-1 * range_avg:]) / len(price_buy[-1 * range_avg:])
+            time = list(map(lambda price: price['time'], self.trade_sell[crypto_name]))[-20:]
 
-            self.plot_trade_buy[crypto_name]['BUY'], = self.axs[i].plot(
-                list(map(lambda data: datetime.datetime.fromtimestamp(data['date']), buy)),
-                price_buy, label='buy')
-            self.plot_trade_buy[crypto_name]['SELL'], = self.axs[i].plot(
-                list(map(lambda data: datetime.datetime.fromtimestamp(data['date']), sell)),
-                list(price_sell), label='sell')
+            self.plot_trade[crypto_name]['BUY'], = self.axs[i * 2].plot(time, price_buy, label='buy')
+            self.plot_trade[crypto_name]['SELL'], = self.axs[i * 2].plot(time, price_sell, label='sell')
 
-            sell_avg = sum(price_sell[-1 * self.config["range_elements"]:]) / self.config["range_elements"]
-            self.plot_trade_avg[crypto_name]['SELL'] = self.axs[i].axhline(y=sell_avg, label='avg sell', color='r')
+            self.plot_trade_avg[crypto_name]['SELL'], = self.axs[i * 2].plot(
+                self.get_avg_times(range_avg, time),
+                [sell_avg for i in range(len(time[-1 * range_avg:]))], color='g',
+                label='avg sell')
+            self.plot_trade_avg[crypto_name]['BUY'], = self.axs[i * 2].plot(
+                self.get_avg_times(range_avg, time),
+                [buy_avg for i in range(len(time[-1 * range_avg:]))], color='y',
+                label='avg buy')
 
-            buy_avg = sum(price_buy[-1 * self.config["range_elements"]:]) / self.config["range_elements"]
-            self.plot_trade_avg[crypto_name]['BUY'] = self.axs[i].axhline(y=buy_avg, label='avg buy', color='g')
+            self.axs[i * 2].set(xlabel='time', ylabel='price',
+                                title=crypto_name + '/PLN')
+            self.axs[i * 2].grid()
+            self.fig.autofmt_xdate(rotation=40)
 
-            self.axs[i].set(xlabel='time', ylabel='price',
-                            title=crypto_name)
+            self.axs[i * 2].legend()
 
-            self.axs[i].grid()
-            extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-            extra2 = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-            extra3 = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
+            if self.config["is_volume_active"]:
+                self.volume_val[crypto_name].append(self.bit_bay_service.get_volume(crypto_name, 'PLN', 600000))
+                self.additional_plot[crypto_name], = self.axs[i * 2 - 1].bar(time, self.volume_val[crypto_name], color='r', width=0.2)
+                self.axs[i * 2 - 1].set(xlabel='time', ylabel='volume',
+                                    title='volume transaction')
+            else:
+                self.rsi_val[crypto_name].append(self.rsi(price_buy))
+                self.additional_plot[crypto_name], = self.axs[i * 2 - 1].plot(time, self.rsi_val[crypto_name])
+                self.axs[i * 2 - 1].set(xlabel='time', ylabel='rsi',
+                                        title='volume transaction')
 
-            self.axs[i].legend([
-                extra,
-                extra2,
-                extra3,
-                self.plot_trade_buy[crypto_name]['BUY'],
-                self.plot_trade_buy[crypto_name]['SELL'],
-                self.plot_trade_avg[crypto_name]['SELL'],
-                self.plot_trade_avg[crypto_name]['BUY']],
-                [
-                    'Trans volume (Last 24h) = ' + str(self.volume[crypto_name]),
-                    'RSI buy = ' + str(self.rsi(price_buy)),
-                    'RSI sell = ' + str(self.rsi(price_sell)),
-                    'buy', 'sell', 'avg sell', 'avg buy'
-                ]
-            )
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
-        self.is_visualized = True
+        self.animation = FuncAnimation(self.fig, self.update_plot, fargs=(self,), interval=5000)
+        plt.show()
 
-    def update_plot(self):
+    def get_avg_times(self, range_avg, time):
+        avg_times = time[-1 * range_avg:]
+        avg_times.reverse()
+        return avg_times
+
+    def update_plot(self, *args):
+        self.update_trades()
 
         for i in range(len(self.trade_buy.keys())):
             crypto_name = list(self.trade_buy.keys())[i]
-            buy = self.trade_buy[crypto_name]
-            sell = self.trade_sell[crypto_name]
 
-            price_buy = sorted(list(map(lambda price: price['price'], buy)))
-            price_sell = sorted(list(map(lambda price: price['price'], sell)))
+            price_buy = list(map(lambda price: price['price'], self.trade_buy[crypto_name]))[-20:]
+            price_sell = list(map(lambda price: price['price'], self.trade_sell[crypto_name]))[-20:]
+            range_avg = int(self.config["range"])
+            sell_avg = sum(price_sell[-1 * range_avg:]) / len(price_sell[-1 * range_avg:])
+            buy_avg = sum(price_buy[-1 * range_avg:]) / len(price_buy[-1 * range_avg:])
+            time = list(map(lambda price: price['time'], self.trade_sell[crypto_name]))[-20:]
 
-            self.plot_trade_buy[crypto_name]['BUY'].set_ydata(price_buy)
+            self.plot_trade[crypto_name]['BUY'].set_data(time, price_buy)
+            self.plot_trade[crypto_name]['SELL'].set_data(time, price_sell)
 
-            self.plot_trade_buy[crypto_name]['BUY'].set_xdata(
-                sorted(list(map(lambda data: datetime.datetime.fromtimestamp(data['date']), buy))))
+            self.plot_trade_avg[crypto_name]['SELL'].set_data(self.get_avg_times(range_avg, time),
+                                                              [sell_avg for i in range(len(time[-1 * range_avg:]))])
+            self.plot_trade_avg[crypto_name]['BUY'].set_data(self.get_avg_times(range_avg, time),
+                                                             [buy_avg for i in range(len(time[-1 * range_avg:]))])
 
-            self.plot_trade_buy[crypto_name]['SELL'].set_ydata(price_sell)
-            self.plot_trade_buy[crypto_name]['SELL'].set_xdata(
-                sorted(list(map(lambda data: datetime.datetime.fromtimestamp(data['date']), sell))))
+            self.volume_val[crypto_name].append(self.bit_bay_service.get_volume(crypto_name, 'PLN', 600000))
 
-            sell_avg = sum(price_sell[-1 * self.config["range_elements"]:]) / self.config["range_elements"]
-            self.plot_trade_avg[crypto_name]['SELL'].set_ydata(sell_avg)
+            if self.config["is_volume_active"]:
+                self.axs[i * 2 - 1].bar(time, self.volume_val[crypto_name], color='r', width=0.2)
+            else:
+                self.rsi_val[crypto_name].append(self.rsi(price_buy))
+                self.additional_plot[crypto_name], = self.axs[i * 2 - 1].plot(time, self.rsi_val[crypto_name])
 
-            buy_avg = sum(price_buy[-1 * self.config["range_elements"]:]) / self.config["range_elements"]
-            self.plot_trade_avg[crypto_name]['BUY'].set_ydata(buy_avg)
-
-            self.axs[i].grid()
-            extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-            extra2 = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-            extra3 = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-
-            self.axs[i].legend([
-                extra,
-                extra2,
-                extra3,
-                self.plot_trade_buy[crypto_name]['BUY'],
-                self.plot_trade_buy[crypto_name]['SELL'],
-                self.plot_trade_avg[crypto_name]['SELL'],
-                self.plot_trade_avg[crypto_name]['BUY']],
-                [
-                    'Trans volume (Last 24h) = ' + str(self.volume[crypto_name]),
-                    'RSI buy = ' + str(self.rsi(price_buy)),
-                    'RSI sell = ' + str(self.rsi(price_sell)),
-                    'buy', 'sell', 'avg sell', 'avg buy'
-                ]
-            )
-
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
+            for ax in self.axs:
+                ax.relim()
+                ax.autoscale_view()
+            self.fig.autofmt_xdate(rotation=40)
 
     def set_config(self):
-        if self.config["range_elements"] is None or self.config["range_rsi"] is None:
-            self.config["range_elements"] = int(input('Podaj ilość ostatnich elementów do obliczenia średniej: '))
-            self.config["range_rsi"] = int(input('Podaj przedział oscylatora RSI: '))
+        choice = str(input('Wolumen czy rsi? [w]/[r]: '))
+        if choice == 'w':
+            self.config["is_volume_active"] = True
+        else:
+            self.config["is_volume_active"] = False
+        self.config["range"] = int(input('Ile punktów chcesz liczyć? [int] : '))
 
     def rsi(self, price):
-        price = price[-1 * self.config["range_rsi"]:]
-        ups = 0
-        up_count = 0
-        downs = 0
-        down_count = 0
+        price = price[-1 * self.config["range"]:]
+        price.reverse()
+        upers = []
+        downers = []
         for i in range(1, len(price)):
             if price[i - 1] < price[i]:
-                up = price[i] - price[i - 1]
-                ups += up
-                up_count += 1
+                upers.append(price[i] - price[i - 1])
             elif price[i - 1] > price[i]:
-                down = price[i - 1] - price[i]
-                downs += down
-                down_count += 1
+                downers.append(price[i - 1] - price[i])
 
-        if up_count == 0:
+        if len(upers) == 0:
             a = 1
         else:
-            a = ups / up_count
-        if down_count == 0:
+            a = sum(upers) / len(upers)
+        if len(downers) == 0:
             b = 1
         else:
-            b = downs / down_count
+            b = sum(downers) / len(downers)
         return 100 - (100 / (1 + (a / b)))
+
+    def update_trades(self):
+        self.bit_bay_service.update_crypto_trades()
+        self.trade_sell = self.bit_bay_service.get_trades_buy()
+        self.trade_buy = self.bit_bay_service.get_trades_sell()
