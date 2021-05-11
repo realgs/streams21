@@ -15,6 +15,12 @@ import requests
 import matplotlib.pyplot as plt
 import time
 
+PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('BCC', 'PLN')]
+PAIRS_COUNT = len(PAIRS)
+FREQ = 5
+num = None
+volume, storage = ([] for _ in range(2))
+
 
 def get_data(first_currency, second_currency):
     try:
@@ -30,24 +36,26 @@ def get_data(first_currency, second_currency):
     return orders
 
 
-def calculate_prices(asks, bids):
+def get_data(crypto_pairs, storage):
 
-    ask_amount, ask_price = 0, 0
-    for a in asks:
-        ask_amount += a[0]
-        ask_price += a[1]
+    global num
+    curr_temp, vol_temp = ([] for _ in range(2))
 
-    bid_amount, bid_price = 0, 0
-    for b in bids:
-        bid_amount += b[0]
-        bid_price += b[1]
+    for pair in crypto_pairs:
+        try:
+            request = requests.get(
+                f"https://bitbay.net/API/Public/{pair[0]}{pair[1]}/ticker.json"
+            )
+            orders = request.json()
+            curr_temp.append([pair[0], (orders['ask'], orders['bid'])])
+            vol_temp.append(orders['volume'])
 
-    final_ask_price = ask_price / ask_amount
-    final_bid_price = bid_price / bid_amount
-
-    return final_ask_price, final_bid_price
-
-
+        except requests.exceptions.RequestException:
+            print("Connection problem.")
+            return None
+    volume.append(vol_temp)
+    storage.append(curr_temp)
+    num = len(storage[0])
 
 
 if __name__ == '__main__':
