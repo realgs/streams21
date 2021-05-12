@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
                 if len(price[currency]) >= w_rsi:
                     rsi[currency].append(calculate_rsi(price[currency], w_rsi))
-                    print(rsi[currency])
+
 
             p = 0
             for j in range(n):
