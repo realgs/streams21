@@ -53,7 +53,51 @@ def calculate_mov_avg(askbid_storage, avg_storage, window_size):
 
 
 def calculate_rsi(askbid_storage, rsi_storage, window_size):
-    pass
+
+    storage_slice = askbid_storage[-window_size:]
+    temp = []
+
+    for curr_pair in range(3):
+        inner_temp = []
+
+        for ask_or_bid in range(2):
+            upward, upward_counter = 0, 0
+            downward, downward_counter = 0, 0
+
+            for sample in range(1, len(storage_slice)):
+                if storage_slice[sample-1][curr_pair][ask_or_bid] \
+                        < storage_slice[sample][curr_pair][ask_or_bid]:
+
+                    up = storage_slice[sample][curr_pair][ask_or_bid] \
+                           - storage_slice[sample-1][curr_pair][ask_or_bid]
+                    upward += up
+                    upward_counter += 1
+
+                elif storage_slice[sample-1][curr_pair][ask_or_bid] \
+                        > storage_slice[sample][curr_pair][ask_or_bid]:
+
+                    down = storage_slice[sample-1][curr_pair][ask_or_bid] \
+                           - storage_slice[sample][curr_pair][ask_or_bid]
+                    downward += down
+                    downward_counter += 1
+
+            if upward_counter == 0:
+                a = 1
+            else:
+                a = upward / upward_counter
+
+            if downward_counter == 0:
+                b = 1
+            else:
+                b = downward / downward_counter
+
+            rsi = 100 - (100 / (1 + (a / b)))
+            inner_temp.append(rsi)
+
+        temp.append(inner_temp)
+
+    rsi_storage.append(temp)
+
 
 def draw_figure(frame_number):
 
