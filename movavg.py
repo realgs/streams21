@@ -10,7 +10,6 @@ time_samples, data_storage, avg_storage, rsi_storage, volume_storage, askbid_sto
 
 def get_data(crypto_pairs, data_storage, askbid_storage, volume_storage):
 
-    global num
     curr_temp, askbid_temp, vol_temp = ([] for _ in range(3))
 
     for pair in crypto_pairs:
@@ -30,7 +29,6 @@ def get_data(crypto_pairs, data_storage, askbid_storage, volume_storage):
     volume_storage.append(vol_temp)
     askbid_storage.append(askbid_temp)
     data_storage.append(curr_temp)
-    num = len(data_storage[0])
 
 
 def calculate_mov_avg(askbid_storage, avg_storage, window_size):
@@ -56,7 +54,6 @@ def calculate_mov_avg(askbid_storage, avg_storage, window_size):
 
 def calculate_rsi(askbid_storage, rsi_storage, window_size):
     pass
-    
 
 def draw_figure(frame_number):
 
@@ -65,7 +62,7 @@ def draw_figure(frame_number):
 
     get_data(PAIRS, data_storage, askbid_storage, volume_storage)
     calculate_mov_avg(askbid_storage, avg_storage, AVG_WINDOW)
-    calculate_rsi(data_storage, rsi_storage, RSI_WINDOW)
+    calculate_rsi(askbid_storage, rsi_storage, RSI_WINDOW)
 
     plt.ion()
     plt.clf()
@@ -86,8 +83,10 @@ def draw_figure(frame_number):
 
         plt.plot(time_samples, asks, "-o", label=data_storage[0][curr_pair][0] + " ask")
         plt.plot(time_samples, bids, "-o", label=data_storage[0][curr_pair][0] + " bid")
-        plt.plot(time_samples, avg_asks, "o--", label=data_storage[0][curr_pair][0] + " ask mov avg")
-        plt.plot(time_samples, avg_bids, "o--", label=data_storage[0][curr_pair][0] + " bid mov avg")
+        plt.plot(time_samples, avg_asks, "o:", color = "#185986",
+                 label=data_storage[0][curr_pair][0] + " ask mov avg")
+        plt.plot(time_samples, avg_bids, "o:", color = "#1b6762",
+                 label=data_storage[0][curr_pair][0] + " bid mov avg")
         plt.xlabel("Time", fontsize=9)
         plt.ylabel("Exchange Rates", fontsize=9)
         plt.xticks(rotation='vertical', fontsize=7)
@@ -103,8 +102,8 @@ def draw_figure(frame_number):
             rsi_asks.append(rsi_sample[curr_pair][0])
             rsi_bids.append(rsi_sample[curr_pair][1])
 
-        plt.plot(time_samples, rsi_asks, "o--", label=data_storage[0][curr_pair][0] + " ask RSI")
-        plt.plot(time_samples, rsi_bids, "o--", label=data_storage[0][curr_pair][0] + " bid RSI")
+        plt.plot(time_samples, rsi_asks, "o:", label=data_storage[0][curr_pair][0] + " ask RSI")
+        plt.plot(time_samples, rsi_bids, "o:", label=data_storage[0][curr_pair][0] + " bid RSI")
         plt.xlabel("Time", fontsize=9)
         plt.ylabel("RSI", fontsize=9)
         plt.xticks(rotation='vertical', fontsize=7)
@@ -138,9 +137,11 @@ def draw_figure(frame_number):
 
 
 if __name__ == '__main__':
+
     PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('DASH', 'PLN')]
     FREQ = 5
-    AVG_WINDOW = int(input('Z ilu próbek liczyć średnią (max 10): '))
+    AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
+    RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
 
     animation = FuncAnimation(plt.figure(), draw_figure, interval=1000*FREQ)
     plt.show()
