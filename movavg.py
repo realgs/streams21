@@ -91,7 +91,11 @@ def calculate_rsi(askbid_storage, rsi_storage, window_size):
             else:
                 b = downward / downward_counter
 
-            rsi = 100 - (100 / (1 + (a / b)))
+            try:
+                rsi = 100 - (100 / (1 + (a / b)))
+            except ZeroDivisionError:
+                a, b = 1, 1
+                rsi = 100 - (100 / (1 + (a / b)))
             inner_temp.append(rsi)
 
         temp.append(inner_temp)
