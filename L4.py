@@ -6,10 +6,9 @@ import numpy as np
 from datetime import datetime, timedelta
 import time
 import warnings
+import pandas as pd
 
 warnings.filterwarnings("ignore")
-
-
 RSI_samples = 3
 average_samples = 3
 time_volume = 5
@@ -49,26 +48,26 @@ def get_volume(fromCurrancy, toCurrancy, time):
     return a
 
 def average_calculate(arraySell, arrayBuy, samplesNumber):
-    valueBuy = 0
-    valueSell = 0
+    BuyValue = 0
+    SellValue = 0
     if len(arrayBuy) > samplesNumber:
         for items in range(samplesNumber):
-            valueBuy += arrayBuy[len(arrayBuy)-items-1]
-        valueBuy /= samplesNumber
+            BuyValue += arrayBuy[len(arrayBuy)-items-1]
+        BuyValue /= samplesNumber
     else:
         for items in range(len(arrayBuy)):
-            valueBuy += arrayBuy[items]
-        valueBuy /= samplesNumber
+            BuyValue += arrayBuy[items]
+        BuyValue /= samplesNumber
 
     if len(arraySell) > samplesNumber:
         for items in range(samplesNumber):
-            valueSell += arraySell[len(arraySell)-items-1]
-        valueSell /= samplesNumber
+            SellValue += arraySell[len(arraySell)-items-1]
+        SellValue /= samplesNumber
     else:
         for items in range(len(arraySell)):
-            valueSell += arraySell[items]
-        valueSell /= samplesNumber
-    return valueSell, valueBuy
+            SellValue += arraySell[items]
+        SellValue /= samplesNumber
+    return SellValue, BuyValue
 
 def RSI_calculate(DecreaseArray, IncreaseArray, buyArray, samplesNumber):
     if len(buyArray) > samplesNumber:
@@ -144,21 +143,25 @@ if __name__ == "__main__":
     LSKRSIArray = []
 
     plt.show()
-    fig, axes = plt.subplots(2, 3, figsize=(10, 4))
+    fig, ax1 = plt.subplots(2, 3, figsize=(10, 4), squeeze=False)
     fig.tight_layout(pad=2.0)
+    #TUTAJ DODALEM!!!
+    ax20 = ax1[0][0].twinx()
+    ax21 = ax1[0][1].twinx()
+    ax22 = ax1[0][2].twinx()
 
     plt.xlabel("Time")
-    axes[0][0].set_title(first_currency)
-    axes[0][1].set_title(second_currency)
-    axes[0][2].set_title(third_currency)
+    ax1[0][0].set_title(first_currency)
+    ax1[0][1].set_title(second_currency)
+    ax1[0][2].set_title(third_currency)
 
-    axes[1][0].set_title("Volume")
-    axes[1][1].set_title("Volume")
-    axes[1][2].set_title("Volume")
+    ax1[1][0].set_title("Volume")
+    ax1[1][1].set_title("Volume")
+    ax1[1][2].set_title("Volume")
 
-    axes[0][0].grid()
-    axes[0][1].grid()
-    axes[0][2].grid()
+    ax1[0][0].grid()
+    ax1[0][1].grid()
+    ax1[0][2].grid()
 
     while True:
         x.append(datetime.now().strftime("%H:%M:%S"))
@@ -208,47 +211,56 @@ if __name__ == "__main__":
         RSI = RSI_calculate(LSKDecreaseArray, LSKIncreaseArray, LSKSellArray, RSI_samples)
         LSKRSIArray.append(RSI)
 
-        axes[0][0].plot(x, BTCSellArray, color='green')
-        axes[0][0].plot(x, BTCBuyArray, color='magenta')
-        axes[0][0].set_xticks(xLabels)
-        axes[0][0].plot(x, BTCAverageArrayBuy, color='blue', linestyle='dashed')
-        axes[0][0].plot(x, BTCAverageArraySell, color='orange', linestyle='dashed')
-        axes[0][0].plot(x, BTCRSIArray, color='red', linestyle='dashed')
+        ax1[0][0].plot(x, BTCSellArray, color='green')
+        ax1[0][0].plot(x, BTCBuyArray, color='magenta')
+        ax1[0][0].set_xticks(xLabels)
+        ax1[0][0].plot(x, BTCAverageArrayBuy, color='blue', linestyle='dashed')
+        ax1[0][0].plot(x, BTCAverageArraySell, color='orange', linestyle='dashed')
+        #ax1[0][0].plot(x, BTCRSIArray, color='red', linestyle='dashed')
+        ax20.plot(x, BTCRSIArray, color ='red', linestyle='dashed')
 
-        axes[1][0].bar(x, BTCVolumeArray, color='green')
-        axes[1][0].set_xticks(xLabels)
 
-        axes[0][1].plot(x, ETHSellArray, color='green')
-        axes[0][1].plot(x, ETHBuyArray, color='magenta')
-        axes[0][1].set_xticks(xLabels)
-        axes[0][1].plot(x, ETHAverageArrayBuy, color='blue', linestyle='dashed')
-        axes[0][1].plot(x, ETHAverageArraySell, color='orange', linestyle='dashed')
-        axes[0][1].plot(x, ETHRSIArray, color='red', linestyle='dashed')
+        ax1[1][0].bar(x, BTCVolumeArray, color='green')
+        ax1[1][0].set_xticks(xLabels)
 
-        axes[1][1].bar(x, ETHVolumeArray, color='green')
-        axes[1][1].set_xticks(xLabels)
+        ax1[0][1].plot(x, ETHSellArray, color='green')
+        ax1[0][1].plot(x, ETHBuyArray, color='magenta')
+        ax1[0][1].set_xticks(xLabels)
+        ax1[0][1].plot(x, ETHAverageArrayBuy, color='blue', linestyle='dashed')
+        ax1[0][1].plot(x, ETHAverageArraySell, color='orange', linestyle='dashed')
+        #ax1[0][1].plot(x, ETHRSIArray, color='red', linestyle='dashed')
+        ax21.plot(x, ETHRSIArray, color ='red', linestyle='dashed')
 
-        axes[0][2].plot(x, LSKSellArray, color='green', label='Sell' if i == 0 else "")
-        axes[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
-        axes[0][2].plot(x, LSKAverageArrayBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
-        axes[0][2].plot(x, LSKAverageArraySell, color='orange', linestyle='dashed', label='Ave.Sell' if i == 0 else "")
-        axes[0][2].plot(x, LSKRSIArray, color='red', linestyle='dashed', label='RSI' if i == 0 else "")
+        ax1[1][1].bar(x, ETHVolumeArray, color='green')
+        ax1[1][1].set_xticks(xLabels)
 
-        axes[0][2].set_xticks(xLabels)
-        axes[0][2].legend(loc="upper right")
+        ax1[0][2].plot(x, LSKSellArray, color='green', label='Sell' if i == 0 else "")
+        ax1[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
+        ax1[0][2].plot(x, LSKAverageArrayBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
+        ax1[0][2].plot(x, LSKAverageArraySell, color='orange', linestyle='dashed', label='Ave.Sell' if i == 0 else "")
+        #ax1[0][2].plot(x, LSKRSIArray, color='red', linestyle='dashed', label='RSI' if i == 0 else "")
+        ax22.plot(x, LSKRSIArray, color='red', linestyle='dashed',label='RSI')
 
-        axes[1][2].bar(x, LSKVolumeArray, color='green')
-        axes[1][2].set_xticks(xLabels)
+        ax1[0][2].set_xticks(xLabels)
+        ax1[0][2].legend(loc="upper right")
 
-        axes[0][0].set_yscale('log')
-        axes[0][1].set_yscale('log')
-        axes[0][2].set_yscale('log')
-        axes[1][0].set_yscale('log')
-        axes[1][1].set_yscale('log')
-        axes[1][2].set_yscale('log')
+        ax1[1][2].bar(x, LSKVolumeArray, color='green')
+        ax1[1][2].set_xticks(xLabels)
+
+        ax1[0][0].set_yscale('log')
+        ax1[0][1].set_yscale('log')
+        ax1[0][2].set_yscale('log')
+        ax1[1][0].set_yscale('log')
+        ax1[1][1].set_yscale('log')
+        ax1[1][2].set_yscale('log')
+
+        ax20.set_ylabel('RSI',color='red')
+        ax21.set_ylabel('RSI',color='red')
+        ax22.set_ylabel('RSI',color='red')
 
 
         i += 1
         plt.draw()
+        plt.waitforbuttonpress()
         plt.pause(1e-17)
         time.sleep(5)
