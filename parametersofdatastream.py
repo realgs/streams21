@@ -26,8 +26,8 @@ def rsicount(all_data, store,size):
                 m = 0
                 pc = 0
                 mc = 0
-                for i in range(0 + shift, size + shift-1):
-                    change = float(all_data[i+1][c][1][n]) - float(all_data[i][c][1][n])
+                for i in range(0 + shift, size + shift - 1):
+                    change = float(all_data[i + 1][c][1][n]) - float(all_data[i][c][1][n])
                     if change > 0:
                         p += change
                         pc += 1
@@ -37,12 +37,12 @@ def rsicount(all_data, store,size):
                 if pc == 0:
                     pc = 1
                 if mc == 0:
-                    mc= 1
-                a = p/pc
-                b = m/mc
+                    mc = 1
+                a = p / pc
+                b = m / mc
                 if b == 0:
                     b = 1
-                rsi = 100 - 100/(1+a/b)
+                rsi = 100 - 100/(1 + a / b)
                 cry.append(rsi)
             reg.append(cry)
         store.append(reg)
@@ -63,7 +63,7 @@ def handlemean(all_data,winsize,meanlist):
             cry = []
             for n in range(2):
                 sum = 0
-                for i in range(0+shift,winsize+shift):
+                for i in range(0 + shift,winsize + shift):
                     sum = sum + all_data[i][c][1][n]
                 mean = sum/winsize
                 cry.append(mean)
@@ -80,11 +80,11 @@ def handlemean(all_data,winsize,meanlist):
 def sellbuy(sells, buys):
     sa,sp,ba,bp = 0,0,0,0
     for s in sells:
-        sa, sp = sa+s[0],sp+s[1]
+        sa, sp = sa + s[0],sp + s[1]
     for b in buys:
-        ba, bp = ba+b[0],bp+b[1]
-    sellprice = sp/sa
-    buyprice= bp/ba
+        ba, bp = ba + b[0],bp + b[1]
+    sellprice = sp / sa
+    buyprice= bp / ba
     return (sellprice , buyprice)
 
 
@@ -141,20 +141,18 @@ def graph_gen(a):
         plt.plot(t, yb, "-o", label=all_data[0][c][0] + ": buy")
         plt.plot(t, yas, "o--", label=all_data[0][c][0] + ": sell avarage")
         plt.plot(t, yab, "o--", label=all_data[0][c][0] + ": buy avarage")
-        plt.xticks(rotation = 30, fontsize= 6 )
+        plt.xticks(rotation = 30, fontsize = 6 )
         plt.legend()
     for c in range(nr):
-        plt.subplot(3,nr, c+1+nr)
+        plt.subplot(3,nr, c + 1 + nr)
         yv = []
         for vset in volstor:
             yv.append(vset[c])
-        plt.bar(t, yv, align="center")
+        plt.bar(t, yv, align = "center")
         plt.ylabel("Volume")
-        axes = plt.gca()
-        axes.set_ylim([500, 2000])
-        plt.xticks(rotation=30, fontsize=6)
+        plt.xticks(rotation = 30, fontsize = 6)
     for c in range(nr):
-        plt.subplot(3,nr, c+1+2*nr)
+        plt.subplot(3,nr, c + 1 + 2 * nr)
         yrsis = []
         yrsib = []
         for rsiset in rsistore:
@@ -168,7 +166,7 @@ def graph_gen(a):
 
 
 def main():
-    animation = FuncAnimation(plt.figure(), graph_gen, interval= 5000)
+    animation = FuncAnimation(plt.figure(), graph_gen, interval = 5000)
     plt.show()
 
 if __name__ == '__main__':
