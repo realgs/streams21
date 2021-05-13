@@ -216,7 +216,6 @@ def animate_plots():
 
 
 def set_plots():
-    plt.style.use('seaborn')
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1)
     plots = []
     plots.append(ax1)
@@ -293,7 +292,8 @@ def ask_for_interval():
 
 if __name__ == "__main__":
     gui_plot_decide()
-    interval = ask_for_interval()
+    if PLOT_RSI == 1:
+        interval = ask_for_interval()
     currencies = ['LSK', 'LTC', 'BTC']
     category = 'ticker'
     currency = 'PLN'
