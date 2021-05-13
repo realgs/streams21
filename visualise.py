@@ -170,9 +170,9 @@ def draw_legend_once():
     if CHECK_LEGEND == 0:
         for plot in plots:
             if PLOT_AVERAGES == 0:
-                plot.legend(loc=2, bbox_to_anchor=(0, 1.5))
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.6))
             else:
-                plot.legend(loc=2, bbox_to_anchor=(0, 1.75))
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.95))
         for plot in plots_twinx:
             plot.legend(loc=1, bbox_to_anchor=(1, 1.4))
         CHECK_LEGEND = 1
