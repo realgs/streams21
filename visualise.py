@@ -128,9 +128,9 @@ def plot_rsi(x_data, names):
     for plot in plots_twinx:
         plot.set_ylabel('RSI value')
         name = names[i]
-        RSI = get_rsi(name[0:3],interval)
+        RSI = get_rsi(name[0:3], interval)
         while RSI == 0:
-            RSI = get_rsi(name[0:3],interval)
+            RSI = get_rsi(name[0:3], interval)
         RSI = RSI['value']
         y_rsi_data.setdefault(name, []).append(RSI)
         plot.plot(x_data, y_rsi_data[name],
@@ -236,7 +236,7 @@ def gui_plot_decide():
         'Cryptocurrency in real time startup, choose what you want then close this window')
     canvas1 = setup_canvas(root)
     button1, button2, button3 = setup_buttons()
-    canvas1 = create_windows(canvas1,button1,button2,button3)
+    canvas1 = create_windows(canvas1, button1, button2, button3)
     root.mainloop()
 
 
@@ -254,10 +254,10 @@ def setup_buttons():
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
     button3 = tk.Button(text='      Plot Averages      ', command=decide_to_plot_averages,
                         bg='green', fg='white', font=('helvetica', 12, 'bold'))
-    return button1,button2,button3
+    return button1, button2, button3
 
 
-def create_windows(canvas1,button1,button2,button3):
+def create_windows(canvas1, button1, button2, button3):
     canvas1.create_window(2*150, 100, window=button1)
     canvas1.create_window(2*150, 200, window=button2)
     canvas1.create_window(2*150, 290, window=button3)
@@ -285,10 +285,12 @@ def decide_to_plot_averages():
     PLOT_AVERAGES = 1
     print('Choosed to plot averages')
 
+
 def ask_for_interval():
-    print('Choice RSI interval: ')
+    print('Choice RSI interval (1m,1h,1d): ', end='')
     interval = str(input())
     return interval
+
 
 if __name__ == "__main__":
     gui_plot_decide()
