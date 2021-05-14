@@ -29,7 +29,7 @@ def add_currency_to_currencies(currencies, currency):
     return result
 
 
-def download_data(currency, caregory):
+def download_data(currency, category):
     URL = f'https://bitbay.net/API/Public/{currency}/{category}.json'
     try:
         response = r.get(URL)
