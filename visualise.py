@@ -65,14 +65,12 @@ def print_fetched_data(result):
 
 
 def split_data_into_packages(data):
-    names = []
     result = {}
     for val in data:
         name = val[0]
         ask = val[1]
         bid = val[2]
         volume = val[3]
-        time = datetime.now().strftime("%H:%M:%S")
         result.setdefault('name', []).append(name)
         result.setdefault('ask', []).append(ask)
         result.setdefault('bid', []).append(bid)
@@ -89,6 +87,9 @@ def append_crypto_data_to_lists(names, asks, bids, volumes):
 
 def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
     i = 0
+    candidate_object.classificate_candidates(names)
+
+    candidate_object.get_candidates_status()
     for plot in plots:
         plot.plot(x_data, y_ask_data[names[i]],
                   linewidth=1, label='Buy price of ' + names[i], color='Red')
@@ -98,6 +99,9 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
         plot_averages(
             x_data, plot, y_ask_data[names[i]], y_bid_data[names[i]], names, i)
         i += 1
+
+        candidate_object.print_candidate(plot, i)
+
     plot_volume_rsi(x_data, names, i)
 
 
@@ -141,13 +145,17 @@ def plot_rsi(x_data, names):
 
 def recognize_rsi(plot, rsi):
     if rsi > 70:
-        plot.set_xlabel('                                                     |         Time         |                      [RSI in overbought territory]')
+        plot.set_xlabel(
+            '                                                     |         Time         |                      [RSI in overbought territory]')
     elif rsi < 30:
-        plot.set_xlabel('                                                     |         Time         |                      [RSI in oversold territory]')
+        plot.set_xlabel(
+            '                                                     |         Time         |                      [RSI in oversold territory]')
     elif rsi == 50:
-        plot.set_xlabel('                                                     |         Time         |                      [RSI in sign of no trend]')
+        plot.set_xlabel(
+            '                                                     |         Time         |                      [RSI in sign of no trend]')
     else:
-        plot.set_xlabel('                                                     |         Time         |                      [RSI in neutral territory]')
+        plot.set_xlabel(
+            '                                                     |         Time         |                      [RSI in neutral territory]')
 
 
 def plot_volume(x_data, names):
@@ -183,28 +191,12 @@ def draw_legend_once():
     if CHECK_LEGEND == 0:
         for plot in plots:
             if PLOT_AVERAGES == 0:
-                plot.legend(loc=2, bbox_to_anchor=(0, 1.6))
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.7))
             else:
-                plot.legend(loc=2, bbox_to_anchor=(0, 1.95))
+                plot.legend(loc=2, bbox_to_anchor=(0, 2))
         for plot in plots_twinx:
-            plot.legend(loc=1, bbox_to_anchor=(1, 1.4))
+            plot.legend(loc=1, bbox_to_anchor=(1, 1.5))
         CHECK_LEGEND = 1
-
-
-def animation_frame(i):
-    data = fetchFromAPI(currencies, category)
-    splitted_data = split_data_into_packages(data)
-    names = splitted_data['name']
-    asks = splitted_data['ask']
-    bids = splitted_data['bid']
-    volumes = splitted_data['volume']
-    x_data.append(datetime.now().strftime("%H:%M:%S"))
-
-    append_crypto_data_to_lists(names, asks, bids, volumes)
-
-    draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names)
-
-    draw_legend_once()
 
 
 def plot_setup():
@@ -307,6 +299,60 @@ def ask_for_interval():
     return interval
 
 
+class Choose_candidate(object):
+    def __init__(self):
+        self.plot1 = 'horizontal'
+        self.plot2 = 'horizontal'
+        self.plot3 = 'horizontal'
+        self.plots_status = []
+        self.plots_status.append(self.plot1)
+        self.plots_status.append(self.plot2)
+        self.plots_status.append(self.plot3)
+
+    def classificate_candidates(self, names):
+        i = 0
+        for name in names:
+            data = y_ask_data[name]
+            if len(data) < 3:
+                return None
+            data = data[-3:]
+            if data[0] < data[1] < data[2]:
+                self.plots_status[i] = 'growth'
+            elif data[0] > data[1] > data[2]:
+                self.plots_status[i] = 'declining'
+            else:
+                self.plots_status[i] = 'horizontal'
+            i += 1
+
+    def get_candidates_status(self):
+        print(self.plots_status)
+
+    def print_candidate(self, plot, i):
+        status = self.plots_status[i]
+        if status == 'horizontal':
+            plot.set_xlabel(
+                '                                                     |         Time         |                      [This is candidate]')
+        else:
+            plot.set_xlabel(
+                '                                                     |         Time         |                                         ')
+
+
+def animation_frame(i):
+    data = fetchFromAPI(currencies, category)
+    splitted_data = split_data_into_packages(data)
+    names = splitted_data['name']
+    asks = splitted_data['ask']
+    bids = splitted_data['bid']
+    volumes = splitted_data['volume']
+    x_data.append(datetime.now().strftime("%H:%M:%S"))
+
+    append_crypto_data_to_lists(names, asks, bids, volumes)
+
+    draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names)
+
+    draw_legend_once()
+
+
 if __name__ == "__main__":
     gui_plot_decide()
     if PLOT_RSI == 1:
@@ -325,4 +371,6 @@ if __name__ == "__main__":
     y_rsi_data = {}
 
     fig, plots, plots_twinx = set_plots()
+
+    candidate_object = Choose_candidate()
     animate_plots()
