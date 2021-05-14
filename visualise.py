@@ -87,9 +87,7 @@ def append_crypto_data_to_lists(names, asks, bids, volumes):
 
 def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
     i = 0
-    candidate_object.classificate_candidates(names)
 
-    candidate_object.get_candidates_status()
     for plot in plots:
         plot.plot(x_data, y_ask_data[names[i]],
                   linewidth=1, label='Buy price of ' + names[i], color='Red')
@@ -98,9 +96,8 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
         plot.set_xticks(x_data)
         plot_averages(
             x_data, plot, y_ask_data[names[i]], y_bid_data[names[i]], names, i)
+        candidate_object.print_candidate(plot, i, names)
         i += 1
-
-        candidate_object.print_candidate(plot, i)
 
     plot_volume_rsi(x_data, names, i)
 
@@ -327,14 +324,15 @@ class Choose_candidate(object):
     def get_candidates_status(self):
         print(self.plots_status)
 
-    def print_candidate(self, plot, i):
+    def print_candidate(self, plot, i, names):
+        self.classificate_candidates(names)
         status = self.plots_status[i]
-        if status == 'horizontal':
+        if status == 'growth':
             plot.set_xlabel(
                 '                                                     |         Time         |                      [This is candidate]')
         else:
             plot.set_xlabel(
-                '                                                     |         Time         |                                         ')
+                f'                                                     |         Time         |                     [This currency is {status}]                    ')
 
 
 def animation_frame(i):
