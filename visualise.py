@@ -132,11 +132,22 @@ def plot_rsi(x_data, names):
         while RSI == 0:
             RSI = get_rsi(name[0:3], interval)
         RSI = RSI['value']
+        recognize_rsi(plot, RSI)
         y_rsi_data.setdefault(name, []).append(RSI)
         plot.plot(x_data, y_rsi_data[name],
                   color='Purple', linewidth=1, label='RSI')
-        plot.set_yticks(np.arange(min(y_rsi_data[name]), max(y_rsi_data[name])+1, 1000.0))
         i += 1
+
+
+def recognize_rsi(plot, rsi):
+    if rsi > 70:
+        plot.set_xlabel('                                                     |         Time         |                      [RSI in overbought territory]')
+    elif rsi < 30:
+        plot.set_xlabel('                                                     |         Time         |                      [RSI in oversold territory]')
+    elif rsi == 50:
+        plot.set_xlabel('                                                     |         Time         |                      [RSI in sign of no trend]')
+    else:
+        plot.set_xlabel('                                                     |         Time         |                      [RSI in neutral territory]')
 
 
 def plot_volume(x_data, names):
@@ -147,7 +158,7 @@ def plot_volume(x_data, names):
         name = names[i]
         plot.bar(x_data, y_volume_data[name],
                  color='Purple', linewidth=1, label='Volume')
-        plot.set_yticks(np.arange(min(y_volume_data[name]), max(y_volume_data[name])+1, 1000.0))
+        plot.set_yticks(np.linspace(0, max(y_volume_data[name]), 5))
         i += 1
 
 
@@ -207,6 +218,7 @@ def plot_setup():
         plot.set_title(currencies[i])
         i += 1
     for plot in plots_twinx:
+        plot.set_xlabel('Time')
         plt.setp(plot.xaxis.get_majorticklabels(), rotation=45)
     plt.tight_layout()
 
@@ -218,7 +230,8 @@ def animate_plots():
 
 
 def set_plots():
-    fig, ((ax1,ax1t),(ax2,ax2t),(ax3,ax3t)) = plt.subplots(nrows=3, ncols=2)
+    fig, ((ax1, ax1t), (ax2, ax2t), (ax3, ax3t)
+          ) = plt.subplots(nrows=3, ncols=2)
     plots = []
     plots.append(ax1)
     plots.append(ax2)
