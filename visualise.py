@@ -135,6 +135,7 @@ def plot_rsi(x_data, names):
         y_rsi_data.setdefault(name, []).append(RSI)
         plot.plot(x_data, y_rsi_data[name],
                   color='Purple', linewidth=1, label='RSI')
+        plot.set_yticks(np.arange(min(y_rsi_data[name]), max(y_rsi_data[name])+1, 1000.0))
         i += 1
 
 
@@ -144,8 +145,9 @@ def plot_volume(x_data, names):
     for plot in plots_twinx:
         plot.set_ylabel('Volume value')
         name = names[i]
-        plot.plot(x_data, y_volume_data[name],
-                  color='Purple', linewidth=1, label='Volume')
+        plot.bar(x_data, y_volume_data[name],
+                 color='Purple', linewidth=1, label='Volume')
+        plot.set_yticks(np.arange(min(y_volume_data[name]), max(y_volume_data[name])+1, 1000.0))
         i += 1
 
 
@@ -205,7 +207,7 @@ def plot_setup():
         plot.set_title(currencies[i])
         i += 1
     for plot in plots_twinx:
-        plot.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        plt.setp(plot.xaxis.get_majorticklabels(), rotation=45)
     plt.tight_layout()
 
 
@@ -216,16 +218,16 @@ def animate_plots():
 
 
 def set_plots():
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1)
+    fig, ((ax1,ax1t),(ax2,ax2t),(ax3,ax3t)) = plt.subplots(nrows=3, ncols=2)
     plots = []
     plots.append(ax1)
     plots.append(ax2)
     plots.append(ax3)
 
     plots_twinx = []
-    plots_twinx.append(ax1.twinx())
-    plots_twinx.append(ax2.twinx())
-    plots_twinx.append(ax3.twinx())
+    plots_twinx.append(ax1t)
+    plots_twinx.append(ax2t)
+    plots_twinx.append(ax3t)
 
     return fig, plots, plots_twinx
 
