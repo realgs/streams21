@@ -30,8 +30,8 @@
 			canvas: null,
 			ctx: null,
 			timestamps: [],
-			bids: { rate: [],	amount: [], avg: [], rsi: [], vol: [] },
-			asks: {	rate: [],	amount: [], avg: [], rsi: [], vol: [] }
+			bids: { rate: [], amount: [], avg: [], rsi: [], vol: [] },
+			asks: {	rate: [], amount: [], avg: [], rsi: [], vol: [] }
 		}
 	})
 
@@ -96,36 +96,46 @@
 	function newChart(canvas) {
 		return new Chart(canvas, {
 			type: 'line',
-			data:	{	datasets: [
-				{	label: 'Bids',
-					fill: false,
-					borderColor: 'rgb(255, 170, 0)',
-					tension: 0
-				},{	label: 'Asks',
-					fill: false,
-					borderColor: 'rgb(43, 192, 255)',
-					tension: 0
-				},{	label: 'Bids average',
-					borderColor: 'rgb(255, 213, 130)',
-					borderDash: [10,5],
-					tension: 0.5
-				},{	label: 'Asks average',
-					borderColor: 'rgb(171, 230, 255)',
-					borderDash: [10,5],
-					tension: 0.5
-				},{	label: 'Bids RSI',
-					borderColor: 'rgb(135, 114, 73)',
-					borderDash: [5,3],
-					tension: 0.5
-				},{ label: 'Asks RSI',
-					borderColor: 'rgb(92, 124, 138)',
-					borderDash: [5,3],
-					tension: 0.5
-				},{	label: 'Volume',
-					type: 'bar',
-					borderColor: 'rgb(143, 235, 198)',
-					backgroundColor: 'rgba(143, 235, 198, 0.3)'	}
-			]	},
+			data:	{
+				datasets: [
+					{
+						label: 'Bids',
+						fill: false,
+						borderColor: 'rgb(255, 170, 0)',
+						tension: 0
+					},{
+						label: 'Asks',
+						fill: false,
+						borderColor: 'rgb(43, 192, 255)',
+						tension: 0
+					},{
+						label: 'Bids average',
+						borderColor: 'rgb(255, 213, 130)',
+						borderDash: [10,5],
+						tension: 0.5
+					},{
+						label: 'Asks average',
+						borderColor: 'rgb(171, 230, 255)',
+						borderDash: [10,5],
+						tension: 0.5
+					},{
+						label: 'Bids RSI',
+						borderColor: 'rgb(135, 114, 73)',
+						borderDash: [5,3],
+						tension: 0.5
+					},{
+						label: 'Asks RSI',
+						borderColor: 'rgb(92, 124, 138)',
+						borderDash: [5,3],
+						tension: 0.5
+					},{
+						label: 'Volume',
+						type: 'bar',
+						borderColor: 'rgb(143, 235, 198)',
+						backgroundColor: 'rgba(143, 235, 198, 0.3)'
+					}
+				]
+			},
 			options: {
 				spanGaps: true,
 				plugins: { legend: { position: 'right' } }
