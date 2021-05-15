@@ -1,6 +1,7 @@
 <script>
 	import Chart from 'chart.js/auto'
 	import { onMount, onDestroy } from 'svelte'
+	import { fade } from 'svelte/transition';
 	import { fetchOffers, normalizeArray } from './utils.js'
 	import { dateToHTML, dateToJS, sliceByDate } from './date.js'
 	import { calculateAverage, calculateRSI, calculateVolume } from './calculate.js'
@@ -138,8 +139,9 @@
 		})
 	})
 
-	function start() {
-		interval = setInterval(updateOffers, FETCH_FREQUENCY*1000)
+	function toggle() {
+		if (interval)	stop()
+		else interval = setInterval(updateOffers, FETCH_FREQUENCY*1000)
 	}
 	
 	function stop() {
@@ -157,10 +159,11 @@
 	<nav>
 		{#if error}{error}{/if}
 	
+		<button on:click={toggle} class="{interval ? 'red' : 'green'}">
+			{#if interval}Stop{:else}Start{/if}
+		</button>
 		{#if interval}
-			<button on:click={stop} class="red">Stop</button>
-		{:else}
-			<button on:click={start} class="green">Start</button>
+			<span transition:fade>running on <b>/{API_ENDPOINT}</b></span>
 		{/if}
 
 		<p>
@@ -192,6 +195,10 @@
 	}
 	nav {
 		margin-bottom: 5vh;
+	}
+	nav > span {
+		margin-left: 10px;
+		font-size: small;
 	}
 	button {
 		border-radius: 5px;
