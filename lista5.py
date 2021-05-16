@@ -24,9 +24,12 @@ def choiceState():
 
 BITBAY_ADRES = 'https://bitbay.net/API/Public'
 NEW_BITBAY_ADRES = 'https://api.bitbay.net/rest/trading'
-FREQUENCY = 5
+FREQUENCY = 3
 MOVING_AVR_SCALE = choiceState()['yMovAv']
 Y_RSI = choiceState()['yRsi']
+Y = 3
+X = 0.1 # 10%
+S = 0.1 # 10%
 
 def dataPicker(resource, currency, format):
     try:
@@ -72,6 +75,8 @@ def RSIcalculator(decrease, increase, buyArray, period):
             increase.append(value)
         else:
             decrease.append(value)
+        print(f'decrease: {decrease}')
+        print(f'increase: {increase}')
 
         a = (sum(increase) + 1) / (len(increase) + 1)
         b = (sum(decrease) + 1) / (len(decrease) + 1)
@@ -93,8 +98,43 @@ def movingAverage(currencyList):
     else:
         return currencyList[-1]
 
+def typeOfVolume(volumes, types):
+    volumeDataBase = {types[0]: '', types[1]: '', types[2]: ''}
+    for volumeIndex in range(len(volumes)):
+        if len(volumes[volumeIndex]) > 3:
+            avr = 0
+            for index in range(len(volumes[volumeIndex]) - 1, len(volumes[volumeIndex]) - 4, -1):
+                avr += volumes[volumeIndex][index]
+            avr /= 3
+            if round(avr - volumes[volumeIndex][-4], 6) == 0:
+                volumeDataBase[types[volumeIndex]] += f'Wolumen {types[volumeIndex]} horyzontalny'
+            elif avr <= volumes[volumeIndex][-4]:
+                volumeDataBase[types[volumeIndex]] += f'Wolumen {types[volumeIndex]} malejący'
+            else:
+                volumeDataBase[types[volumeIndex]] += f'Wolumen {types[volumeIndex]} wzrostowy'
+        else:
+            volumeDataBase[types[volumeIndex]] += f'Wolumen {types[volumeIndex]}'
+
+    theBiggestVolume = 0
+    candidateIndex = -1
+    candidate = 0
+    liqAsset = False
+    for i in range(3):
+        if volumes[i][-1] > theBiggestVolume and ('malejący' not in volumeDataBase[types[i]]):
+            theBiggestVolume = volumes[i][-1]
+            candidateIndex = i
+            candidate = volumes[i].copy()
+    if candidateIndex > -1:
+        volumeDataBase[types[candidateIndex]] += '(C)'
+        liqAsset = types[candidateIndex]
+
+        if len(candidate) > Y and candidate[-Y] > 0 and candidate[-1] > 0 and abs(1 - candidate[-Y] / candidate[-1]) > X:
+            volumeDataBase[types[candidateIndex]] += f' VA'
+
+    return volumeDataBase, liqAsset
+
 def animate(i):
-    bidBTC, askBTC = dataPicker('ETH', 'PLN', 'ticker.json')
+    bidBTC, askBTC = dataPicker('BTC', 'PLN', 'ticker.json')
     bidLTC, askLTC = dataPicker('BSV', 'PLN', 'ticker.json')
     bidDASH, askDASH = dataPicker('XLM', 'PLN', 'ticker.json')
     volumeBTC = volumePicker('transactions', 'ETH-PLN', 60)
@@ -103,22 +143,22 @@ def animate(i):
     print(volumeBTC, volumeLTC, volumeDASH)
     points_BTC_bid.append(bidBTC)
     points_BTC_ask.append(askBTC)
-    points_BTC_volume.append(volumeBTC)
+    points_BTC_volume.append(float(volumeBTC))
     points_LTC_bid.append(bidLTC)
     points_LTC_ask.append(askLTC)
-    points_LTC_volume.append(volumeLTC)
+    points_LTC_volume.append(float(volumeLTC))
     points_DASH_bid.append(bidDASH)
     points_DASH_ask.append(askDASH)
-    points_DASH_volume.append(volumeDASH)
+    points_DASH_volume.append(float(volumeDASH))
     points_x.append(datetime.now().strftime("%H:%M:%S"))
 
     left = max(0, len(points_x) - 6)
     right = (len(points_x))
 
     # Relative strength index RSI
-    RSI_BTC.append(RSIcalculator(decrease_BTC, increase_BTC, points_BTC_bid, 3))
-    RSI_LTC.append(RSIcalculator(decrease_LTC, increase_LTC, points_LTC_bid, 3))
-    RSI_DASH.append(RSIcalculator(decrease_DASH, increase_DASH, points_DASH_bid, 3))
+    RSI_BTC.append(RSIcalculator(decrease_BTC, increase_BTC, points_BTC_bid, Y_RSI))
+    RSI_LTC.append(RSIcalculator(decrease_LTC, increase_LTC, points_LTC_bid, Y_RSI))
+    RSI_DASH.append(RSIcalculator(decrease_DASH, increase_DASH, points_DASH_bid, Y_RSI))
 
     # Moving Average
     points_BTC_bid_avr.append(movingAverage(points_BTC_bid))
@@ -130,65 +170,76 @@ def animate(i):
     points_DASH_bid_avr.append(movingAverage(points_DASH_bid))
     points_DASH_ask_avr.append(movingAverage(points_DASH_ask))
 
+    volumeDataBase, liqAsset = typeOfVolume([points_BTC_volume, points_LTC_volume, points_DASH_volume], ['BTC', 'LTC', 'DASH'])
+    if liqAsset is not False:
+        liqAssetBid, liqAssetAsk = [], []
+        if liqAsset == 'BTC':
+            liqAssetBid, liqAssetAsk = points_BTC_bid, points_BTC_ask
+        elif liqAsset == 'LTC':
+            liqAssetBid, liqAssetAsk = points_LTC_bid, points_LTC_ask
+        elif liqAsset == 'DASH':
+            liqAssetBid, liqAssetAsk = points_DASH_bid, points_DASH_ask
 
-    print(i)
+        liqDiff = sum(liqAssetBid[-Y:]) / sum(liqAssetAsk[-Y:])
+        if abs(1 - liqDiff) > S:
+            volumeDataBase[liqAsset] += f' LA'
+
+
     # Plots
     with plt.style.context('seaborn'):
         plt.cla()
 
-        ax1.plot(points_x, points_BTC_bid, color='#009933', linewidth=1.5, label='BTC Bids' if i == 0 else "")
-        ax1.plot(points_x, points_BTC_ask, color='#ff0000', linewidth=1.5, label='BTC Asks' if i == 0 else "")
-        ax1.plot(points_x, points_BTC_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='BTC Bids AVR' if i == 0 else "")
-        ax1.plot(points_x, points_BTC_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='BTC Asks AVR' if i == 0 else "")
+        ax1.plot(points_x, points_BTC_bid, color='#009933', linewidth=1.5, label='BTC Bids' if i == 1 else "")
+        ax1.plot(points_x, points_BTC_ask, color='#ff0000', linewidth=1.5, label='BTC Asks' if i == 1 else "")
+        ax1.plot(points_x, points_BTC_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='BTC Bids AVR' if i == 1 else "")
+        ax1.plot(points_x, points_BTC_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='BTC Asks AVR' if i == 1 else "")
         ax1.set_xlim(left= left, right= right)
         ax1.set_xlabel('Czas', fontsize=12)
         ax1.set_ylabel('Wartość w złotówkach', fontsize=12)
         ax1.set_yscale('log')
         ax1.legend()
 
-        ax2.plot(points_x, points_LTC_bid, color='#009933', linewidth=1.5, label='LTC Bids' if i == 0 else "")
-        ax2.plot(points_x, points_LTC_ask, color='#ff0000', linewidth=1.5, label='LTC Asks' if i == 0 else "")
-        ax2.plot(points_x, points_LTC_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='LTC Bids AVR' if i == 0 else "")
-        ax2.plot(points_x, points_LTC_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='LTC Asks AVR' if i == 0 else "")
+        ax2.plot(points_x, points_LTC_bid, color='#009933', linewidth=1.5, label='LTC Bids' if i == 1 else "")
+        ax2.plot(points_x, points_LTC_ask, color='#ff0000', linewidth=1.5, label='LTC Asks' if i == 1 else "")
+        ax2.plot(points_x, points_LTC_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='LTC Bids AVR' if i == 1 else "")
+        ax2.plot(points_x, points_LTC_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='LTC Asks AVR' if i == 1 else "")
         ax2.set_xlim(left= left, right= right)
         ax2.set_xlabel('Czas', fontsize=12)
         ax2.set_yscale('log')
         ax2.legend()
 
-        ax3.plot(points_x, points_DASH_bid, color='#009933', linewidth=1.5, label='DASH Bids' if i == 0 else "")
-        ax3.plot(points_x, points_DASH_ask, color='#ff0000', linewidth=1.5, label='DASH Asks' if i == 0 else "")
-        ax3.plot(points_x, points_DASH_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='DASH Bids AVR' if i == 0 else "")
-        ax3.plot(points_x, points_DASH_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='DASH Asks AVR' if i == 0 else "")
+        ax3.plot(points_x, points_DASH_bid, color='#009933', linewidth=1.5, label='DASH Bids' if i == 1 else "")
+        ax3.plot(points_x, points_DASH_ask, color='#ff0000', linewidth=1.5, label='DASH Asks' if i == 1 else "")
+        ax3.plot(points_x, points_DASH_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='DASH Bids AVR' if i == 1 else "")
+        ax3.plot(points_x, points_DASH_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='DASH Asks AVR' if i == 1 else "")
         ax3.set_xlim(left= left, right= right)
         ax3.set_xlabel('Czas', fontsize=12)
         ax3.set_yscale('log')
         ax3.legend()
 
         if choiceState()['type'] == 'volume':
-            ax4.bar(points_x, points_BTC_volume, color='#969696', alpha=0.5, label='Wolumen BTC' if i == 0 else "")
-            ax4.set_xlim(left= left, right= right)
+            ax4.bar(points_x, points_BTC_volume, color='#969696', alpha=0.5, label='BTC' if i == 1 else "")
             ax4.set_ylabel('Ilość wolumenu', fontsize=12)
-            ax4.set_xlabel('Czas', fontsize=12)
-            ax4.legend()
-            ax5.bar(points_x, points_LTC_volume, color='#969696', alpha=0.5, label='Wolumen LTC' if i == 0 else "")
-            ax5.set_xlim(left= left, right= right)
-            ax5.set_xlabel('Czas', fontsize=12)
-            ax5.legend()
-            ax6.bar(points_x, points_DASH_volume, color='#969696', alpha=0.5, label='Wolumen DASH' if i == 0 else "")
-            ax6.set_xlim(left= left, right= right)
-            ax6.set_xlabel('Czas', fontsize=12)
-            ax6.legend()
+            ax4.set_title(volumeDataBase['BTC'])
+            ax5.bar(points_x, points_LTC_volume, color='#969696', alpha=0.5, label='LTC' if i == 1 else "")
+            ax5.set_title(volumeDataBase['LTC'])
+            ax6.bar(points_x, points_DASH_volume, color='#969696', alpha=0.5, label='DASH' if i == 1 else "")
+            ax6.set_title(volumeDataBase['DASH'])
         elif choiceState()['type'] == 'rsi':
-            ax4.plot(points_x, RSI_BTC, color='#6600ff', label='RSI BTC' if i == 0 else "")
-            ax4.set_xlim(left= left, right= right)
+            ax4.plot(points_x, RSI_BTC, color='#6600ff', label='RSI BTC' if i == 1 else "")
             ax4.set_ylabel('Wskaźnik siły względnej', fontsize=12)
-            ax4.set_xlabel('Czas', fontsize=12)
-            ax5.plot(points_x, RSI_LTC, color='#6600ff', label='RSI LTC' if i == 0 else "")
-            ax5.set_xlim(left= left, right= right)
-            ax5.set_xlabel('Czas', fontsize=12)
-            ax6.plot(points_x, RSI_DASH, color='#6600ff', label='RSI DASH' if i == 0 else "")
-            ax6.set_xlim(left= left, right= right)
-            ax6.set_xlabel('Czas', fontsize=12)
+            ax5.plot(points_x, RSI_LTC, color='#6600ff', label='RSI LTC' if i == 1 else "")
+            ax6.plot(points_x, RSI_DASH, color='#6600ff', label='RSI DASH' if i == 1 else "")
+
+        ax4.set_xlim(left= left, right= right)
+        ax4.set_xlabel('Czas', fontsize=12)
+        ax4.legend()
+        ax5.set_xlim(left= left, right= right)
+        ax5.set_xlabel('Czas', fontsize=12)
+        ax5.legend()
+        ax6.set_xlim(left= left, right= right)
+        ax6.set_xlabel('Czas', fontsize=12)
+        ax6.legend()
 
         plt.suptitle("Najlepsze kursy kupna oraz sprzedaży")
 
@@ -221,6 +272,7 @@ if __name__ == '__main__':
     RSI_DASH = []
 
     fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3)
+    fig.tight_layout(pad=1.0)
 
-    ani = FuncAnimation(fig, animate, interval=3000)
+    ani = FuncAnimation(fig, animate, interval=FREQUENCY)
     plt.show()
