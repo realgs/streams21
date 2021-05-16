@@ -90,6 +90,7 @@ def animate(i):
     ax5.plot(x, bid_cur3, label=f'Bid')
     ax5.plot(x, ask_cur3, label=f'Ask')
 
+
     sliced_data = data[int(len_data/3):]
     sliced_x = sliced_data['time']
     sliced_bid_cur1 = sliced_data['bid_cur1']
@@ -119,15 +120,15 @@ def animate(i):
 
     ax2.barh('-', volume[0], align='edge')
     ax2.set_title(f'VOLUMEN {currencies[0]}')
-    ax2.set_xlabel(f'Amount of crypto tranferred {round(volume[0], 4)} \n RSI: {rs1}')
+    ax2.set_xlabel(f'Amount of crypto transferred {round(volume[0], 4)} \n RSI: {rs1}')
 
     ax4.barh('-', volume[1], align='edge')
     ax4.set_title(f'VOLUMEN {currencies[1]}')
-    ax4.set_xlabel(f'Amount of crypto tranferred {round(volume[1], 4)} \n RSI: {rs2}')
+    ax4.set_xlabel(f'Amount of crypto transferred {round(volume[1], 4)} \n RSI: {rs2}')
 
     ax6.barh('-', volume[2], align='edge')
     ax6.set_title(f'VOLUMEN {currencies[2]}')
-    ax6.set_xlabel(f'Amount of crypto tranferred {round(volume[2], 4)} \n RSI: {rs3}')
+    ax6.set_xlabel(f'Amount of crypto transferred {round(volume[2], 4)} \n RSI: {rs3}')
 
     for ax in (ax2, ax4, ax6):
         plt.sca(ax)
