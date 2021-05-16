@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import numpy as np
 
 
 def every_nth_func(x_val):
@@ -69,12 +70,16 @@ def animate(i):
     bid_cur3 = data['bid_cur3']
     ask_cur3 = data['ask_cur3']
 
+
+
     ax1.cla()
     ax2.cla()
     ax3.cla()
     ax4.cla()
     ax5.cla()
     ax6.cla()
+    ax7.cla()
+
 
     plt.style.use('seaborn')
     currencies = ['ETH-PLN', 'BTC-PLN', 'DASH-PLN']
@@ -107,6 +112,25 @@ def animate(i):
     average_ask_cur3 = average(sliced_ask_cur3)
     ax5.plot(sliced_x, average_bid_cur3, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur3))}')
     ax5.plot(sliced_x, average_ask_cur3, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur3))}')
+
+    # volumen24
+    vol24 = pd.read_csv('volumen24.csv')
+    vol1 = vol24['vol1']
+    vol2 = vol24['vol2']
+    vol3 = vol24['vol3']
+    color = 'tab:pink'
+
+    ax7.set_ylabel('sin')  # we already handled the x-label with ax1
+    ax7.plot(x, vol1, color=color, label='VOLUMEN')
+    ax7.tick_params(axis='y')
+    ax7.legend(loc="upper right")
+
+    xlim = ax7.get_ylim()
+    # example of how to zoomout by a factor of 0.1
+    factor = 5
+    new_xlim = (xlim[0] + xlim[1]) / 2 + np.array((-0.5, 0.5)) * (xlim[1] - xlim[0]) * (1 + factor)
+    ax7.set_ylim(new_xlim)
+
 
     for ax in (ax1, ax3, ax5):
         ax.legend(loc="upper left")
@@ -150,6 +174,7 @@ def animate(i):
 
 if __name__ == '__main__':
     fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows=3, ncols=2, gridspec_kw={'width_ratios': [5, 1]})
+    ax7 = ax1.twinx()
     fig.set_size_inches(12, 8, forward=True)
     plt.locator_params(axis='x', nbins=10)
     anim = FuncAnimation(plt.gcf(), animate, interval=1000)
