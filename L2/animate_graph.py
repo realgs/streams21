@@ -58,6 +58,7 @@ def total_avg(mylist):
 
 
 def animate(i):
+    # read data
     data = pd.read_csv('data.csv')
     x = data['time']
     len_data = len(data)
@@ -68,12 +69,6 @@ def animate(i):
     bid_cur3 = data['bid_cur3']
     ask_cur3 = data['ask_cur3']
 
-    volume = count_volumen()
-    rsi = pd.read_csv('rsi.csv')
-    rs1 = rsi['rsi1'][0]
-    rs2 = rsi['rsi2'][0]
-    rs3 = rsi['rsi3'][0]
-
     ax1.cla()
     ax2.cla()
     ax3.cla()
@@ -83,6 +78,7 @@ def animate(i):
 
     plt.style.use('seaborn')
     currencies = ['ETH-PLN', 'BTC-PLN', 'DASH-PLN']
+    # plot bid and ask
     ax1.plot(x, bid_cur1, label=f'Bid')
     ax1.plot(x, ask_cur1, label=f'Ask')
     ax3.plot(x, bid_cur2, label=f'Bid')
@@ -90,42 +86,52 @@ def animate(i):
     ax5.plot(x, bid_cur3, label=f'Bid')
     ax5.plot(x, ask_cur3, label=f'Ask')
 
-
+    # prepare data for average, plot averaeg
     sliced_data = data[int(len_data/3):]
     sliced_x = sliced_data['time']
     sliced_bid_cur1 = sliced_data['bid_cur1']
     sliced_ask_cur1 = sliced_data['ask_cur1']
     average_bid_cur1 = average(sliced_bid_cur1)
     average_ask_cur1 = average(sliced_ask_cur1)
-
     ax1.plot(sliced_x, average_bid_cur1, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur1))}')
     ax1.plot(sliced_x, average_ask_cur1, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur1))}')
-
     sliced_bid_cur2= sliced_data['bid_cur2']
     sliced_ask_cur2 = sliced_data['ask_cur2']
     average_bid_cur2 = average(sliced_bid_cur2)
     average_ask_cur2 = average(sliced_ask_cur2)
-
     ax3.plot(sliced_x, average_bid_cur2, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur2))}')
     ax3.plot(sliced_x, average_ask_cur2, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur2))}')
-    
     sliced_bid_cur3= sliced_data['bid_cur3']
     sliced_ask_cur3 = sliced_data['ask_cur3']
     average_bid_cur3 = average(sliced_bid_cur3)
     average_ask_cur3 = average(sliced_ask_cur3)
-
     ax5.plot(sliced_x, average_bid_cur3, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur3))}')
     ax5.plot(sliced_x, average_ask_cur3, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur3))}')
 
+    for ax in (ax1, ax3, ax5):
+        ax.legend(loc="upper left")
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Price')
+        plt.sca(ax)
+        plt.xticks(rotation=45)
 
+        every_nth = every_nth_func(x)
+        for n, label in enumerate(ax.xaxis.get_ticklabels()):
+            if n % every_nth != 0:
+                label.set_visible(False)
+
+    # prepare volunen and RSI, plot them
+    volume = count_volumen()
+    rsi = pd.read_csv('rsi.csv')
+    rs1 = rsi['rsi1'][0]
+    rs2 = rsi['rsi2'][0]
+    rs3 = rsi['rsi3'][0]
     ax2.barh('-', volume[0], align='edge')
     ax2.set_title(f'VOLUMEN {currencies[0]}')
     ax2.set_xlabel(f'Amount of crypto transferred {round(volume[0], 4)} \n RSI: {rs1}')
-
     ax4.barh('-', volume[1], align='edge')
     ax4.set_title(f'VOLUMEN {currencies[1]}')
     ax4.set_xlabel(f'Amount of crypto transferred {round(volume[1], 4)} \n RSI: {rs2}')
-
     ax6.barh('-', volume[2], align='edge')
     ax6.set_title(f'VOLUMEN {currencies[2]}')
     ax6.set_xlabel(f'Amount of crypto transferred {round(volume[2], 4)} \n RSI: {rs3}')
@@ -139,17 +145,7 @@ def animate(i):
     ax3.set_title(f'{currencies[1]}')
     ax5.set_title(f'{currencies[2]}')
 
-    for ax in (ax1, ax3, ax5):
-        ax.legend(loc="upper left")
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Price')
-        plt.sca(ax)
-        plt.xticks(rotation=45)
 
-        every_nth = every_nth_func(x)
-        for n, label in enumerate(ax.xaxis.get_ticklabels()):
-            if n % every_nth != 0:
-                label.set_visible(False)
     plt.tight_layout()
 
 if __name__ == '__main__':
