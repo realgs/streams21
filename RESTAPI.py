@@ -1,5 +1,3 @@
-from typing import List, Any
-
 import requests
 import sys
 import urllib.request
@@ -18,6 +16,9 @@ BASE_CURRENCY = "PLN"
 FIRST_CRYPTO = "LTC"
 SECOND_CRYPTO = "ETH"
 THIRD_CRYPTO = "LSK"
+S = 5
+X = 5
+Y = 3
 
 def calculate(buy_price, sell_price):
     output = round((1 - (sell_price - buy_price) / buy_price), 3)
@@ -35,16 +36,15 @@ def theGreatest(array):
     return Lmax
 
 def getVolumeNewAPI(fromCurrancy, toCurrancy, time):
-    url = f"https://api.bitbay.net/rest/trading/transactions/{fromCurrancy}-{toCurrancy}"
+    url = f'https://api.bitbay.net/rest/trading/transactions/{fromCurrancy}-{toCurrancy}'
 
     now = datetime.now()
-    before = now - timedelta(0, time)
-    before -= timedelta(0, time) - timedelta(0, time)
-    querystring = {"from": int(before.timestamp()) * 1000, "to": int(now.timestamp()) * 1000}
+    before = int((now - timedelta(0, time)).timestamp()) * 1000
+    querystring = {"from": before}
 
     try:
         response = requests.request("GET", url, params=querystring)
-        a = response.json()['items'][0]['a']
+        a = float(response.json()['items'][0]['a'])
     except:
         a = 0
     return a
@@ -84,7 +84,7 @@ def calculateRSI(DecreaseArray, IncreaseArray, buyArray, samplesNumber):
     else:
         a = 1
         b = 1
-    RSI = 100 - (100 / (1 + (a + 1/b + 1)))
+    RSI = 100 - (100 / (1 + ((a + 1)/(b + 1))))
     return RSI
 
 def checkWhatTrend(RSIArray):
@@ -120,7 +120,7 @@ def checkWhatTrend(RSIArray):
         print("side")
         return "Sideways trend"
     else:
-        print("error")
+        print("Small amount of data")
         return "Small amount of data"
 
 def defineCandidate(BTCTrend, ETHTrend, LSKTrend, BTCVolume, ETHVolume, LSKVolume):
@@ -128,9 +128,13 @@ def defineCandidate(BTCTrend, ETHTrend, LSKTrend, BTCVolume, ETHVolume, LSKVolum
     ETH = False
     LSK = False
 
+    TFArray = [BTC, ETH, LSK]
+
     BTCLastVolume = float(BTCVolume[len(BTCVolume) - 1])
     ETHLastVolume = float(ETHVolume[len(BTCVolume) - 1])
     LSKLastVolume = float(LSKVolume[len(BTCVolume) - 1])
+
+    LastVolumeArray = [BTCLastVolume, ETHLastVolume, LSKLastVolume]
     max = ""
 
     if BTCTrend[len(BTCTrend) - 1] != "Downward trend":
@@ -140,45 +144,61 @@ def defineCandidate(BTCTrend, ETHTrend, LSKTrend, BTCVolume, ETHVolume, LSKVolum
     if LSKTrend[len(LSKTrend) - 1] != "Downward trend":
         LSK = True
 
-    if BTC and ETH and LSK:
-        array = [BTCLastVolume, ETHLastVolume, LSKLastVolume]
-        print(array)
-        print(array[0])
-        out = array.index(np.max(array))
-        if out == 0:
-            max = "BTC"
-        elif out == 1:
-            max = "ETH"
+    maxArray = []
+    for items in range(len(TFArray)):
+        if TFArray[items] == True:
+            maxArray.append(LastVolumeArray[items])
         else:
-            max = "LSK"
-    elif BTC and ETH:
-        array = [BTCLastVolume, ETHLastVolume]
-        out = array.index(np.max(array))
-        if out == 0:
-            max = "BTC"
-        else:
-            max = "ETH"
-    elif BTC and LSK:
-        array = [BTCLastVolume, LSKLastVolume]
-        out = array.index(np.max(array))
-        if out == 0:
-            max = "BTC"
-        else:
-            max = "LSK"
-    elif ETH and LSK:
-        array = [ETHLastVolume, LSKLastVolume]
-        out = array.index(np.max(array))
-        if out == 0:
-            max = "ETH"
-        else:
-            max = "LSK"
-    elif BTC:
+            maxArray.append(0)
+    out = maxArray.index(np.max(maxArray))
+
+    if out == 0:
         max = "BTC"
-    elif ETH:
+    elif out == 1:
         max = "ETH"
-    elif LSK:
+    else:
         max = "LSK"
+    print(max)
     return max
+
+def defineAsLiquid(buy, sell, S):
+    if buy > sell:
+        max = buy
+        min = sell
+    else:
+        max = sell
+        min = sell
+
+    out = min * 100/max
+    percent = 100 - out
+
+    if percent < S:
+        return True
+    else:
+        return False
+
+def defineAsVolatile(samplesArray, Y, X):
+    if Y > len(samplesArray):
+        Ysample = samplesArray[Y]
+    else:
+        Ysample = samplesArray[len(samplesArray) - 1]
+
+    currentSample = samplesArray[0]
+
+    if Ysample > currentSample:
+        max = Ysample
+        min = currentSample
+    else:
+        max = currentSample
+        min = Ysample
+
+    out = min * 100/max
+    percent = 100 - out
+
+    if percent > X:
+        return True
+    else:
+        return False
 
 def getCurrencyData(currency, category):
     connect()
@@ -270,7 +290,7 @@ if __name__ == "__main__":
 
         BTCSellArray.append(sellBTC)
         BTCBuyArray.append(buyBTC)
-        BTCVolumeArray.append(getVolumeNewAPI(FIRST_CRYPTO, "PLN", TIME_IN_VOLUME))
+        BTCVolumeArray.append(getVolumeNewAPI(FIRST_CRYPTO, BASE_CURRENCY, TIME_IN_VOLUME))
 
         valueBuyB, valueSellB = calculateAverage(BTCSellArray, BTCBuyArray, AVERAGE_SAMPLES_NUMBER)
         BTCAverageArraySell.append(valueSellB)
@@ -282,7 +302,7 @@ if __name__ == "__main__":
         # Ether
         ETHSellArray.append(sellETH)
         ETHBuyArray.append(buyETH)
-        ETHVolumeArray.append(getVolumeNewAPI(SECOND_CRYPTO, "PLN", TIME_IN_VOLUME))
+        ETHVolumeArray.append(getVolumeNewAPI(SECOND_CRYPTO, BASE_CURRENCY, TIME_IN_VOLUME))
 
         valueBuyE, valueSellE = calculateAverage(ETHSellArray, ETHBuyArray, AVERAGE_SAMPLES_NUMBER)
         ETHAverageArraySell.append(valueSellE)
@@ -293,7 +313,7 @@ if __name__ == "__main__":
         # Lisk
         LSKSellArray.append(sellLSK)
         LSKBuyArray.append(buyLSK)
-        LSKVolumeArray.append(getVolumeNewAPI(THIRD_CRYPTO, "PLN", TIME_IN_VOLUME))
+        LSKVolumeArray.append(getVolumeNewAPI(THIRD_CRYPTO, BASE_CURRENCY, TIME_IN_VOLUME))
 
         valueBuy, valueSell = calculateAverage(LSKSellArray, LSKBuyArray, AVERAGE_SAMPLES_NUMBER)
         LSKAverageArraySell.append(valueSell)
@@ -317,11 +337,23 @@ if __name__ == "__main__":
 
             out = defineCandidate(trendB, trendE, trendL, BTCVolumeArray, ETHVolumeArray, LSKVolumeArray)
             if out == "BTC":
-                axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB}!!!')
+                axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB} [K]')
+                if defineAsLiquid(buyBTC, sellBTC, 5):
+                    axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB} [K][L]')
+                if defineAsVolatile(BTCBuyArray, Y, X):
+                    axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB} [K][L][V]')
             elif out == "ETH":
-                axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE}!!!')
+                axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE} [K]')
+                if defineAsLiquid(buyETH, sellETH, 5):
+                    axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE} [K][L]')
+                if defineAsVolatile(ETHBuyArray, Y, X):
+                    axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE} [K][L][V]')
             else:
-                axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL}!!!')
+                axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL} [K]')
+                if defineAsLiquid(buyLSK, sellLSK, 5):
+                    axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL} [K][L]')
+                if defineAsVolatile(LSKBuyArray, Y, X):
+                    axes[0][1].set_title(f'{THIRD_CRYPTO}|Trend: {trendL} [K][L][V]')
 
         axes[0][0].plot(x, BTCSellArray, color='red')
         axes[0][0].plot(x, BTCBuyArray, color='magenta')
