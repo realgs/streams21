@@ -383,6 +383,7 @@ class Choose_candidate(object):
             else:
                 p.set_xlabel(
                     f'                                                     |         Time         |                     [This currency is {self.plots_status[i]}]                    ')
+                p.set_title(name)
             i += 1
         self.potential_candidates = []
 
