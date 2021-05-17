@@ -16,6 +16,30 @@ while step>5 or step<2:
     step = int(input('Give a step for moving average ( 2 - 5 ): '))
 wone = str(input('What do you want to see: Volume (V) or RSI (R)'))
 
+def choose_candidate():
+    btc_variable = 0
+    bat_variable = 0
+    zrx_variable = 0
+    if len(crypto_ask_BTC) > 1:
+        if crypto_ask_BTC[-1] >= crypto_ask_BTC[-2]:
+            btc_variable += 1
+        if crypto_ask_BAT[-1] >= crypto_ask_BAT[-2]:
+            bat_variable += 1
+        if crypto_ask_ZRX[-1] >= crypto_ask_ZRX[-2]:
+            zrx_variable += 1
+    if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_BTC_volume:
+        btc_variable += 1
+    if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_BAT_volume:
+        bat_variable += 1
+    if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_ZRX_volume:
+        zrx_variable += 1
+    if btc_variable == 2:
+        print("BTC - tendencja niespadkowa, największy wolumen")
+    if bat_variable == 2:
+        print("BAT - tendencja niespadkowa, największy wolumen")
+    if zrx_variable == 2:
+        print("ZRX - tendencja niespadkowa, największy wolumen")
+
 def Value_RSI(bessa, hossa, buyArray, stepback):
     if len(buyArray) > stepback:
         value = buyArray[len(buyArray) - 1] - buyArray[len(buyArray) - stepback]
@@ -173,28 +197,7 @@ def animate(i):
 
         plt.suptitle("Best bids and asks offers / Volumen / RSI")
 
-        btc_variable = 0
-        bat_variable = 0
-        zrx_variable = 0
-        if len(crypto_ask_BTC) > 1:
-            if crypto_ask_BTC[-1] >= crypto_ask_BTC[-2]:
-                btc_variable += 1
-            if crypto_ask_BAT[-1] >= crypto_ask_BAT[-2]:
-                bat_variable += 1
-            if crypto_ask_ZRX[-1] >= crypto_ask_ZRX[-2]:
-                zrx_variable += 1
-        if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_BTC_volume:
-            btc_variable += 1
-        if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_BAT_volume:
-            bat_variable += 1
-        if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_ZRX_volume:
-            zrx_variable += 1
-        if btc_variable == 2:
-            print("BTC - tendencja niespadkowa, największy wolumen")
-        if bat_variable == 2:
-            print("BAT - tendencja niespadkowa, największy wolumen")
-        if zrx_variable == 2:
-            print("ZRX - tendencja niespadkowa, największy wolumen")
+    choose_candidate()
 
 
 
