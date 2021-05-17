@@ -10,7 +10,7 @@ from tabulate import tabulate
 import os
 import tkinter as tk
 from matplotlib.ticker import FormatStrFormatter
-
+import matplotlib.pylab as pylab
 SLEEP_VALUE = 0.1
 
 CHECK_LEGEND = 0
@@ -87,8 +87,10 @@ def append_crypto_data_to_lists(names, asks, bids, volumes):
 
 def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
     i = 0
-
+    candidate_object.classificate_candidates(names)
     for plot in plots:
+        for t in plot.texts:
+            t.set_visible(False)
         plot.plot(x_data, y_ask_data[names[i]],
                   linewidth=1, label='Buy price of ' + names[i], color='Red')
         plot.plot(x_data, y_bid_data[names[i]],
@@ -96,10 +98,11 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
         plot.set_xticks(x_data)
         plot_averages(
             x_data, plot, y_ask_data[names[i]], y_bid_data[names[i]], names, i)
-        candidate_object.print_candidate(plot, i, names)
+        plot.set_yticks(np.linspace(
+            min(y_bid_data[names[i]]), max(y_ask_data[names[i]]), 5))
         i += 1
-
-    plot_volume_rsi(x_data, names, i)
+    candidate_object.print_candidate(names)
+    plot_volume_rsi(x_data, names)
 
 
 def plot_averages(x_data, plot, ask_data, bid_data, names, i):
@@ -116,7 +119,7 @@ def plot_averages(x_data, plot, ask_data, bid_data, names, i):
               color='Black', linewidth=0.5, label='Average sell price')
 
 
-def plot_volume_rsi(x_data, names, i):
+def plot_volume_rsi(x_data, names):
     if PLOT_RSI == 1:
         plot_rsi(x_data, names)
     if PLOT_VOLUME == 1:
@@ -137,6 +140,8 @@ def plot_rsi(x_data, names):
         y_rsi_data.setdefault(name, []).append(RSI)
         plot.plot(x_data, y_rsi_data[name],
                   color='Purple', linewidth=1, label='RSI')
+        plot.set_yticks(np.linspace(
+            min(y_rsi_data[name]), max(y_rsi_data[name]), 5))
         i += 1
 
 
@@ -190,7 +195,7 @@ def draw_legend_once():
             if PLOT_AVERAGES == 0:
                 plot.legend(loc=2, bbox_to_anchor=(0, 1.7))
             else:
-                plot.legend(loc=2, bbox_to_anchor=(0, 2))
+                plot.legend(loc=2, bbox_to_anchor=(0, 2.15))
         for plot in plots_twinx:
             plot.legend(loc=1, bbox_to_anchor=(1, 1.5))
         CHECK_LEGEND = 1
@@ -219,9 +224,17 @@ def animate_plots():
 
 
 def set_plots():
+    plt.style.use('fivethirtyeight')
+    params = {'legend.fontsize': 'x-small',
+            'axes.labelsize': 'x-small',
+            'xtick.labelsize':'x-small',
+            'ytick.labelsize':'x-small'}
+    pylab.rcParams.update(params)
+    plt.rcParams['legend.numpoints'] = 1
     fig, ((ax1, ax1t), (ax2, ax2t), (ax3, ax3t)
           ) = plt.subplots(nrows=3, ncols=2)
     plots = []
+    fig.tight_layout()
     plots.append(ax1)
     plots.append(ax2)
     plots.append(ax3)
@@ -305,6 +318,8 @@ class Choose_candidate(object):
         self.plots_status.append(self.plot1)
         self.plots_status.append(self.plot2)
         self.plots_status.append(self.plot3)
+        self.current_growth = 0
+        self.potential_candidates = []
 
     def classificate_candidates(self, names):
         i = 0
@@ -315,6 +330,8 @@ class Choose_candidate(object):
             data = data[-3:]
             if data[0] < data[1] < data[2]:
                 self.plots_status[i] = 'growth'
+                self.current_growth += 1
+                self.potential_candidates.append(name)
             elif data[0] > data[1] > data[2]:
                 self.plots_status[i] = 'declining'
             else:
@@ -324,15 +341,29 @@ class Choose_candidate(object):
     def get_candidates_status(self):
         print(self.plots_status)
 
-    def print_candidate(self, plot, i, names):
+    def print_candidate(self, names):
         self.classificate_candidates(names)
-        status = self.plots_status[i]
-        if status == 'growth':
-            plot.set_xlabel(
-                '                                                     |         Time         |                      [This is candidate]')
+        candidates_data = []
+        i = 0
+        for name in names:
+            data = y_volume_data[name]
+            data = data[-1]
+            if name in self.potential_candidates:
+                candidates_data.append(data)
+        if candidates_data != []:
+            winner = max(candidates_data)
         else:
-            plot.set_xlabel(
-                f'                                                     |         Time         |                     [This currency is {status}]                    ')
+            winner = 0
+        print(winner)
+        for name, p in zip(names, plots):
+            if name in self.potential_candidates and y_volume_data[name][-1] == winner:
+                p.set_xlabel(
+                    '                                                     |         Time         |                      [This is candidate]')
+            else:
+                p.set_xlabel(
+                    f'                                                     |         Time         |                     [This currency is {self.plots_status[i]}]                    ')
+            i += 1
+        self.potential_candidates = []
 
 
 def animation_frame(i):
