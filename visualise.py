@@ -330,11 +330,21 @@ class Choose_candidate(object):
         self.plots_status.append(self.plot3)
         self.current_growth = 0
         self.potential_candidates = []
+        self.x, self.s = self.ask_for_liquid_and_volitale_parameters()
+
+    def ask_for_liquid_and_volitale_parameters(self):
+        print('Volitale parameter: ', end='')
+        x = float(input())
+        print('Spread parameter: ', end='')
+        s = float(input())
+        print('Sample size: ', end='')
+        self.y = int(input())
+        return x, s
 
     def classificate_candidates(self, names):
         i = 0
         for name in names:
-            self.potential_candidates.append(name)
+            # self.potential_candidates.append(name)
             data = y_ask_data[name]
             if len(data) < 3:
                 return None
@@ -369,24 +379,39 @@ class Choose_candidate(object):
             if name in self.potential_candidates and y_volume_data[name][-1] == winner:
                 p.set_xlabel(
                     '                                                     |         Time         |                      [This is candidate]')
-                self.is_volatile(name, 5, 0.02, p)
+                self.is_volatile(name, self.y, p)
             else:
                 p.set_xlabel(
                     f'                                                     |         Time         |                     [This currency is {self.plots_status[i]}]                    ')
             i += 1
         self.potential_candidates = []
 
-    def is_volatile(self, name, y, x, plot):
+    def is_volatile(self, name, y, plot):
+        x = self.x
         data = y_ask_data[name]
         data = data[-y:]
         dat1 = data[0]
         dat2 = data[-1]
         change = get_change(dat1, dat2)
+        print(change)
         if change == 100 or change == 0:
             return -1
-        print(change)
+
+        name_str = name
         if change > x:
-            plot.set_title(name+'[V]')
+            name_str = name+'[V]'
+            plot.set_title(name_str)
+
+        self.is_liquid(name, plot, name_str)
+
+    def is_liquid(self, name, plot, name_str):
+        s = self.s
+        ask_data = y_ask_data[name][-1]
+        bid_data = y_bid_data[name][-1]
+        change = get_change(bid_data, ask_data)
+        print(change)
+        if change < s:
+            plot.set_title(name_str+'[L]')
 
 
 def animation_frame(i):
