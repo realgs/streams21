@@ -11,6 +11,7 @@ import os
 import tkinter as tk
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pylab as pylab
+import statistics
 SLEEP_VALUE = 0.1
 
 CHECK_LEGEND = 0
@@ -193,7 +194,7 @@ def draw_legend_once():
     if CHECK_LEGEND == 0:
         for plot in plots:
             if PLOT_AVERAGES == 0:
-                plot.legend(loc=2, bbox_to_anchor=(0, 1.7))
+                plot.legend(loc=2, bbox_to_anchor=(0, 1.8))
             else:
                 plot.legend(loc=2, bbox_to_anchor=(0, 2.15))
         for plot in plots_twinx:
@@ -214,7 +215,7 @@ def plot_setup():
     for plot in plots_twinx:
         plot.set_xlabel('Time')
         plt.setp(plot.xaxis.get_majorticklabels(), rotation=45)
-    plt.tight_layout()
+    fig.tight_layout(pad=1.0)
 
 
 def animate_plots():
@@ -226,15 +227,15 @@ def animate_plots():
 def set_plots():
     plt.style.use('fivethirtyeight')
     params = {'legend.fontsize': 'x-small',
-            'axes.labelsize': 'x-small',
-            'xtick.labelsize':'x-small',
-            'ytick.labelsize':'x-small'}
+              'axes.labelsize': 'x-small',
+              'xtick.labelsize': 'x-small',
+              'ytick.labelsize': 'x-small'}
     pylab.rcParams.update(params)
     plt.rcParams['legend.numpoints'] = 1
     fig, ((ax1, ax1t), (ax2, ax2t), (ax3, ax3t)
           ) = plt.subplots(nrows=3, ncols=2)
     plots = []
-    fig.tight_layout()
+    fig.tight_layout(pad=1.0)
     plots.append(ax1)
     plots.append(ax2)
     plots.append(ax3)
@@ -309,6 +310,15 @@ def ask_for_interval():
     return interval
 
 
+def get_change(current, previous):
+    if current == previous:
+        return 100.0
+    try:
+        return (abs(current - previous) / previous) * 100.0
+    except ZeroDivisionError:
+        return 0
+
+
 class Choose_candidate(object):
     def __init__(self):
         self.plot1 = 'horizontal'
@@ -324,6 +334,7 @@ class Choose_candidate(object):
     def classificate_candidates(self, names):
         i = 0
         for name in names:
+            self.potential_candidates.append(name)
             data = y_ask_data[name]
             if len(data) < 3:
                 return None
@@ -354,16 +365,28 @@ class Choose_candidate(object):
             winner = max(candidates_data)
         else:
             winner = 0
-        print(winner)
         for name, p in zip(names, plots):
             if name in self.potential_candidates and y_volume_data[name][-1] == winner:
                 p.set_xlabel(
                     '                                                     |         Time         |                      [This is candidate]')
+                self.is_volatile(name, 5, 0.02, p)
             else:
                 p.set_xlabel(
                     f'                                                     |         Time         |                     [This currency is {self.plots_status[i]}]                    ')
             i += 1
         self.potential_candidates = []
+
+    def is_volatile(self, name, y, x, plot):
+        data = y_ask_data[name]
+        data = data[-y:]
+        dat1 = data[0]
+        dat2 = data[-1]
+        change = get_change(dat1, dat2)
+        if change == 100 or change == 0:
+            return -1
+        print(change)
+        if change > x:
+            plot.set_title(name+'[V]')
 
 
 def animation_frame(i):
