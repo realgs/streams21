@@ -10,7 +10,6 @@
 	const RESOURCES = ['BTC-PLN','ETH-PLN','LTC-PLN']
 	const API_ENDPOINT = 'orderbook-limited' // transactions / orderbook-limited
 	const FETCH_FREQUENCY = 5   // seconds
-	const VOLUME_FREQUENCY = 1/60 // hours
 
 	let error
 
@@ -21,6 +20,7 @@
 	  max: { date: null, time: null },
 		set: { date: null, time: null }
 	}
+	let vol = 1/60
 	let avg = 5
 	let rsi = 5
 
@@ -86,8 +86,8 @@
 			asks.avg.push(calculateAverage(asks.rate, avg))
 			bids.rsi.push(calculateRSI(bids.rate, rsi))
 			asks.rsi.push(calculateRSI(asks.rate, rsi))
-			bids.vol.push(calculateVolume(bids.amount, VOLUME_FREQUENCY, timestamps))
-			asks.vol.push(calculateVolume(asks.amount, VOLUME_FREQUENCY, timestamps))
+			bids.vol.push(calculateVolume(bids.amount, vol, timestamps))
+			asks.vol.push(calculateVolume(asks.amount, vol, timestamps))
 			// draw new values on the chart
 			updateChart(chart)
 		})
@@ -187,6 +187,7 @@
 				min={range.min.time} max={range.max.time}
 				on:change={() => { charts.forEach(chart => updateChart(chart)) }}>
 		</p>
+		<p>Volume frequency: <input type="number" bind:value={vol}> hours</p>
 		<p>Moving average: <input type="number" bind:value={avg}> samples</p>
 		<p>RSI: <input type="number" bind:value={rsi}> samples</p>
 	</nav>
@@ -217,7 +218,7 @@
 		font-weight: bold;
 	}
 	input[type='number'] {
-		width: 60px;
+		width: 70px;
 	}
 	.red {
 		color: #ff6464;
