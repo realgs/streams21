@@ -16,7 +16,7 @@ def Values(currency):
         print("Something went wrong")
 
 
-def getVolumeNewAPI(currency, time):
+def getVolume(currency, time):
     url = f'https://api.bitbay.net/rest/trading/transactions/{currency}-PLN'
 
     now = datetime.datetime.now()
@@ -50,7 +50,7 @@ def Avarage(list_buy, list_sell, user_parameter):
 
 def RSI(sell_list, user_parameter, Increase_list, Decrease_list):
     if len(sell_list) > user_parameter:
-        value = sell_list[len(sell_list) - 1] - sell_list[len(sell_list) - user_parameter]  # WINDOW_SIZE
+        value = sell_list[len(sell_list) - 1] - sell_list[len(sell_list) - user_parameter]
         if value > 0:
             Increase_list.append(value)
         elif value < 0:
@@ -63,15 +63,15 @@ def RSI(sell_list, user_parameter, Increase_list, Decrease_list):
     RSI = 100 - (100 / (1 +((a + 1) / (b + 1))))
     return RSI
 
-def checkWhatTrend(RSIArray):
-    if (RSIArray[-1] < RSIArray[-2]) and (RSIArray[-2] < RSIArray[-3]):
+def checkTrend(RSIArray):
+    if (RSIArray[-1] < RSIArray[-2]) and (RSIArray[-1] < RSIArray[-3]):
         return "Downward trend"
-    elif (RSIArray[-1] > RSIArray[-2]) and (RSIArray[-2] > RSIArray[-3]):
+    elif ((RSIArray[-1] > RSIArray[-2]) and (RSIArray[-1] > RSIArray[-3])) :
         return "Rising trend"
-    elif ((RSIArray[-1] > RSIArray[-2]) and (RSIArray[-2] < RSIArray[-3])) or ((RSIArray[-1] < RSIArray[-2]) and (RSIArray[-2] > RSIArray[-3])):
+    elif ((RSIArray[-1] > RSIArray[-2]) and (RSIArray[-1] == RSIArray[-3])) or ((RSIArray[-1] < RSIArray[-2]) and (RSIArray[-1] == RSIArray[-3])):
         return "Sideways trend"
     else:
-        return "To less data"
+        return "No trend, waiting for new data"
 
 def defineCandidate(ETHTrend, LTCTrend, DASHTrend, ETHVolume, LTCVolume, DASHVolume):
 
@@ -80,22 +80,24 @@ def defineCandidate(ETHTrend, LTCTrend, DASHTrend, ETHVolume, LTCVolume, DASHVol
     DASHLastVolume = float(DASHVolume[-1])
 
     LastVolumeArray = [ETHLastVolume, LTCLastVolume, DASHLastVolume]
-    maxArray = list()
+    maxVolume_list = list()
 
     if ETHTrend != "Downward trend":
-        maxArray.append(LastVolumeArray[0])
+        maxVolume_list.append(LastVolumeArray[0])
     else:
-        maxArray.append(0)
-    if LTCTrend != "Downward trend":
-        maxArray.append(LastVolumeArray[0])
-    else:
-        maxArray.append(0)
-    if DASHTrend != "Downward trend":
-        maxArray.append(LastVolumeArray[2])
-    else:
-        maxArray.append(0)
+        maxVolume_list.append(0)
 
-    out = maxArray.index(np.max(maxArray))
+    if LTCTrend != "Downward trend":
+        maxVolume_list.append(LastVolumeArray[0])
+    else:
+        maxVolume_list.append(0)
+
+    if DASHTrend != "Downward trend":
+        maxVolume_list.append(LastVolumeArray[2])
+    else:
+        maxVolume_list.append(0)
+
+    out = maxVolume_list.index(np.max(maxVolume_list))
     if out == 0:
         max = "ETH"
     elif out == 1:
@@ -122,24 +124,25 @@ def defineAsLiquid(buy, sell, S):
     else:
         return False
 
-def defineAsVolatile(samplesArray, Y, X):
-    if Y < len(samplesArray):
+def defineAsVolatile(samples_list, Y, X):
+    if Y < len(samples_list):
         Ysample = list()
-        for i in range(Y):
-            Ysample.append(samplesArray[-i])
+        for i in range(Y+1):
+            Ysample.append(samples_list[-i])
+        sample = Ysample[-1]
+        Ysample.pop(0)
     else:
-        Ysample = samplesArray
+        Ysample = samples_list.copy()
+        sample = Ysample[0]
         Ysample.pop(0)
 
-    currentSample = samplesArray[0]
     for i in range(len(Ysample)):
-        if Ysample[i] > currentSample:
+        if Ysample[i] > sample:
             max = Ysample[i]
-            min = currentSample
+            min = sample
         else:
-            max = currentSample
+            max = sample
             min = Ysample[i]
-
         out = min * 100/max
         percent = 100 - out
 
@@ -213,21 +216,21 @@ def update_plot(i):
     buyETH, sellETH = Values("ETH")
     ETHBuy.append(buyETH)
     ETHSell.append(sellETH)
-    volume = getVolumeNewAPI("ETH", 5)
+    volume = getVolume("ETH", 5)
     ETHVolume.append(volume)
 
     time_list_LTC.append(datetime.datetime.now())
     buyLTC, sellLTC = Values("LTC")
     LTCBuy.append(buyLTC)
     LTCSell.append(sellLTC)
-    volume = getVolumeNewAPI("LTC", 5)
+    volume = getVolume("LTC", 5)
     LTCVolume.append(volume)
 
     time_list_DASH.append(datetime.datetime.now())
     buyDASH, sellDASH = Values("DASH")
     DASHBuy.append(buyDASH)
     DASHSell.append(sellDASH)
-    volume = getVolumeNewAPI("DASH", 5)
+    volume = getVolume("DASH", 5)
     DASHVolume.append(volume)
 
     buy, sell = Avarage(ETHBuy, ETHSell, 3)
@@ -252,13 +255,13 @@ def update_plot(i):
     RSI_list_DASH.append(rsi)
 
     if len(RSI_list_ETH) > 3:
-        trendETH = checkWhatTrend(RSI_list_ETH)
+        trendETH = checkTrend(RSI_list_ETH)
         ax[0][0].set_xlabel(f'ETH Trend: {trendETH}')
     if len(RSI_list_LTC) > 3:
-        trendLTC = checkWhatTrend(RSI_list_LTC)
+        trendLTC = checkTrend(RSI_list_LTC)
         ax[0][1].set_xlabel(f'LTC Trend: {trendLTC}')
     if len(RSI_list_DASH) > 3:
-        trendDASH = checkWhatTrend(RSI_list_DASH)
+        trendDASH = checkTrend(RSI_list_DASH)
         ax[0][2].set_xlabel(f'DASH Trend: {trendDASH}')
 
     if len(RSI_list_LTC) > 3 and len(RSI_list_ETH) > 3 and len(RSI_list_DASH) > 3:
@@ -355,6 +358,6 @@ Increase_list_ETH = list()
 Decrease_list_LTC = list()
 Increase_list_LTC = list()
 S = 5
-X = 5
-Y = 3
+X = 3
+Y = 5
 plot()
