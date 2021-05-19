@@ -30,6 +30,22 @@ def add_currency_to_currencies(currencies, currency):
     return result
 
 
+def get_rsi(crypto, interval):
+    sleep(SLEEP_VALUE)
+    secret_api_key = apikey()
+    URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval={interval}'
+
+    try:
+        response = r.get(URL)
+        response.raise_for_status()
+
+    except HTTPError:
+        print('RSI ERROR', response.json())
+        return 0
+    else:
+        return response.json()
+
+
 def download_data(currency, category):
     URL = f'https://bitbay.net/API/Public/{currency}/{category}.json'
     try:
@@ -173,20 +189,25 @@ def plot_volume(x_data, names):
         i += 1
 
 
-def get_rsi(crypto, interval):
-    sleep(SLEEP_VALUE)
-    secret_api_key = apikey()
-    URL = f'https://api.taapi.io/rsi?secret={secret_api_key}&exchange=binance&symbol={crypto}/USDT&interval={interval}'
+def calculate_rsi(crypto, interval):
+    up = []
+    down = []
+    data = y_ask_data[crypto][-interval:]
 
-    try:
-        response = r.get(URL)
-        response.raise_for_status()
-
-    except HTTPError:
-        print('RSI ERROR', response.json())
+    for i in range(len(data)-1):
+        if data[i] > data[i+1]:
+            down.append(data[i]-data[i+1])
+        else:
+            up.append(data[i+1]-data[i])
+    if up == []:
         return 0
-    else:
-        return response.json()
+    if down == []:
+        return 0
+    up = mean(up)
+    down = mean(down)
+    RS = up/down
+    RSI = 100 - 100/(1 + RS)
+    return RSI
 
 
 def draw_legend_once():
@@ -305,7 +326,7 @@ def decide_to_plot_averages():
 
 
 def ask_for_interval():
-    print('Choice RSI interval (1m,1h,1d): ', end='')
+    print('Choose RSI interval (1m,1h,1d): ', end='')
     interval = str(input())
     return interval
 
@@ -337,7 +358,7 @@ class Choose_candidate(object):
         x = float(input())
         print('Spread parameter: ', end='')
         s = float(input())
-        print('Sample size: ', end='')
+        print('Sample size for volitale and spread: ', end='')
         self.y = int(input())
         return x, s
 
@@ -394,7 +415,6 @@ class Choose_candidate(object):
         dat1 = data[0]
         dat2 = data[-1]
         change = get_change(dat1, dat2)
-        print(change)
         if change == 100 or change == 0:
             return -1
 
@@ -410,7 +430,6 @@ class Choose_candidate(object):
         ask_data = y_ask_data[name][-1]
         bid_data = y_bid_data[name][-1]
         change = get_change(bid_data, ask_data)
-        print(change)
         if change < s:
             plot.set_title(name_str+'[L]')
 
