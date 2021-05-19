@@ -206,7 +206,7 @@ def calculate_rsi(name, interval):
         a = 1
         b = 1
     RSI = 100 - (100 / (1 + (a / b)))
-    RSI = get_rsi(name[0:3],intervall)
+    RSI = get_rsi(name[0:3], intervall)
     return RSI
 
 
@@ -365,7 +365,7 @@ class Choose_candidate(object):
     def classificate_candidates(self, names):
         i = 0
         for name in names:
-            # self.potential_candidates.append(name)
+            self.potential_candidates.append(name)
             data = y_ask_data[name]
             if len(data) < 3:
                 return None
@@ -415,8 +415,9 @@ class Choose_candidate(object):
         dat1 = data[0]
         dat2 = data[-1]
         change = get_change(dat1, dat2)
+        print(change)
         if change == 100 or change == 0:
-            return -1
+            self.is_liquid(name, plot, name_str)
 
         name_str = name
         if change > x:
@@ -430,6 +431,7 @@ class Choose_candidate(object):
         ask_data = y_ask_data[name][-1]
         bid_data = y_bid_data[name][-1]
         change = get_change(bid_data, ask_data)
+        print(change)
         if change < s:
             plot.set_title(name_str+'[L]')
 
