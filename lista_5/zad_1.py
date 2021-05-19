@@ -22,9 +22,9 @@ for key in ADRESS.keys():
     currency.append(key)
     amount_of_currencies += 1
 
-# print('Przedział do wyświetlenia na wykresie oraz z jakiego liczona bedzie średnia: ', end='')
-# part = input()
-part = 10
+print('Przedział do wyświetlenia na wykresie oraz z jakiego liczona bedzie średnia: ', end='')
+part = input()
+# part = 10
 
 def market():
     bids_table = []
@@ -102,28 +102,49 @@ def show_plots():
                 text2.set_text(trend2)
                 
                 Y = 3
-                X = 1
-                S = 1
+                X = 0.1
+                S = 0.1
 
                 if trend2 != 'decrease' and volume_table[2][-1] > volume_table[0][-1]:
                     text21.set_text('candidate')
-                    value = abs(max(bids_table[2][-Y:])-min(asks_table[2][-Y:]))
-                    check = (value / max(bids_table[2][-Y:]))*100
-                    if check > X:
+                    value1 = abs(max(bids_table[2][-Y:])-min(asks_table[2][-Y:]))
+                    check1 = (value1 / max(bids_table[2][-Y:]))*100
+                    if check1 > X:
                         text221.set_text('volatile asset')
                     else:
                         text221.set_text('')
+
+                    value2 = abs(bids_table[2][-1]-asks_table[2][-1])
+                    check2 = (value2 / bids_table[2][-1])*100
+                    if check2 > S:
+                        text2221.set_text('liquid asset')
+                    else:
+                        text2221.set_text('')
                 else:
                     text21.set_text('')
                     text221.set_text('')
+                    text2221.set_text('')
 
                 if trend1 != 'decrease' and (volume_table[0][-1] > volume_table[2][-1] or text21._text != 'candidate'):
                     text11.set_text('candidate')
+                    value1 = abs(max(bids_table[0][-Y:])-min(asks_table[0][-Y:]))
+                    check1 = (value1 / max(bids_table[0][-Y:]))*100
+                    if check1 > X:
+                        text111.set_text('volatile asset')
+                    else:
+                        text111.set_text('')
+                    
+                    value2 = abs(bids_table[0][-1]-asks_table[0][-1])
+                    check2 = (value2 / bids_table[0][-1])*100
+                    if check2 > S:
+                        text1111.set_text('liquid asset')
+                    else:
+                        text1111.set_text('')
                 else:
                     text11.set_text('')
+                    text111.set_text('')
+                    text1111.set_text('')
                 
-                print(text21._text)
-
             if counter > int(part):
                 bids_table[w].pop(0)
                 asks_table[w].pop(0)
@@ -155,9 +176,11 @@ def show_plots():
         text1 = axis[0].text(0.9,0.5,'', transform=axis[0].transAxes)
         text11 = axis[0].text(0.9,0.4,'', transform=axis[0].transAxes)
         text111 = axis[0].text(0.9,0.3,'', transform=axis[0].transAxes)
+        text1111 = axis[0].text(0.9,0.2,'', transform=axis[0].transAxes)
         text2 = axis[2].text(0.9,0.5,'', transform=axis[2].transAxes)
         text21 = axis[2].text(0.9,0.4,'', transform=axis[2].transAxes)
         text221 = axis[2].text(0.9,0.3,'', transform=axis[2].transAxes)
+        text2221 = axis[2].text(0.9,0.2,'', transform=axis[2].transAxes)
         lines.append(bids_part)
         lines.append(asks_part)
         lines.append(asks_avg)
