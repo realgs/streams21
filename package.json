@@ -1,0 +1,23 @@
+{
+  "name": "streams",
+  "version": "1.0.0",
+  "description": "Przetwarzanie strumieni danych",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikolajkazmierczak/streams21.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mikolajkazmierczak/streams21/issues"
+  },
+  "homepage": "https://github.com/mikolajkazmierczak/streams21#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.1"
+  }
+}
