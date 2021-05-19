@@ -149,9 +149,9 @@ def plot_rsi(x_data, names):
     for plot in plots_twinx:
         plot.set_ylabel('RSI value')
         name = names[i]
-        RSI = get_rsi(name[0:3], interval)
+        RSI = calculate_rsi(name, interval)
         while RSI == 0:
-            RSI = get_rsi(name[0:3], interval)
+            RSI = calculate_rsi(name, interval)
         RSI = RSI['value']
         recognize_rsi(plot, RSI)
         y_rsi_data.setdefault(name, []).append(RSI)
@@ -189,24 +189,24 @@ def plot_volume(x_data, names):
         i += 1
 
 
-def calculate_rsi(crypto, interval):
-    up = []
-    down = []
-    data = y_ask_data[crypto][-interval:]
-
-    for i in range(len(data)-1):
-        if data[i] > data[i+1]:
-            down.append(data[i]-data[i+1])
-        else:
-            up.append(data[i+1]-data[i])
-    if up == []:
-        return 0
-    if down == []:
-        return 0
-    up = mean(up)
-    down = mean(down)
-    RS = up/down
-    RSI = 100 - 100/(1 + RS)
+def calculate_rsi(name, interval):
+    data = y_bid_data[name]
+    increase_tab = []
+    decrease_tab = []
+    if len(data) > interval:
+        value = data[len(data) - 1] - \
+            data[len(data) - interval]
+        if value > 0:
+            increase_tab.append(value)
+        elif value < 0:
+            decrease_tab.append(value)
+        a = (sum(increase_tab) + 1) / (len(increase_tab) + 1)
+        b = (sum(decrease_tab) + 1) / (len(decrease_tab) + 1)
+    else:
+        a = 1
+        b = 1
+    RSI = 100 - (100 / (1 + (a / b)))
+    RSI = get_rsi(name[0:3],intervall)
     return RSI
 
 
@@ -224,7 +224,7 @@ def draw_legend_once():
 
 
 def plot_setup():
-    fig.suptitle('Cryptocurrencies in real time')
+    fig.suptitle("Cryptocurrencies in real time")
     i = 0
     for plot in plots:
         plot.set_xlabel('Time')
@@ -326,9 +326,9 @@ def decide_to_plot_averages():
 
 
 def ask_for_interval():
-    print('Choose RSI interval (1m,1h,1d): ', end='')
-    interval = str(input())
-    return interval
+    print('Choice RSI sample size: ', end='')
+    interval = int(input())
+    return interval, '1d'
 
 
 def get_change(current, previous):
@@ -453,7 +453,7 @@ def animation_frame(i):
 if __name__ == "__main__":
     gui_plot_decide()
     if PLOT_RSI == 1:
-        interval = ask_for_interval()
+        interval, intervall = ask_for_interval()
     currencies = ['LSK', 'LTC', 'BTC']
     category = 'ticker'
     currency = 'PLN'
