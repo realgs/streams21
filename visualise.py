@@ -410,6 +410,7 @@ class Choose_candidate(object):
 
     def is_volatile(self, name, y, plot):
         x = self.x
+        name_str = name
         data = y_ask_data[name]
         data = data[-y:]
         dat1 = data[0]
