@@ -163,6 +163,7 @@ def find_candidate(c1, c2, c3):
     LastVolumen_c3 = data_currency_extra[c3][-1]['volumen']
 
     LastVolumeArray = [LastVolumen_c1, LastVolumen_c2, LastVolumen_c3]
+    
     max = ""
 
     if c1_trend !=  "Downward":
