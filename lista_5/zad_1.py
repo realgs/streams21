@@ -22,11 +22,9 @@ for key in ADRESS.keys():
     currency.append(key)
     amount_of_currencies += 1
 
-print('Wyświetlić RSI(r), czy Wolumen(v)? ', end='')
-decision = input()
-print('Przedział do wyświetlenia na wykresie oraz z jakiego liczona bedzie średnia: ', end='')
-part = input()
-
+# print('Przedział do wyświetlenia na wykresie oraz z jakiego liczona bedzie średnia: ', end='')
+# part = input()
+part = 10
 
 def market():
     bids_table = []
@@ -77,28 +75,42 @@ def show_plots():
             lines[i*4+1].set_data(req_times[w], asks_table[w])
             lines[i*4+2].set_data(req_times[w], avg_asks_table[w])
 
-            if decision == 'r':
-                for z in asks_table[w]:
-                    rs = abs(bids[i]/asks[i])
-                rsi = 100 - (100 / (1 + rs))
-                rsi_table[w].append(rsi)
-                lines[i*4+3].set_data(req_times[w], rsi_table[w])
-            elif decision == 'v':
-                volume_table[w].append(volume[i])
-                lines[i*4+3].set_data(req_times[w], volume_table[w])
-            
+            for z in asks_table[w]:
+                rs = abs(bids[i]/asks[i])
+            rsi = 100 - (100 / (1 + rs))
+            rsi_table[w].append(rsi)
+            lines[i*4+3].set_data(req_times[w], rsi_table[w])
+            volume_table[w].append(volume[i])
+
+            if counter > 2:
+                if rsi_table[0][-1] > rsi_table[0][-2]:
+                    trend = 'raise'
+                elif rsi_table[0][-1] == rsi_table[0][-2]:
+                    trend = 'stable'
+                elif rsi_table[0][-1] < rsi_table[0][-2]:
+                    trend = 'decrease'
+
+                text1.set_text(trend)
+
+                if rsi_table[2][-1] > rsi_table[2][-2]:
+                    trend = 'raise'
+                elif rsi_table[2][-1] == rsi_table[2][-2]:
+                    trend = 'stable'
+                elif rsi_table[2][-1] < rsi_table[2][-2]:
+                    trend = 'decrease'
+                
+                text2.set_text(trend)
+
             if counter > int(part):
                 bids_table[w].pop(0)
                 asks_table[w].pop(0)
                 req_times[w].pop(0)
                 avg_asks_table[w].pop(0)
-                if decision == 'r':
-                    rsi_table[w].pop(0)
-                elif decision == 'v':   
-                    volume_table[w].pop(0)
+                rsi_table[w].pop(0)  
+                volume_table[w].pop(0)
                 
                 
-
+            axis[2*i].set_title(currency[i])
             axis[w].relim()
             axis[w].autoscale_view()
             axis[w+1].relim()
@@ -113,22 +125,19 @@ def show_plots():
     fig, axis = plt.subplots(2*n,figsize=(16,9))
     lines = []
 
-    for i in range(n):
+    for i in range(0,n):
         bids_part, = axis[2*i].plot([], [],'g-d', label='Best bid')
         asks_part, = axis[2*i].plot([], [],'r-d', label='Best ask')
         asks_avg, = axis[2*i].plot([], [], 'k-d', label='Avg ask')
+        text1 = axis[0].text(0.9,0.5,'', transform=axis[0].transAxes)
+        text2 = axis[2].text(0.9,0.5,'', transform=axis[2].transAxes)
         lines.append(bids_part)
         lines.append(asks_part)
         lines.append(asks_avg)
-        if decision == 'r':
-            rsi_part, = axis[2*i+1].plot([], [], 'b-d', label='RSI')
-            lines.append(rsi_part)
-        elif decision == 'v':
-            volume_part, = axis[2*i+1].plot([], [], 'b-d', label='Volume')
-            lines.append(volume_part)
-        
+        rsi_part, = axis[2*i+1].plot([], [], 'b-d', label='RSI')
+        lines.append(rsi_part)
 
-        axis[2*i].set_title(currency[i])
+        
         axis[2*i].grid()
         axis[2*i].legend(loc=6)
         axis[2*i].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
