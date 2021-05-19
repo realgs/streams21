@@ -158,7 +158,6 @@ def defineCandidate(BTCTrend, ETHTrend, LSKTrend, BTCVolume, ETHVolume, LSKVolum
         max = "ETH"
     else:
         max = "LSK"
-    print(max)
     return max
 
 def defineAsLiquid(buy, sell, S):
@@ -178,7 +177,7 @@ def defineAsLiquid(buy, sell, S):
         return False
 
 def defineAsVolatile(samplesArray, Y, X):
-    if Y > len(samplesArray):
+    if len(samplesArray) > Y:
         Ysample = samplesArray[Y]
     else:
         Ysample = samplesArray[len(samplesArray) - 1]
