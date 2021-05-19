@@ -365,7 +365,7 @@ class Choose_candidate(object):
     def classificate_candidates(self, names):
         i = 0
         for name in names:
-            self.potential_candidates.append(name)
+            # self.potential_candidates.append(name)
             data = y_ask_data[name]
             if len(data) < 3:
                 return None
@@ -414,12 +414,12 @@ class Choose_candidate(object):
         data = y_ask_data[name]
         data = data[-y:]
         dat1 = data[0]
-        dat2 = data[-1]
+        dat2 = data[-1] + 0.25
         change = get_change(dat1, dat2)
         if change == 100 or change == 0:
             self.is_liquid(name, plot, name_str)
             return 0
-        print('Volatile value: ',change)
+        print(name, ' change value for Volatile: ',change)
         name_str = name
         if change > x:
             name_str = name+'[V]'
@@ -432,7 +432,7 @@ class Choose_candidate(object):
         ask_data = y_ask_data[name][-1]
         bid_data = y_bid_data[name][-1]
         change = get_change(bid_data, ask_data)
-        print('Spread value: ',change)
+        print(name, ' change value for Spread: ',change)
         if change < s:
             plot.set_title(name_str+'[L]')
 
