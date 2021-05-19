@@ -84,22 +84,45 @@ def show_plots():
 
             if counter > 2:
                 if rsi_table[0][-1] > rsi_table[0][-2]:
-                    trend = 'raise'
+                    trend1 = 'raise'
                 elif rsi_table[0][-1] == rsi_table[0][-2]:
-                    trend = 'stable'
+                    trend1 = 'stable'
                 elif rsi_table[0][-1] < rsi_table[0][-2]:
-                    trend = 'decrease'
+                    trend1 = 'decrease'
 
-                text1.set_text(trend)
+                text1.set_text(trend1)
 
                 if rsi_table[2][-1] > rsi_table[2][-2]:
-                    trend = 'raise'
+                    trend2 = 'raise'
                 elif rsi_table[2][-1] == rsi_table[2][-2]:
-                    trend = 'stable'
+                    trend2 = 'stable'
                 elif rsi_table[2][-1] < rsi_table[2][-2]:
-                    trend = 'decrease'
+                    trend2 = 'decrease'
                 
-                text2.set_text(trend)
+                text2.set_text(trend2)
+                
+                Y = 3
+                X = 1
+                S = 1
+
+                if trend2 != 'decrease' and volume_table[2][-1] > volume_table[0][-1]:
+                    text21.set_text('candidate')
+                    value = abs(max(bids_table[2][-Y:])-min(asks_table[2][-Y:]))
+                    check = (value / max(bids_table[2][-Y:]))*100
+                    if check > X:
+                        text221.set_text('volatile asset')
+                    else:
+                        text221.set_text('')
+                else:
+                    text21.set_text('')
+                    text221.set_text('')
+
+                if trend1 != 'decrease' and (volume_table[0][-1] > volume_table[2][-1] or text21._text != 'candidate'):
+                    text11.set_text('candidate')
+                else:
+                    text11.set_text('')
+                
+                print(text21._text)
 
             if counter > int(part):
                 bids_table[w].pop(0)
@@ -130,7 +153,11 @@ def show_plots():
         asks_part, = axis[2*i].plot([], [],'r-d', label='Best ask')
         asks_avg, = axis[2*i].plot([], [], 'k-d', label='Avg ask')
         text1 = axis[0].text(0.9,0.5,'', transform=axis[0].transAxes)
+        text11 = axis[0].text(0.9,0.4,'', transform=axis[0].transAxes)
+        text111 = axis[0].text(0.9,0.3,'', transform=axis[0].transAxes)
         text2 = axis[2].text(0.9,0.5,'', transform=axis[2].transAxes)
+        text21 = axis[2].text(0.9,0.4,'', transform=axis[2].transAxes)
+        text221 = axis[2].text(0.9,0.3,'', transform=axis[2].transAxes)
         lines.append(bids_part)
         lines.append(asks_part)
         lines.append(asks_avg)
