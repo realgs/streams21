@@ -1,6 +1,7 @@
 import time
 import requests
 import statistics
+import numpy as np
 from requests.exceptions import HTTPError
 import matplotlib.pyplot as plt
 
@@ -17,6 +18,16 @@ data_currency_extra = {
     "GNT": [],
 }
 
+data_currency_extra1 = {
+    "LSK": [],
+    "BCP": [],
+    "GNT": [],
+}
+
+S = 5
+X = 5
+Y = 3
+
 
 def data(lines, window, zakres):
     currency_1 = ['LSK', 'BCP', 'GNT']
@@ -30,6 +41,9 @@ def data(lines, window, zakres):
             if data is not None:
                 diffrence = calculate(data, c, window, zakres)
         create_graph(iterator, lines)
+        candidate = find_candidate(currency_1[0], currency_1[1], currency_1[2])
+        define_liquid(candidate)
+        define_volatile(candidate)
         time.sleep(5)
     return diffrence
 
@@ -91,19 +105,151 @@ def calculate_RSI(currency, window_len):
     return RSI
 
 
+def check_trend(currency):
+    down_hills_points = []
+    up_hills_points = []
+    data = data_currency_extra[currency]
+
+    for items in range(1, len(data)-1):
+
+        if (data[items - 1]["RSI"] > data[items]["RSI"]) and (data[items]["RSI"] < data[items + 1]["RSI"]):  # sprawdzam czy to dołek and (data[items]["RSI"] < data[items + 1]["RSI"])
+            down_hills_points.append(data[items]["RSI"])
+            print(down_hills_points, '-')
+        else:
+            down_hills_points.append(0)
+
+        if (data[items - 1]["RSI"] < data[items]["RSI"]) and (data[items]["RSI"] > data[items + 1]["RSI"]):  # sprawdzam czy to wierzchołek and (data[items]["RSI"] > data[items + 1]["RSI"])
+            up_hills_points.append(data[items]["RSI"])
+            print(up_hills_points, '+')
+        else:
+            up_hills_points.append(0)
+
+    if (down_hills_points[-1] < down_hills_points[len(down_hills_points) - 2]) and \
+            (down_hills_points[len(down_hills_points) - 2] != 0):
+        print("down")
+        return "Downward"
+
+    elif (up_hills_points[-1] > up_hills_points[len(up_hills_points) - 2]) and \
+            (up_hills_points[-1] != 0):
+        print("up")
+        return "Rising"
+
+    elif ((up_hills_points[-1] == up_hills_points[len(up_hills_points) - 2])
+            or (down_hills_points[-1] == down_hills_points[len(down_hills_points) - 2])) \
+            and (up_hills_points[-1] != 0 and up_hills_points[len(up_hills_points) - 2] != 0) \
+            and (down_hills_points[-1] != 0 and down_hills_points[len(down_hills_points) - 2] != 0):
+        print("side")
+        return "Sideways"
+
+    else:
+        print("insufficient amount of data")
+        return "Insufficient amount of data"
+
+
+def find_candidate(c1, c2, c3):
+    currency1 = False
+    currency2 = False
+    currency3 = False
+
+    c1_trend = data_currency_extra1[c1][-1]["trend"]
+    c2_trend = data_currency_extra1[c2][-1]["trend"]
+    c3_trend = data_currency_extra1[c3][-1]["trend"]
+
+    print(c1_trend, c2_trend, c3_trend)
+    bool_array = [currency1, currency2, currency3]
+
+    LastVolumen_c1 = data_currency_extra[c1][-1]['volumen']
+    LastVolumen_c2 = data_currency_extra[c2][-1]['volumen']
+    LastVolumen_c3 = data_currency_extra[c3][-1]['volumen']
+
+    LastVolumeArray = [LastVolumen_c1, LastVolumen_c2, LastVolumen_c3]
+    max = ""
+
+    if c1_trend !=  "Downward":
+        currency1 = True
+    if c2_trend != "Downward":
+        currency2 = True
+    if c3_trend != "Downward":
+        currency3 = True
+
+    print(bool_array, ' ------- ')
+
+    max_array = []
+    for items in bool_array:
+        if items is True:
+            max_array.append(LastVolumeArray[items])
+        else:
+            max_array.append(0)
+    out = max_array.index(np.max(max_array))
+
+    if out == 0:
+        max = c1
+    elif out == 1:
+        max = c2
+    else:
+        max = c3
+
+    data_currency_extra1[max][-1]['candidate'] = 'C'
+    return max
+
+
+def define_liquid(currency):
+
+    buy = data_currency[currency][-1]["buy_price"]
+    sell = data_currency[currency][-1]["sell_price"]
+
+    maximum = max(buy, sell)
+    minimum = min(buy, sell)
+
+    out = maximum * 100/minimum
+    distance = 100 - out
+
+    if distance < 5:
+        data_currency_extra1[currency][-1]['liquid']='L'
+        return True
+    else:
+        return False
+
+
+def define_volatile(currency):
+    buy_array = []
+    for i in range(len(data_currency[currency])):
+        data = data_currency[currency][i]["buy_price"]
+        buy_array.append(data)
+
+    if Y < len(buy_array):
+        value_Y = buy_array[len(buy_array)-Y]
+    else:
+        value_Y = buy_array[-1]
+
+    current = buy_array[0]
+
+    maximum = max(value_Y, current)
+    minimum = min(value_Y, current)
+
+    out = minimum * 100/maximum
+    distance = 100 - out
+
+    if distance > X:
+        data_currency_extra1[currency][-1]['volatile'] = 'V'
+        return True
+    else:
+        return False
+
+
 def calculate(data, currency, beginning, end):
     buy = data['bids'][0][0]
     sell = data['asks'][0][0]
-    procenty = (1-(sell-buy)/sell) * 100
+    procent = (1-(sell-buy)/sell) * 100
     t = time.strftime("%H:%M:%S", time.localtime())
 
     diffrence = {
         'buy_price': data['bids'][0][0],
         'sell_price': data['asks'][0][0],
-        'procents': procenty,
+        'procents': procent,
         'time': str(t),
     }
-
+    print(currency, '-----', procent)
     data_currency[currency].append(diffrence)
     value_buy, value_sell = calculate_averange(currency, window)
     RSI = calculate_RSI(currency, zakres)
@@ -117,8 +263,19 @@ def calculate(data, currency, beginning, end):
     }
 
     data_currency_extra[currency].append(diffrence2)
+    if len(data_currency_extra[currency]) >= 3:
+        trend = check_trend(currency)
 
-    print(diffrence, diffrence2)
+    else:
+        trend = None
+
+    diffrence3 = {
+        'trend': trend,
+        'candidate': '-',
+        'volatile': '-',
+        'liquid': '-',
+        }
+    data_currency_extra1[currency].append(diffrence3)
     return diffrence
 
 
@@ -129,6 +286,7 @@ def create_graph(j, lines):
     for c, l in lines.items():
         data = data_currency[c]
         data2 = data_currency_extra[c]
+        data3 = data_currency_extra1[c]
         buy = []
         sell = []
         tim = []
@@ -136,6 +294,10 @@ def create_graph(j, lines):
         sell_average = []
         RSI = []
         volumen = []
+        trend = []
+        candidate = []
+        volatile = []
+        liquid = []
         width = 0.35
         if len(data) > 0:
             itr = range(xrang)
@@ -149,13 +311,18 @@ def create_graph(j, lines):
                 sell_average.append(data2[i-len(itr)]["sell_averange"])
                 RSI.append(data2[i-len(itr)]["RSI"])
                 volumen.append(float(data2[i-len(itr)]["volumen"]))
-            # dodać przerywane linie
+                trend.append(data3[i-len(itr)]["trend"])
+                candidate.append(data3[i-len(itr)]["candidate"])
+                volatile.append(data3[i-len(itr)]["volatile"])
+                liquid.append(data3[i-len(itr)]["liquid"])
+
             l[0].set_data(itr, buy)
             l[1].set_data(itr, sell)
             l[2].set_data(itr, buy_average)
             l[3].set_data(itr, sell_average)
             plts[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
             plts[c].set_xlim(0, xrang-1)
+            plts[c].set_title(f"{c} - PLN, {candidate[0]}, {volatile[0]}, {liquid[0]}")
 
             if min(buy) >= min(buy_average):
                 bottom = min(buy_average)
@@ -175,6 +342,7 @@ def create_graph(j, lines):
 
             plts_ex[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
             plts_ex[c].set_xlim(0, xrang-1)
+            plts_ex[c].set_title(f"{c} - PLN, trend:{trend[-1]}")
 
             if min(RSI) >= min(volumen):
                 bottom1 = min(volumen)
@@ -186,7 +354,7 @@ def create_graph(j, lines):
             else:
                 top1 = max(RSI)
             plts_ex[c].legend(labels=[f'Volumen: {volumen[-1]}', f'RSI: {RSI[-1]}'])
-            plts_ex[c].set_ylim([bottom1*0.95, top1*1.05])
+            plts_ex[c].set_ylim([bottom1*0.85, top1*1.15])
 
     plt.draw()
     plt.pause(1e-17)
@@ -194,8 +362,8 @@ def create_graph(j, lines):
 
 if __name__ == "__main__":
 
-    window = int(input("podaj koniec zakresu z którego chcesz otrzymać średnią: "))
-    zakres = int(input("podaj koniec zakresu z którego chcesz otrzymać RSI: "))
+    window = int(input("podaj długość zakresu z którego chcesz otrzymać średnią: "))
+    zakres = int(input("podaj długość zakresu z którego chcesz otrzymać RSI: "))
     plt.ion()
 
     plts = {}
@@ -213,8 +381,8 @@ if __name__ == "__main__":
         plts[c] = fig1.add_subplot(len(data_currency), 1, itr)
         buy_line, = plts[c].plot([0], [0], label='buy')
         sell_line, = plts[c].plot([0], [0], label='sell')
-        buy_average, = plts[c].plot([0], [0], label='buy_average')
-        sell_average, = plts[c].plot([0], [0], label='sell_average')
+        buy_average, = plts[c].plot([0], [0], color='blue', linestyle='dashed', label='buy_average')
+        sell_average, = plts[c].plot([0], [0], color='orange', linestyle='dashed', label='sell_average')
         lines[c] = [buy_line, sell_line, buy_average, sell_average]
 
         plts[c].set_ylim([1, 5])
