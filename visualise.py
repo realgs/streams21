@@ -354,9 +354,9 @@ class Choose_candidate(object):
         self.x, self.s = self.ask_for_liquid_and_volitale_parameters()
 
     def ask_for_liquid_and_volitale_parameters(self):
-        print('Volitale parameter: ', end='')
+        print('Volitale parameter (more than x) x: ', end='')
         x = float(input())
-        print('Spread parameter: ', end='')
+        print('Spread parameter (less than s) s: ', end='')
         s = float(input())
         print('Sample size for volitale and spread: ', end='')
         self.y = int(input())
@@ -416,10 +416,10 @@ class Choose_candidate(object):
         dat1 = data[0]
         dat2 = data[-1]
         change = get_change(dat1, dat2)
-        print(change)
         if change == 100 or change == 0:
             self.is_liquid(name, plot, name_str)
-
+            return 0
+        print('Volatile value: ',change)
         name_str = name
         if change > x:
             name_str = name+'[V]'
@@ -432,7 +432,7 @@ class Choose_candidate(object):
         ask_data = y_ask_data[name][-1]
         bid_data = y_bid_data[name][-1]
         change = get_change(bid_data, ask_data)
-        print(change)
+        print('Spread value: ',change)
         if change < s:
             plot.set_title(name_str+'[L]')
 
