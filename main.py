@@ -1,6 +1,4 @@
 import requests
-import time
-import sys
 import itertools
 import warnings
 import numpy as np
@@ -8,7 +6,7 @@ from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.dates import ConciseDateFormatter, AutoDateLocator
-from matplotlib.widgets import Slider
+from matplotlib.widgets import Slider  # , TextBox
 
 warnings.filterwarnings("ignore")
 
@@ -86,6 +84,14 @@ def dynamic_plotting(interval):
 
         ax_lines.append((bids_line, asks_line, avg_bid_line,
                          avg_ask_line, RSI_line))
+
+    # def submit(text):
+    #     y = float(text)
+    #     main_axes[0].scatter(date[-1], y, color='green')
+
+    # ax_input = plt.axes([0.01, 0.8, 0.05, 0.05])
+    # text_box = TextBox(ax_input, 'no\nkup\ncos')
+    # text_box.on_submit(submit)
 
     def _update(frame):
         next_frame = next(counter)
