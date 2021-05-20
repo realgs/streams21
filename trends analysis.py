@@ -2,6 +2,7 @@ import requests
 import time
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from datetime import datetime, timedelta
 interval = 5
 cryptos = ["ETH","LTC","BTC"]
 currency = "PLN"
@@ -13,6 +14,15 @@ volstor = []
 rsisize = 4
 rsistore = []
 
+
+def get_volumen(crypto,currency):
+    fromtime = datetime.now() - timedelta(minutes=2)
+    fromtime = int(fromtime.timestamp()) * 100
+    url = "https://api.bitbay.net/rest/trading/transactions/"+crypto+"-"+currency
+    queryparams = {'fromTime': fromtime}
+    response = requests.request("GET", url, params=queryparams)
+    response = eval(response.text)
+    return sum([float(response['items'][i]['a']) for i in range(len(response['items']))])
 
 def rsicount(all_data, store,size):
     nr = len(all_data[0])
@@ -108,9 +118,8 @@ def cryptostream_to_plot(crypto_set, currency, all_data):
     for crypto in crypto_set:
         response = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/orderbook.json", timeout=5)
         handle_exceptions(response)
-        vol = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/ticker.json", timeout=5)
-        handle_exceptions(vol)
-        v_list.append(vol.json()['volume'])
+        v_list.append(get_volumen(crypto,currency))
+        print(get_volumen(crypto,currency))
         c_list.append([crypto,sellbuy(response.json()['asks'], response.json()['bids'])])
     volstor.append(v_list)
     all_data.append(c_list)
