@@ -82,14 +82,15 @@ def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_
 
 
 def animate(i):
-    buy, sell, avg1, avg2, vol, rsi_buy, rsi_sell = data_stream(CURRENCY[1], buys, sells, avg_buy, avg_sell, volume, rsi_buy_values, rsi_sell_values)
+    global param
+    buy, sell, avg1, avg2, vol, rsi_buy, rsi_sell = data_stream(CURRENCY[param], buys, sells, avg_buy, avg_sell, volume, rsi_buy_values, rsi_sell_values)
     t.append(time.strftime("%H:%M:%S", time.localtime()))
     for i in [buy, sell, avg1, avg2, vol, rsi_buy, rsi_sell, t]:
         if len(i) > 10:
             i.pop(0)
     plt.clf()
     plt.subplot(311)
-    plt.title(f'{CURRENCY[1]} chart')
+    plt.title(f'{CURRENCY[param]} chart')
     plt.plot(t, buy, label="buys", color="green")
     plt.plot(t, sell, label="sells", color="red")
     plt.plot(t, avg1, '--', label='buy avg', color='yellow')
@@ -117,15 +118,18 @@ def animate(i):
 
 
 def plot_data():
-    animation = FuncAnimation(plt.figure(), func=animate, interval=1000)
+    global TIME_SLEEP
+    animation = FuncAnimation(plt.figure(), func=animate, interval=TIME_SLEEP)
     plt.show()
 
 
 if __name__ == "__main__":
+    TIME_SLEEP = 5000
+    param = int(input("Wybierz walutę:"))
     CURRENCY = ["OMG-PLN", "BTC-PLN", "ETH-PLN"]
-    N = 5 #average
-    START = 0 #rsi start
-    STOP = 10 #rsi stop
+    N = 5 # input("Liczba próbek do wyliczenia średniej: ")#average
+    START = 0 # input("Początek przdziału do wyliczenia RSI: ") #rsi start
+    STOP = 10 # input("Koniec przdziału do wyliczenia RSI: ") # rsi stop
     buys = []
     sells = []
     avg_buy = []
