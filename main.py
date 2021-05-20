@@ -217,6 +217,9 @@ def dynamic_plotting(interval):
 
         return ax_lines,
 
+    mng = plt.get_current_fig_manager()
+    mng.resize(1920, 1080)
+
     _ = FuncAnimation(fig, _update, interval=interval)
     plt.show()
 
