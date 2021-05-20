@@ -69,7 +69,7 @@ def dynamic_plotting(interval):
     bid_gains = [[] for _ in range(N)]
     bid_losses = [[] for _ in range(N)]
 
-    fig = plt.figure(figsize=(99, 99), num='Please hire me',
+    fig = plt.figure(figsize=(15, 10), num='Please hire me',
                      constrained_layout=True)
     fig.suptitle('\nCryptocurriencies live tracking\n\n')
     fig_grid_spec = fig.add_gridspec(3*N, 1)
@@ -219,7 +219,8 @@ def dynamic_plotting(interval):
             xlocator = AutoDateLocator()
             ylocator = plt.LinearLocator(numticks=3)
             formatter = ConciseDateFormatter(xlocator)
-            ax.set(ylabel='Volume')
+            ax.set_ylabel('Volume', fontsize=8)
+            ax.set_yticklabels(ax.get_yticklabels(), fontsize=8)
             ax.yaxis.set_major_locator(ylocator)
             ax.xaxis.set_major_locator(xlocator)
             ax.xaxis.set_major_formatter(formatter)
