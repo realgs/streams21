@@ -1,9 +1,40 @@
 import matplotlib.pyplot as plt
 import currency
 import datetime
+import requests
 from matplotlib import style
 from matplotlib.dates import DateFormatter
 from matplotlib.animation import FuncAnimation
+
+
+def get_volume(url, pair):
+    global LAST_VOLUME_LIST
+    try:
+        response = requests.get(url).json()
+    except requests.exceptions.ConnectionError:
+        print("Connection error has occurred")
+        return 0
+
+    if LAST_VOLUME_LIST[pair] is None:
+        LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        return 0
+    else:
+        volume = 0
+        for item in response:
+            try:
+                item_time = datetime.datetime.strptime(item["executedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            except ValueError:
+                item_time = datetime.datetime.strptime(item["executedAt"], "%Y-%m-%dT%H:%M:%SZ")
+
+            if item_time <= LAST_VOLUME_LIST[pair]:
+                try:
+                    LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError:
+                    LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%SZ")
+                break
+            volume += float(item["quantity"])
+        print(volume)
+        return volume
 
 
 def calculate_rsi(pair):
@@ -25,7 +56,7 @@ def calculate_rsi(pair):
     return rsi_value
 
 
-def get_bid_ask(url: str, pair: str):
+def get_bid_ask(url: str, pair: str, i: int):
     result = currency.get_info([url], [pair], printing=False)
     if result is None:
         print("Data could not be retrieved")
@@ -51,11 +82,7 @@ def get_bid_ask(url: str, pair: str):
             best_bid_value = float(bid['rate'])
     avg_bid_value /= len(bids)
 
-    volume = 0
-    for item in result[0]['ask']:
-        volume += float(item['quantity'])
-    for item in result[0]['bid']:
-        volume += float(item['quantity'])
+    volume = get_volume(VOLUME_URLS[i], pair)
 
     result = {'time': current_time,
               'ask': best_ask_value,
@@ -72,7 +99,7 @@ def show_multiple_pairs():
     def update_data(number):
         print(number)
         for i in range(len(PAIRS)):
-            res = get_bid_ask(URLS[i], PAIRS[i])
+            res = get_bid_ask(URLS[i], PAIRS[i], i)
 
             dict_of_ask_bid_lists[PAIRS[i]][0].append(res['time'])
             dict_of_ask_bid_lists[PAIRS[i]][1].append(res['ask'])
@@ -126,7 +153,7 @@ def show_multiple_pairs():
         axs[0][j].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
         volume_chart, = axs[1][j].plot(dict_of_ask_bid_lists[PAIRS[j]][0], dict_of_ask_bid_lists[PAIRS[j]][6],
-                                       label="total volume", color='red')
+                                       label="volume", color='red')
         list_of_lines.append(volume_chart)
 
         axs[1][j].set_title(str(f"{PAIRS[j]} volume"))
@@ -156,6 +183,15 @@ if __name__ == "__main__":
     for p in range(len(PAIRS)):
         URLS.append(URL.format(PAIRS[p]))
     MAX_LENGTH = 20
+
+    VOLUME_URL = "https://api.bittrex.com/v3/markets/{}/trades"
+    VOLUME_URLS = list()
+    for p in range(len(PAIRS)):
+        VOLUME_URLS.append(VOLUME_URL.format(PAIRS[p]))
+
+    LAST_VOLUME_LIST = {}
+    for p in PAIRS:
+        LAST_VOLUME_LIST[p] = None
 
     # style.use('ggplot')
     style.use('seaborn-paper')
