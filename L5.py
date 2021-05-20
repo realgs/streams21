@@ -7,9 +7,13 @@ url = 'https://bitbay.net/API/Public/'
 post = '/trades.json'
 time_interval = 3
 
-w_volume = int(input('Okno przesuwne dla wolumenu: '))
-w_mean = int(input('Okno przesuwne dla średniej: '))
-w_rsi = int(input('Okno przesuwne dla RSI: '))
+# w_volume = int(input('Okno przesuwne dla wolumenu: '))
+# w_mean = int(input('Okno przesuwne dla średniej: '))
+# w_rsi = int(input('Okno przesuwne dla RSI: '))
+
+w_volume = 2
+w_mean = 2
+w_rsi = 2
 
 
 def get_data(currency_list, pos):
@@ -22,7 +26,7 @@ def get_data(currency_list, pos):
         raise SystemExit(err)
 
 
-def calculate_rsi(data, w):
+def calculate_rsi(data, w):  # dodać obsługę dziekenia przez 0!!
     data = data[-w:]
     rise = 0
     r_count = 0
@@ -131,28 +135,34 @@ if __name__ == '__main__':
                 p += 4
 
                 minim = min(price[currencies[j]] +
-                                   volume[currencies[j]] +
-                                   mean[currencies[j]] +
-                                   rsi[currencies[j]]) * 0.01
+                            volume[currencies[j]] +
+                            mean[currencies[j]] +
+                            rsi[currencies[j]]) * 0.01
                 maxim = max(price[currencies[j]] +
-                                   volume[currencies[j]] +
-                                   mean[currencies[j]] +
-                                   rsi[currencies[j]]) * 2.1
+                            volume[currencies[j]] +
+                            mean[currencies[j]] +
+                            rsi[currencies[j]]) * 2.1
                 ax[j].set_ylim(minim, maxim)
-                ax[j].set_xlim(0, max(times)+15)
+                ax[j].set_xlim(0, max(times) + 15)
                 # ax[j].set_yscale('symlog')
-                # ax[j].text(-0.1, 1.1, 'lalala', fontsize=14, transform = ax[j].transAxes)
-                ax[j].text(-0.1, 1.1, '                ', fontsize=14, transform=ax[j].transAxes, bbox=dict(facecolor='white', alpha=1))
+
+                ax[j].text(-0.1, 1.1, '                ', fontsize=14, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+                ax[j].text(0.5, 0.5, '      pliz          ', fontsize=14, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
                 if len(rsi[currencies[j]]) >= 2:
                     if rsi[currencies[j]][-1] > 70 or rsi[currencies[j]][-2] > 50 and rsi[currencies[j]][-1] > 50:
                         print(currencies[j], 'spadek')
 
-                        ax[j].text(-0.1, 1.1, 'spadek', fontsize=14, transform=ax[j].transAxes)
+                        ax[j].text(-0.1, 1.1, 'spadek', fontsize=14, transform=ax[j].transAxes,
+                                   bbox=dict(facecolor='white', edgecolor="none", alpha=1))
 
-                    if rsi[currencies[j]][-1] < 30 or rsi[currencies[j]][-2] < 50 and rsi[currencies[j]][-1] > 50:
+                    elif rsi[currencies[j]][-1] < 30 or rsi[currencies[j]][-2] < 50 and rsi[currencies[j]][-1] > 50:
                         print(currencies[j], 'wzrost')
-                        # ax[j].text(-0.1, 1.1, ' ', fontsize=14, transform=ax[j].transAxes)
-                        ax[j].text(-0.1, 1.1, 'wzrost', fontsize=14, transform=ax[j].transAxes)
+
+                        ax[j].text(-0.1, 1.1, 'wzrost', fontsize=14, transform=ax[j].transAxes,
+                                   bbox=dict(facecolor='white', edgecolor="none", alpha=1))
                 if len(rsi[currencies[j]]) >= 2:
                     print('-------------------')
 
