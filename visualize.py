@@ -16,7 +16,10 @@ def get_volume(url, pair):
         return 0
 
     if LAST_VOLUME_LIST[pair] is None:
-        LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        try:
+            LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        except ValueError:
+            LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%SZ")
         return 0
     else:
         volume = 0
