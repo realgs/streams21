@@ -4,7 +4,6 @@ import sys
 import itertools
 import warnings
 import numpy as np
-
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -31,22 +30,6 @@ def get_bitbay_data(category, resource):
     try:
         response = requests.get(URL)
         return response.json()
-    except Exception as e:
-        print(e)
-
-
-def print_offers(orders, resource):
-    try:
-        buy = orders['bids']
-        sell = orders['asks']
-
-        print(f'{resource}:')
-        print('    buy:')
-        for b in buy:
-            print(f'\t{b}')
-        print('    sell:')
-        for s in sell:
-            print(f'\t{s}')
     except Exception as e:
         print(e)
 
@@ -238,37 +221,9 @@ def dynamic_plotting(interval):
     plt.show()
 
 
-def monitor_offers(resource, interval, mode):
-    if mode == 'CLI':
-        while 1:
-            orders = get_bitbay_data(category='orderbook', resource=resource)
-            bid_rate = orders['bids'][0][0]
-            ask_rate = orders['asks'][0][0]
-            diff = (ask_rate-bid_rate) / bid_rate
-            if diff < 0:
-                print('-', abs(diff))
-            else:
-                print('+', abs(diff))
-
-            time.sleep(interval)
-    elif mode == 'plot':
-        dynamic_plotting(interval*1000)
-
-
 if __name__ == '__main__':
     MAIN_CURRENCY = 'PLN'
     CRYPTO_CURRENCIES = ['BTC', 'LTC', 'DASH']
     INTERVAL_SEC = 1
 
-    arg = sys.argv[1]
-    if arg == '1':
-        for currency in CRYPTO_CURRENCIES:
-            resource = currency + MAIN_CURRENCY
-            orders = get_bitbay_data('orderbook', resource)
-            print_offers(orders, resource)
-    elif arg == '2':
-        monitor_offers(resource=CRYPTO_CURRENCIES[0]+MAIN_CURRENCY,
-                       interval=INTERVAL_SEC, mode='CLI')
-    elif arg == '3':
-        monitor_offers(resource=CRYPTO_CURRENCIES[0]+MAIN_CURRENCY,
-                       interval=INTERVAL_SEC, mode='plot')
+    dynamic_plotting(INTERVAL_SEC*1000)
