@@ -1,0 +1,25 @@
+Przetwarzanie informacji w czasie rzeczywistym, w sposób reaktywny:
+
+1. Dajemy możliwość naniesienia na wykres punktu odniesienia - ceny kupna zasobów. 
+- Wykres jest odświeżany w czasie rzeczywistym i reprezentuje strumienie danych dotyczące trzech zasobów giełdowych, jak w poprzedniej liście. 
+- Podczas działania programu użytkownik ma mieć możliwość wielokrotnego wprowadzenia informacji co, w jakiej ilości i za ile kupił. Może to robić w odstępach czasowych i dla różnych zasobów, w nieokreślonej kolejności.
+- Na podstawie wprowadzonych przez użytkownika danych wyliczamy dotychczasową średnią zakupu danego waloru i nanosimy poziomą, przerywaną linią na wykres wartości zasobu. 
+- Zwrócić uwagę na zakresy wartości na osi y, wszystko ma się mieścić w zakresie wartości.
+4pkt
+
+2. Dodajemy możliwość wprowadzenia sprzedaży zasobów analogicznie do kupna. 
+- Po sprzedaży aktualizujemy obecną średnią cenę zakupu (nie uwzględniającą już tych jednostek, które zostały sprzedane. Zasada FIFO - first in first out)
+przykład: jeśli kupiliśmy 10 jednostek po 4000$, następnie 20 jednostek po 6000$, a na końcu 20 jednostek po 10000$, a następnie sprzedaliśmy 10 jednostek za 50000$ to nasz zysk wynosi 460000$ a obecna średnia cena zakupu to 8000$.
+- Przy sprzedaży obliczamy osiągnięty zysk/stratę i nanosimy informację o zysku/stracie w okolicy wykresu danego zasobu.
+4pkt
+
+3. Program ma umożliwiać zapis (i odczyt) wprowadzonych danych w formacie .json tak, by po ponownym uruchomieniu można było wprowadzić nazwę pliku przechowującego dane i nie gromadzić danych od nowa.
+4pkt
+
+4. Live wprowadzenie zmian w kodzie, dopisanie bardzo drobnej funkcjonalności w czasie 1-5 minut. 
+Zadanie ma na celu sprawdzenie samodzielności wykonywania zadań (lub chociaż dogłębnego ich zrozumienia) 
+8pkt
+
+Ze względu na punkt 4 wyjątkowo nie dopuszczam zdalnego oddawania tej listy.
+
+Deadline: 7 / 9 czerwca, w zależności od grupy. Zachęcam do wcześniejszego oddawania listy, ze względu na ciut dłuższy czas jej sprawdzania per student (patrz pkt 3).
