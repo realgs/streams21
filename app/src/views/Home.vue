@@ -4,7 +4,6 @@
       <CryptoCurrency
         :cryptoCurrencyName="instance.crypto"
         :nationalCurrencyName="instance.national"
-        :fixDiff="instance.fixValue"
         :alert="toBeAlerted === `${instance.crypto}${instance.national}`"
         @volume="handleVolume"
       />

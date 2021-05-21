@@ -22,10 +22,6 @@
         </select>
       </div>
       <div class="float-form__field">
-        <label for="formFix">Fix value: </label>
-        <input type="text" id="formFix" v-model="instanceForm.fixValue" />
-      </div>
-      <div class="float-form__field">
         <button type="submit">Add!</button>
       </div>
     </form>
@@ -34,6 +30,7 @@
 
 <script>
 import { mapActions } from 'vuex'
+import { v4 as uuidv4 } from 'uuid'
 
 export default {
   name: 'CryptoForm',
@@ -43,7 +40,6 @@ export default {
     instanceForm: {
       crypto: '',
       national: '',
-      fixValue: '',
     },
   }),
   methods: {
@@ -51,11 +47,10 @@ export default {
       createInstance: 'createInstance',
     }),
     addInstance(form) {
-      this.createInstance({ ...form })
+      this.createInstance({ ...form, id: uuidv4() })
 
       this.instanceForm.crypto = ''
       this.instanceForm.national = ''
-      this.instanceForm.fixValue = ''
     },
   },
 }

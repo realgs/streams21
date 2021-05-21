@@ -79,9 +79,6 @@ export default {
       type: String,
       required: true,
     },
-    fixDiff: {
-      type: Number,
-    },
     alert: [Boolean],
   },
   data: () => ({
@@ -117,9 +114,12 @@ export default {
       const maxBid = this.stripedData.reduce(findMaxBid).data.bid
       const maxVolume = 15 * this.stripedData.reduce(findMaxVolume).data.volume
 
+      const min = minAsk < minBid ? minAsk : minBid
+      const max = maxAsk > maxBid ? maxAsk : maxBid
+
       return {
-        min: minAsk < minBid ? minAsk : minBid,
-        max: maxAsk > maxBid ? maxAsk : maxBid,
+        min: min - 0.01 * min,
+        max: max + 0.01 * max,
         maxVolume,
       }
     },

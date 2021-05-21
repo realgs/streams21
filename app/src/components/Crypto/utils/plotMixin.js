@@ -45,8 +45,8 @@ export default {
         },
         {
           seriesName: 'Asks',
-          min: this.bounds.min - this.fixDiff,
-          max: this.bounds.max + this.fixDiff,
+          min: this.bounds.min,
+          max: this.bounds.max,
           opposite: true,
           axisTicks: {
             show: true,
@@ -69,20 +69,20 @@ export default {
         },
         {
           seriesName: 'Bids',
-          min: this.bounds.min - this.fixDiff,
-          max: this.bounds.max + this.fixDiff,
+          min: this.bounds.min,
+          max: this.bounds.max,
           show: false,
         },
         {
           seriesName: 'Avg Asks',
-          min: this.bounds.min - this.fixDiff,
-          max: this.bounds.max + this.fixDiff,
+          min: this.bounds.min,
+          max: this.bounds.max,
           show: false,
         },
         {
           seriesName: 'Avg Bids',
-          min: this.bounds.min - this.fixDiff,
-          max: this.bounds.max + this.fixDiff,
+          min: this.bounds.min,
+          max: this.bounds.max,
           show: false,
         },
         {
