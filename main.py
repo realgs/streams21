@@ -45,6 +45,9 @@ def dynamic_plotting(interval):
     counter = itertools.count()
     N = len(CRYPTO_CURRENCIES)
 
+    asset_scan_limit = 5
+    volatile_bound = 0.05
+    liquid_bound = 0.05
     volume_chunk_size = 10
     hot_plot_mark = '⚑'
     uptrend_mark = '↗'
@@ -101,6 +104,12 @@ def dynamic_plotting(interval):
         ax_lines.append((bids_line, asks_line, avg_bid_line,
                          avg_ask_line, RSI_line, transactions_line))
 
+    axes_asset_marks = []
+    for i in range(N):
+        asset_mark = main_axes[i].text(1.1, 0.1, '',
+                                       transform=main_axes[i].transAxes)
+        axes_asset_marks.append(asset_mark)
+
     # def submit(text):
     #     y = float(text)
     #     main_axes[0].scatter(date[-1], y, color='green')
@@ -156,9 +165,18 @@ def dynamic_plotting(interval):
                 volume_chunks[i].append(volume_chunk_val)
                 ax.bar(date[-1], volume_chunk_val, align='center',
                        width=0.95*volume_chunk_size, color='powderblue')
-                ax.text(date[-1], volume_chunk_val/2,
-                        round(volume_chunk_val, 2), ha='center', va='center',
-                        fontsize='x-small')
+                ax_max_y = max(volume_chunks[i])
+                ratio = volume_chunk_val / ax_max_y
+                too_small_bar = True if ratio < 0.3 else False
+
+                if too_small_bar:
+                    ax.text(date[-1], volume_chunk_val,
+                            round(volume_chunk_val, 2), ha='center',
+                            va='baseline', fontsize='x-small')
+                else:
+                    ax.text(date[-1], volume_chunk_val/2,
+                            round(volume_chunk_val, 2), ha='center',
+                            va='center', fontsize='x-small')
 
             if len(volumes[i]) == volume_chunk_size:
                 volumes[i] = []
@@ -220,6 +238,7 @@ def dynamic_plotting(interval):
 
         canditate_indexes = []
         hot_plot_idx = None
+        canditate_index = None
         if all(volume_chunks):
             for i in range(N):
                 if curr_trend_marks[i] != downtrend_mark:
@@ -245,6 +264,38 @@ def dynamic_plotting(interval):
                     if i != hot_plot_idx or \
                             curr_trend_marks[i] == downtrend_mark:
                         hot_plot_marks[i] = ''
+                    elif i == hot_plot_idx and \
+                            curr_trend_marks[i] != downtrend_mark:
+                        canditate_index = hot_plot_idx
+
+        for i in range(N):
+            if len(transactions[i]) > asset_scan_limit:
+                last_trans = transactions[i][-asset_scan_limit:]
+                trans_mean = np.mean(last_trans)
+                trans_ratio = []
+                for transaction in last_trans:
+                    ratio = abs((transaction-trans_mean)/trans_mean)
+                    trans_ratio.append(ratio)
+
+                is_over_bound = list(map(lambda x: x > volatile_bound,
+                                         trans_ratio))
+
+                _last_bids = bids[i][-asset_scan_limit:]
+                _last_asks = asks[i][-asset_scan_limit:]
+                bids_asks_ratio = []
+                for bid, ask in zip(_last_bids, _last_asks):
+                    ratio = abs((bid-ask) / ask)
+                    bids_asks_ratio.append(ratio)
+
+                are_under_bound = list(map(lambda x: x < liquid_bound,
+                                           bids_asks_ratio))
+
+                if any(is_over_bound) and i == canditate_index:
+                    axes_asset_marks[i].set_text('volatile asset !')
+                elif all(are_under_bound) and i == canditate_index:
+                    axes_asset_marks[i].set_text('liquid asset !')
+                else:
+                    axes_asset_marks[i].set_text('')
 
         for i, (ax, crypto_currency) in enumerate(zip(main_axes,
                                                       CRYPTO_CURRENCIES)):
