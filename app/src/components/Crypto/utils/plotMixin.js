@@ -139,8 +139,8 @@ export default {
       ]
 
       if (
-        this.cryptoData.length <= 2 * this.transactionsToCount ||
-        this.transactionsToCount > this.cryptoData.length
+        this.tickerData.length <= 2 * this.transactionsToCount ||
+        this.transactionsToCount > this.tickerData.length
       )
         return series
 
@@ -149,7 +149,7 @@ export default {
       const RSIHistory = []
 
       this.stripedData.forEach((el) => {
-        const index = this.cryptoData.indexOf(el) - 1
+        const index = this.tickerData.indexOf(el) - 1
         const { askAvg, bidAvg } = this.countAvgs(index)
         const RSI = this.countRSI(index)
 

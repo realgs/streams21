@@ -1,7 +1,7 @@
 <template>
   <div class="crypto-currency" :class="{ glow: alert }">
     <div class="crypto-currency--header">
-      <div v-if="cryptoData && cryptoData.length > 0">
+      <div v-if="tickerData && tickerData.length > 0">
         <label for="transactionsToShow">Transactions to show: </label>
         <input
           type="number"
@@ -9,20 +9,16 @@
           v-model.number="transactionsToShow"
         />
       </div>
-      <div v-if="cryptoData && cryptoData.length > 0">
-        <label for="minHesitation">min hesitation %: </label>
-        <input
-          type="number"
-          id="minHesitation"
-          v-model.number="minHesitation"
-        />
+      <div v-if="tickerData && tickerData.length > 0">
+        <label for="minSpread">min spread %: </label>
+        <input type="number" id="minSpread" v-model.number="minSpread" />
       </div>
       <h2>{{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}</h2>
-      <div v-if="cryptoData && cryptoData.length > 0">
+      <div v-if="tickerData && tickerData.length > 0">
         <label for="diffAskBid">Ask/Bid lower than %: </label>
         <input type="number" id="diffAskBid" v-model.number="maxDiffAskBid" />
       </div>
-      <div v-if="cryptoData && cryptoData.length > 0">
+      <div v-if="tickerData && tickerData.length > 0">
         <label for="transactionsToCount">Transactions to count: </label>
         <input
           type="number"
@@ -31,7 +27,7 @@
         />
       </div>
     </div>
-    <template v-if="cryptoData && cryptoData.length > 0">
+    <template v-if="tickerData && tickerData.length > 0">
       <div class="crypto-currency__chart">
         <Apexchart
           width="1500"
@@ -43,11 +39,11 @@
       </div>
       <div class="crypto-currency__status">
         <h2>RSI Status: {{ RSIStatus }}</h2>
-        <h2 v-if="hesitation > minHesitation">Volatile Asset</h2>
+        <h2 v-if="spread > minSpread">Volatile Asset</h2>
         <h2 v-if="diffAskBid < maxDiffAskBid">Liquid Asset</h2>
       </div>
       <CryptoHistory
-        :cryptoData="cryptoData"
+        :cryptoData="tickerData"
         :sign="signs[nationalCurrencyName]"
       />
     </template>
@@ -89,7 +85,7 @@ export default {
     alert: [Boolean],
   },
   data: () => ({
-    cryptoData: [],
+    tickerData: [],
     dataInterval: null,
     transactionsToCount: 5,
     transactionsToShow: 5,
@@ -97,20 +93,21 @@ export default {
       USD: '$',
       EUR: '€',
     },
-    minHesitation: 1,
+    minSpread: 1,
     maxDiffAskBid: 1,
   }),
   computed: {
     stripedData() {
-      if (!this.cryptoData) return
-      const copiedData = [...this.cryptoData]
+      if (!this.tickerData) return
 
-      return copiedData.length >= this.transactionsToShow
-        ? copiedData.slice(1).slice(-this.transactionsToShow)
-        : copiedData
+      const copiedTickerData = [...this.tickerData]
+
+      return copiedTickerData.length >= this.transactionsToShow
+        ? copiedTickerData.slice(1).slice(-this.transactionsToShow)
+        : copiedTickerData
     },
     enoughtData() {
-      return 2 * this.transactionsToCount < this.cryptoData.length
+      return 2 * this.transactionsToCount < this.tickerData.length
     },
     bounds() {
       if (!this.stripedData) return
@@ -144,55 +141,55 @@ export default {
     RSITrend() {
       return this.currentRSI && this.enoughtData ? this.currentRSI <= 30 : false
     },
-    hesitation() {
+    spread() {
       if (
-        !this.cryptoData ||
-        this.cryptoData.length <= this.transactionsToCount
+        !this.tickerData ||
+        this.tickerData.length <= this.transactionsToCount
       )
         return 0
 
-      const asksHistory = this.cryptoData
+      const asksHistory = this.tickerData
         .slice(1)
         .slice(-this.transactionsToCount)
         .map((el) => el.data.ask)
-      const bidsHistory = this.cryptoData
+      const bidsHistory = this.tickerData
         .slice(1)
         .slice(-this.transactionsToCount)
         .map((el) => el.data.bid)
 
-      const hesitationHistory = []
+      const spreadHistory = []
       for (let i = 0; i < asksHistory.length - 1; i++) {
         const current = (asksHistory[i] + bidsHistory[i]) / 2
         const next = (asksHistory[i + 1] + bidsHistory[i + 1]) / 2
 
-        hesitationHistory.push((Math.abs(current - next) / current) * 100)
+        spreadHistory.push((Math.abs(current - next) / current) * 100)
       }
 
-      return Math.max(...hesitationHistory)
+      return Math.max(...spreadHistory)
     },
     diffAskBid() {
-      if (!this.cryptoData) return 100
+      if (!this.tickerData) return 100
 
-      return this.cryptoData[this.cryptoData.length - 1].data.difference
+      return this.tickerData[this.tickerData.length - 1].data.difference
     },
   },
   methods: {
-    async getCryptoData() {
-      const downloadedData = await handleData(
+    async getData() {
+      const [tickerData, transactionData] = await handleData(
         this.cryptoCurrencyName,
         this.nationalCurrencyName
       )
       const time = new Date()
-      this.cryptoData.push({
+      this.tickerData.push({
         time: time.toLocaleString(),
-        data: downloadedData,
+        data: { ...tickerData, ...transactionData },
       })
     },
     countAvgs(startIndex) {
-      const asksHistory = this.cryptoData
+      const asksHistory = this.tickerData
         .slice(startIndex - this.transactionsToCount, startIndex)
         .map((el) => el.data.ask)
-      const bidsHistory = this.cryptoData
+      const bidsHistory = this.tickerData
         .slice(startIndex - this.transactionsToCount, startIndex)
         .map((el) => el.data.bid)
 
@@ -204,23 +201,15 @@ export default {
       return { askAvg, bidAvg }
     },
     countRSI(startIndex) {
-      const asksHistory = this.cryptoData
+      const closeHistory = this.tickerData
         .slice(startIndex - this.transactionsToCount - 1, startIndex)
-        .map((el) => el.data.ask)
-      const bidsHistory = this.cryptoData
-        .slice(startIndex - this.transactionsToCount - 1, startIndex)
-        .map((el) => el.data.bid)
-
-      const avgHistory = []
-      for (let i = 0; i < asksHistory.length; i++) {
-        avgHistory.push((asksHistory[i] + bidsHistory[i]) / 2)
-      }
+        .map((el) => el.data.close)
 
       const increase = []
       const decrease = []
 
-      for (let i = 0; i < avgHistory.length - 1; i++) {
-        const calc = avgHistory[i] - avgHistory[i + 1]
+      for (let i = 0; i < closeHistory.length - 1; i++) {
+        const calc = closeHistory[i] - closeHistory[i + 1]
 
         if (calc >= 0) {
           increase.push(calc)
@@ -231,11 +220,15 @@ export default {
         }
       }
 
-      const RS =
+      const avgIncrease =
         increase.reduce((a, b) => a + b, 0) /
-        (increase.length ? increase.length : 1) /
-        (decrease.reduce((a, b) => a + b, 0) /
-          (decrease.length ? decrease.length : 1))
+        (increase.length ? increase.length : 1)
+
+      const avgDecrease =
+        decrease.reduce((a, b) => a + b, 0) /
+        (decrease.length ? decrease.length : 1)
+
+      const RS = avgIncrease / avgDecrease
 
       const RSI = 100 - 100 / (1 + RS)
 
@@ -244,7 +237,7 @@ export default {
   },
   created() {
     this.dataInterval = setInterval(async () => {
-      await this.getCryptoData()
+      await this.getData()
     }, 5000)
   },
   destroyed() {
