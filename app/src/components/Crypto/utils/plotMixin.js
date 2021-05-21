@@ -188,7 +188,9 @@ export default {
         nationalCurrencyName: this.nationalCurrencyName,
       })
 
-      return [...series, ...avgSeries]
+      return series.length === avgSeries.length
+        ? [...series, ...avgSeries]
+        : series
     },
   },
 }
