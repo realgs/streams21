@@ -46,6 +46,8 @@ def dynamic_plotting(interval):
     N = len(CRYPTO_CURRENCIES)
 
     asset_scan_limit = 5
+    trend_scan_limit = 5
+    rsi_default_limit = 10
     volatile_bound = 0.05
     liquid_bound = 0.05
     volume_chunk_size = 10
@@ -199,7 +201,12 @@ def dynamic_plotting(interval):
                 a = np.mean(bid_gains[i][-Y_slider.val:])
                 b = np.mean(bid_losses[i][-Y_slider.val:])
             else:
-                a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
+                if len(bids[i]) > rsi_default_limit:
+                    a = np.mean(bid_gains[i][-rsi_default_limit:]),
+                    b = np.mean(bid_losses[i][-rsi_default_limit:])
+                else:
+                    a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
+
             RS = a / b
             RSI = 100 - (100 / (1+RS))
 
@@ -230,11 +237,15 @@ def dynamic_plotting(interval):
                 lines[5].set_data(date, transactions[i])
 
         for i, values in enumerate(RSI_values):
-            if len(values) > 2:
-                if values[-1] > values[-2]:
+            if len(values) > trend_scan_limit:
+                last_values = values[-trend_scan_limit:]
+                last_rsi_mean = np.mean(last_values)
+                if 60 <= last_rsi_mean < 80 or last_rsi_mean <= 30:
                     curr_trend_marks[i] = uptrend_mark
-                elif values[-1] < values[-2]:
+                elif 30 < last_rsi_mean < 50 or last_rsi_mean >= 80:
                     curr_trend_marks[i] = downtrend_mark
+                else:
+                    curr_trend_marks[i] = ''
 
         canditate_indexes = []
         hot_plot_idx = None
