@@ -39,6 +39,9 @@ def dynamic_plotting(interval):
     N = len(CRYPTO_CURRENCIES)
 
     volume_chunk_size = 10
+    hot_plot_mark = '⚑'
+    uptrend_mark = '↗'
+    downtrend_mark = '↘'
 
     date = []
     bids = [[] for _ in range(N)]
@@ -46,9 +49,12 @@ def dynamic_plotting(interval):
     avg_bids = [[] for _ in range(N)]
     avg_asks = [[] for _ in range(N)]
     volumes = [[] for _ in range(N)]
+    volume_chunks = [[] for _ in range(N)]
     RSI_values = [[] for _ in range(N)]
     bid_gains = [[] for _ in range(N)]
     bid_losses = [[] for _ in range(N)]
+    curr_trend_marks = ['' for _ in range(N)]
+    hot_plot_marks = ['' for _ in range(N)]
 
     fig = plt.figure(figsize=(15, 10), num='Please hire me',
                      constrained_layout=True)
@@ -128,8 +134,13 @@ def dynamic_plotting(interval):
                 volumes[i].append(orders[i]['bids'][0][1])
 
             if len(volumes[i]) >= volume_chunk_size:
-                ax.bar(date[-1], sum(volumes[i]), align='edge',
+                volume_chunk_val = sum(volumes[i])
+                volume_chunks[i].append(volume_chunk_val)
+                ax.bar(date[-1], volume_chunk_val, align='center',
                        width=0.95*volume_chunk_size, color='powderblue')
+                ax.text(date[-1], volume_chunk_val/2,
+                        round(volume_chunk_val, 2), ha='center', va='center',
+                        fontsize='x-small')
 
             if len(volumes[i]) == volume_chunk_size:
                 volumes[i] = []
@@ -180,13 +191,48 @@ def dynamic_plotting(interval):
             if RSI_values[i]:
                 lines[4].set_data(date, RSI_values[i])
 
-        for ax, crypto_currency in zip(main_axes, CRYPTO_CURRENCIES):
+        for i, values in enumerate(RSI_values):
+            if len(values) > 2:
+                if values[-1] > values[-2]:
+                    curr_trend_marks[i] = uptrend_mark
+                elif values[-1] < values[-2]:
+                    curr_trend_marks[i] = downtrend_mark
+
+        canditate_indexes = []
+        hot_plot_idx = None
+        if all(volume_chunks):
+            for i in range(N):
+                if curr_trend_marks[i] != downtrend_mark:
+                    canditate_indexes.append(i)
+
+            if canditate_indexes:
+                last_uptrend_records = []
+                for i, ax_volumes in enumerate(volume_chunks):
+                    if i in canditate_indexes:
+                        last_uptrend_records.append((i, ax_volumes[-1]))
+
+                max_volume = float('-inf')
+                hot_plot_idx = None
+                for i, volume in last_uptrend_records:
+                    if volume > max_volume:
+                        max_volume = volume
+                        hot_plot_idx = i
+
+                if hot_plot_idx:
+                    hot_plot_marks[hot_plot_idx] = hot_plot_mark
+                    for i in range(N):
+                        if i != hot_plot_idx:
+                            hot_plot_marks[i] = ''
+
+        for i, (ax, crypto_currency) in enumerate(zip(main_axes,
+                                                      CRYPTO_CURRENCIES)):
             xlocator = AutoDateLocator()
             ylocator = plt.LinearLocator(numticks=3)
             formatter = ConciseDateFormatter(xlocator, show_offset=False)
-
-            ax.set(ylabel=f'Rate [{MAIN_CURRENCY}]',
-                   title=crypto_currency)
+            ax_title = hot_plot_marks[i] + ' ' \
+                + crypto_currency + ' ' \
+                + curr_trend_marks[i]
+            ax.set(ylabel=f'Rate [{MAIN_CURRENCY}]', title=ax_title)
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(handles+[RSI_line], labels+['RSI'], loc='upper left',
                       bbox_to_anchor=(1.08, 1.06))
@@ -204,13 +250,13 @@ def dynamic_plotting(interval):
             ax.set_ylim(0, 100)
             ax.autoscale_view()
 
-        for ax in volume_axes:
+        for i, ax in enumerate(volume_axes):
+            ax.set_ylabel('Volume', fontsize=8)
             xlocator = AutoDateLocator()
             ylocator = plt.LinearLocator(numticks=3)
             formatter = ConciseDateFormatter(xlocator)
-            ax.set_ylabel('Volume', fontsize=8)
-            ax.set_yticklabels(ax.get_yticklabels(), fontsize=8)
             ax.yaxis.set_major_locator(ylocator)
+            ax.set_yticklabels([])
             ax.xaxis.set_major_locator(xlocator)
             ax.xaxis.set_major_formatter(formatter)
             ax.xaxis.set_visible(False)
