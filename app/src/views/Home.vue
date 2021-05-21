@@ -55,7 +55,7 @@ export default {
     runAlert() {
       const candidates = []
       for (let instance in this.instancesData) {
-        if (!this.instancesData[instance].trend)
+        if (this.instancesData[instance].trend)
           candidates.push(this.instancesData[instance])
       }
 
