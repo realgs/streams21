@@ -178,11 +178,12 @@ export default {
       ]
 
       const lastVolume = series[0].data[series[0].data.length - 1]
+      const lastAsk = series[1].data[series[1].data.length - 1]
 
       this.currentRSI = RSIHistory[RSIHistory.length - 1]
       this.$emit('volume', {
-        volume: lastVolume,
-        trend: this.RSITrend,
+        volume: lastVolume * lastAsk,
+        trend: this.RSIUpTrend,
         cryptoCurrencyName: this.cryptoCurrencyName,
         nationalCurrencyName: this.nationalCurrencyName,
       })

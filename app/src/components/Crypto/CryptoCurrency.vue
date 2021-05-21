@@ -138,8 +138,8 @@ export default {
 
       return status(parseInt(this.currentRSI))
     },
-    RSITrend() {
-      return this.currentRSI && this.enoughtData ? this.currentRSI <= 30 : false
+    RSIUpTrend() {
+      return this.currentRSI && this.enoughtData ? this.currentRSI >= 30 : false
     },
     spread() {
       if (
