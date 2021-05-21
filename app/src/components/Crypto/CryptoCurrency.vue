@@ -13,7 +13,9 @@
         <label for="minSpread">min spread %: </label>
         <input type="number" id="minSpread" v-model.number="minSpread" />
       </div>
-      <h2>{{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}</h2>
+      <h2 @dblclick="removeInstance(instanceId)">
+        {{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}
+      </h2>
       <div v-if="tickerData && tickerData.length > 0">
         <label for="diffAskBid">Ask/Bid lower than %: </label>
         <input type="number" id="diffAskBid" v-model.number="maxDiffAskBid" />
@@ -57,6 +59,7 @@
 import { handleData } from '@/services/FinanceAPI'
 import plotMixin from '@/components/Crypto/utils/plotMixin'
 import CryptoHistory from '@/components/Crypto/CryptoHistory'
+import { mapActions } from 'vuex'
 
 const findMinAsk = (p, v) => (p.data.ask < v.data.ask ? p : v)
 const findMaxAsk = (p, v) => (p.data.ask > v.data.ask ? p : v)
@@ -76,6 +79,10 @@ export default {
       required: true,
     },
     nationalCurrencyName: {
+      type: String,
+      required: true,
+    },
+    instanceId: {
       type: String,
       required: true,
     },
@@ -174,6 +181,9 @@ export default {
     },
   },
   methods: {
+    ...mapActions({
+      removeInstance: 'removeInstance',
+    }),
     async getData() {
       const [tickerData, transactionData] = await handleData(
         this.cryptoCurrencyName,

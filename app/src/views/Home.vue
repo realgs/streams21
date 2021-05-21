@@ -1,9 +1,10 @@
 <template>
   <div class="home">
-    <div v-for="(instance, $index) in instances" :key="$index" class="section">
+    <div v-for="instance in instances" :key="instance.id" class="section">
       <CryptoCurrency
         :cryptoCurrencyName="instance.crypto"
         :nationalCurrencyName="instance.national"
+        :instanceId="instance.id"
         :alert="toBeAlerted === `${instance.crypto}${instance.national}`"
         @volume="handleVolume"
       />
@@ -34,7 +35,7 @@ export default {
       instances: 'getInstances',
     }),
     instancesCount() {
-      return this.instances.length
+      return this.instances.length || 1
     },
   },
   data: () => ({

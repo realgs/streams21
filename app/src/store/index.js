@@ -9,10 +9,16 @@ export default new Vuex.Store({
   },
   mutations: {
     ADD_INSTANCE: (state, instance) => state.instances.push(instance),
+    REMOVE_INSTANCE: (state, id) => {
+      state.instances = state.instances.filter((instance) => instance.id !== id)
+    },
   },
   actions: {
     createInstance: ({ commit }, instance) => {
-      commit('ADD_INSTANCE', { ...instance, fixValue: +instance.fixValue })
+      commit('ADD_INSTANCE', { ...instance })
+    },
+    removeInstance: ({ commit }, id) => {
+      commit('REMOVE_INSTANCE', id)
     },
   },
   getters: {
