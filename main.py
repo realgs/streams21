@@ -220,9 +220,11 @@ def dynamic_plotting(interval):
 
                 if hot_plot_idx:
                     hot_plot_marks[hot_plot_idx] = hot_plot_mark
-                    for i in range(N):
-                        if i != hot_plot_idx:
-                            hot_plot_marks[i] = ''
+
+                for i in range(N):
+                    if i != hot_plot_idx or \
+                            curr_trend_marks[i] == downtrend_mark:
+                        hot_plot_marks[i] = ''
 
         for i, (ax, crypto_currency) in enumerate(zip(main_axes,
                                                       CRYPTO_CURRENCIES)):
