@@ -23,7 +23,14 @@ def _min(L):
     return min(L)
 
 
-def get_bitbay_data(category, resource):
+def get_bitbay_data(category, crypto_currency, main_currency):
+    if category == 'transactions':
+        resource = f'{crypto_currency}-{main_currency}'
+        URL = f'https://api.bitbay.net/rest/trading/{category}/{resource}'
+        response = requests.get(URL)
+        return response.json()
+
+    resource = crypto_currency + main_currency
     URL = f'https://bitbay.net/API/Public/{resource}/{category}.json'
     try:
         response = requests.get(URL)
@@ -55,6 +62,7 @@ def dynamic_plotting(interval):
     bid_losses = [[] for _ in range(N)]
     curr_trend_marks = ['' for _ in range(N)]
     hot_plot_marks = ['' for _ in range(N)]
+    transactions = [[] for _ in range(N)]
 
     fig = plt.figure(figsize=(15, 10), num='Please hire me',
                      constrained_layout=True)
@@ -85,11 +93,13 @@ def dynamic_plotting(interval):
                                      label="bids' avg", color='cornflowerblue')
         avg_ask_line, = ax.plot_date(date, avg_asks[i], '--',
                                      label="asks' avg", color='orange')
+        transactions_line, = ax.plot_date(date, transactions[i], '-',
+                                          label="transactions", color='green')
         RSI_line, = RSI_subaxes[i].plot_date(date, RSI_values[i], ':',
                                              label='RSI', color='lightgray')
 
         ax_lines.append((bids_line, asks_line, avg_bid_line,
-                         avg_ask_line, RSI_line))
+                         avg_ask_line, RSI_line, transactions_line))
 
     # def submit(text):
     #     y = float(text)
@@ -111,7 +121,15 @@ def dynamic_plotting(interval):
         orders = []
         for i in range(N):
             orders.append(get_bitbay_data('orderbook',
-                                          CRYPTO_CURRENCIES[i]+MAIN_CURRENCY))
+                                          CRYPTO_CURRENCIES[i],
+                                          MAIN_CURRENCY))
+
+        for i in range(N):
+            _transactions = get_bitbay_data('transactions',
+                                            CRYPTO_CURRENCIES[i],
+                                            MAIN_CURRENCY)
+            last_transaction = float(_transactions['items'][-1]['r'])  # rate
+            transactions[i].append(last_transaction)
 
         for i in range(N):
             bids[i].append(orders[i]['bids'][0][0])
@@ -190,6 +208,8 @@ def dynamic_plotting(interval):
                 lines[3].set_data(date, avg_asks[i])
             if RSI_values[i]:
                 lines[4].set_data(date, RSI_values[i])
+            if transactions[i]:
+                lines[5].set_data(date, transactions[i])
 
         for i, values in enumerate(RSI_values):
             if len(values) > 2:
