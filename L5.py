@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import requests
 import time
 
@@ -67,9 +68,9 @@ def calculate_mean(data, w):
 
 
 def create_plot(currency_list):
-    figure, axis = plt.subplots(n, 1, figsize=(6, 7))
+    figure, axis = plt.subplots(n, 1, figsize=(7, 7))
     figure.text(0.5, 0.04, 'time', ha='center', va='center')
-    figure.tight_layout(pad=3.0)
+    figure.tight_layout(pad=4.0, rect=[0, 0, .8, 1])
 
     line = []
     for i in range(len(currency_list)):
@@ -146,25 +147,36 @@ if __name__ == '__main__':
                 ax[j].set_xlim(0, max(times) + 15)
                 # ax[j].set_yscale('symlog')
 
-                ax[j].text(-0.1, 1.1, '                ', fontsize=14, transform=ax[j].transAxes,
+                ax[j].text(1.3, .85, '          ', fontsize=10, transform=ax[j].transAxes,
                            bbox=dict(facecolor='white', edgecolor="none", alpha=1))
-                ax[j].text(0.5, 0.5, '      pliz          ', fontsize=14, transform=ax[j].transAxes,
+                ax[j].text(1.03, .85, 'typ trendu: ', fontsize=10, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
+                ax[j].text(1.03, .65, '                ', fontsize=10, transform=ax[j].transAxes,
                            bbox=dict(facecolor='white', edgecolor="none", alpha=1))
 
                 if len(rsi[currencies[j]]) >= 2:
                     if rsi[currencies[j]][-1] > 70 or rsi[currencies[j]][-2] > 50 and rsi[currencies[j]][-1] > 50:
-                        print(currencies[j], 'spadek')
-
-                        ax[j].text(-0.1, 1.1, 'spadek', fontsize=14, transform=ax[j].transAxes,
-                                   bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+                        ax[j].text(1.3, .85, 'spadek', fontsize=10, c='red', transform=ax[j].transAxes)
 
                     elif rsi[currencies[j]][-1] < 30 or rsi[currencies[j]][-2] < 50 and rsi[currencies[j]][-1] > 50:
-                        print(currencies[j], 'wzrost')
+                        ax[j].text(1.3, .85, 'wzrost', fontsize=10, c='green', transform=ax[j].transAxes)
 
-                        ax[j].text(-0.1, 1.1, 'wzrost', fontsize=14, transform=ax[j].transAxes,
-                                   bbox=dict(facecolor='white', edgecolor="none", alpha=1))
-                if len(rsi[currencies[j]]) >= 2:
-                    print('-------------------')
+                    else:
+                        ax[j].text(1.3, .85, '------', fontsize=10, transform=ax[j].transAxes)
+
+            temp_volume = []
+            for j in range(n):
+                if len(volume[currencies[j]]) >= 2:
+                    temp_volume.append((volume[currencies[j]][-1], j))
+
+            if len(volume[currencies[0]]) >= 2:
+                temp_volume.sort(key=lambda tup: tup[0])
+                max_volume = temp_volume[-1]
+                j = max_volume[1]
+
+                if not (rsi[currencies[j]][-1] > 70 or rsi[currencies[j]][-2] > 50 and rsi[currencies[j]][-1] > 50):
+                    ax[max_volume[1]].text(1.03, .65, 'kandydat', fontsize=10, c='blue', transform=ax[max_volume[1]].transAxes)
 
             fig.canvas.draw()
             fig.canvas.flush_events()
