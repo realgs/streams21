@@ -28,7 +28,9 @@
 			currency: resource,
 			timestamps: [],
 			bids: { rate: [], amount: [], avg: [], rsi: [], vol: [] },
-			asks: {	rate: [], amount: [], avg: [], rsi: [], vol: [] }
+			asks: {	rate: [], amount: [], avg: [], rsi: [], vol: [] },
+			trend: 0,
+			candidate: false
 		}
 	})
 
@@ -52,20 +54,43 @@
 			// push a timestamp
 			timestamps.push( (new Date).toLocaleString() )
 			updateRange(timestamps)
-			// push new base values
+			// base values
 			bids.rate.push(bid.rate)
 			asks.rate.push(ask.rate)
 			bids.amount.push(bid.amount)
 			asks.amount.push(ask.amount)
-			// calculate and push additional values
+			// additional values
+			// AVG
 			bids.avg.push(calculateAverage(bids.rate, avg))
 			asks.avg.push(calculateAverage(asks.rate, avg))
+			// RSI
 			bids.rsi.push(calculateRSI(bids.rate, rsi))
 			asks.rsi.push(calculateRSI(asks.rate, rsi))
+			// defining the trend
+			if (bids.rsi[bids.rsi.length-1] > 70)	chart.trend = 1
+			else if (bids.rsi[bids.rsi.length-1] < 30) chart.trend = -1
+			else chart.trend = 0
+			// VOL
 			bids.vol.push(calculateVolume(bids.amount, vol, timestamps))
 			asks.vol.push(calculateVolume(asks.amount, vol, timestamps))
+			// choose a candidate if possible
+			let candidate = charts.find(chart => chart.candidate == true)
+			if (chart.trend != -1) {
+				if (candidate) {
+					let candidateVol = candidate.bids.vol[candidate.bids.vol.length-1]
+					let currentVol = bids.vol[bids.vol.length-1]
+					if (currentVol > candidateVol) {
+						charts.forEach(chart => {	chart.candidate = false	})
+						chart.candidate = true
+					}
+				} else {
+					chart.candidate = true
+				}
+			}
+			charts = charts
 		})
 	}
+	
 
 	function toggle() {
 		if (interval)	stop()
