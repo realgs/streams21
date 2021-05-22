@@ -117,10 +117,10 @@ export default {
 
       return { chart, plotOptions, xaxis, yaxis }
     },
-    chartSeries() {
-      if (!this.stripedData) return
+    defaultSeries() {
+      if (!this.stripedData) return []
 
-      const series = [
+      return [
         {
           name: 'Transaction volume',
           type: 'column',
@@ -137,12 +137,13 @@ export default {
           data: this.stripedData.map((el) => el.data.bid),
         },
       ]
-
+    },
+    avgSeries() {
       if (
         this.tickerData.length <= 2 * this.transactionsToCount ||
         this.transactionsToCount > this.tickerData.length
       )
-        return series
+        return []
 
       const asksHistory = []
       const bidsHistory = []
@@ -158,7 +159,20 @@ export default {
         RSIHistory.push(RSI)
       })
 
-      const avgSeries = [
+      const series = [...this.defaultSeries]
+
+      const lastVolume = series[0].data[series[0].data.length - 1]
+      const lastAsk = series[1].data[series[1].data.length - 1]
+
+      this.currentRSI = RSIHistory[RSIHistory.length - 1]
+      this.$emit('volume', {
+        volume: lastVolume * lastAsk,
+        trend: this.RSIUpTrend,
+        cryptoCurrencyName: this.cryptoCurrencyName,
+        nationalCurrencyName: this.nationalCurrencyName,
+      })
+
+      return [
         {
           name: 'Avg Asks',
           type: 'line',
@@ -176,21 +190,9 @@ export default {
           color: '#421ABC',
         },
       ]
-
-      const lastVolume = series[0].data[series[0].data.length - 1]
-      const lastAsk = series[1].data[series[1].data.length - 1]
-
-      this.currentRSI = RSIHistory[RSIHistory.length - 1]
-      this.$emit('volume', {
-        volume: lastVolume * lastAsk,
-        trend: this.RSIUpTrend,
-        cryptoCurrencyName: this.cryptoCurrencyName,
-        nationalCurrencyName: this.nationalCurrencyName,
-      })
-
-      return series.length === avgSeries.length
-        ? [...series, ...avgSeries]
-        : series
+    },
+    chartSeries() {
+      return [...this.defaultSeries, ...this.avgSeries]
     },
   },
 }
