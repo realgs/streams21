@@ -1,7 +1,7 @@
 <template>
   <div class="crypto-currency" :class="{ glow: alert }">
     <div class="crypto-currency--header">
-      <div v-if="tickerData && tickerData.length > 0">
+      <div v-if="canBeRendered">
         <label for="transactionsToShow">Transactions to show: </label>
         <input
           type="number"
@@ -9,18 +9,18 @@
           v-model.number="transactionsToShow"
         />
       </div>
-      <div v-if="tickerData && tickerData.length > 0">
+      <div v-if="canBeRendered">
         <label for="minSpread">min spread %: </label>
         <input type="number" id="minSpread" v-model.number="minSpread" />
       </div>
       <h2 @dblclick="removeInstance(instanceId)">
         {{ cryptoCurrencyName }} -> {{ nationalCurrencyName }}
       </h2>
-      <div v-if="tickerData && tickerData.length > 0">
+      <div v-if="canBeRendered">
         <label for="diffAskBid">Ask/Bid lower than %: </label>
         <input type="number" id="diffAskBid" v-model.number="maxDiffAskBid" />
       </div>
-      <div v-if="tickerData && tickerData.length > 0">
+      <div v-if="canBeRendered">
         <label for="transactionsToCount">Transactions to count: </label>
         <input
           type="number"
@@ -29,7 +29,7 @@
         />
       </div>
     </div>
-    <template v-if="tickerData && tickerData.length > 0">
+    <template v-if="canBeRendered">
       <div class="crypto-currency__chart">
         <Apexchart
           width="1500"
@@ -48,6 +48,10 @@
         :cryptoData="tickerData"
         :sign="signs[nationalCurrencyName]"
       />
+      <CryptoFunds
+        :name="`${cryptoCurrencyName}${nationalCurrencyName}`"
+        @avgPurchasePrice="(e) => (avgPurchasePrice = e)"
+      />
     </template>
     <template v-else>
       <h2>No data, please wait.</h2>
@@ -56,10 +60,11 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 import { handleData } from '@/services/FinanceAPI'
+import CryptoFunds from '@/components/Crypto/CryptoFunds'
 import plotMixin from '@/components/Crypto/utils/plotMixin'
 import CryptoHistory from '@/components/Crypto/CryptoHistory'
-import { mapActions } from 'vuex'
 
 const findMinAsk = (p, v) => (p.data.ask < v.data.ask ? p : v)
 const findMaxAsk = (p, v) => (p.data.ask > v.data.ask ? p : v)
@@ -72,6 +77,7 @@ export default {
   mixins: [plotMixin],
   components: {
     CryptoHistory,
+    CryptoFunds,
   },
   props: {
     cryptoCurrencyName: {
@@ -99,6 +105,7 @@ export default {
     },
     minSpread: 1,
     maxDiffAskBid: 1,
+    avgPurchasePrice: null,
   }),
   computed: {
     stripedData() {
@@ -109,6 +116,9 @@ export default {
       return copiedTickerData.length >= this.transactionsToShow
         ? copiedTickerData.slice(1).slice(-this.transactionsToShow)
         : copiedTickerData
+    },
+    canBeRendered() {
+      return this.tickerData && this.tickerData.length > 0
     },
     enoughtData() {
       return 2 * this.transactionsToCount < this.tickerData.length
@@ -266,6 +276,7 @@ export default {
   padding: 2rem 2rem 2rem 2rem;
   color: #fff;
   border-radius: 0.5rem;
+  height: 93vh;
 
   &__chart {
     background: #fff;
