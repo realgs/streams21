@@ -248,7 +248,7 @@ export default {
   created() {
     this.dataInterval = setInterval(async () => {
       await this.getData()
-    }, 5000)
+    }, 10000)
   },
   destroyed() {
     clearInterval(this.dataInterval)
