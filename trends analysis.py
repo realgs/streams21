@@ -8,21 +8,80 @@ cryptos = ["ETH","LTC","BTC"]
 currency = "PLN"
 t = []
 all_data = []
-mlwinwsize = 4
+mlwinwsize = 3
 meanlist = []
 volstor = []
-rsisize = 4
+rsisize = 3
 rsistore = []
+Y = 6
+X = 20
+S = 40
 
+
+def spread(Y,S,all_data,c):
+    if Y > len(all_data):
+        y = len(all_data)
+    else:
+        y = Y
+    sbuy = float(0)
+    ssell = float(0)
+    for i in range(-y,-1):
+        ssell = ssell + float(all_data[i][c][1][0])
+        sbuy = sbuy +float(all_data[i][c][1][1])
+    spr = ((sbuy - ssell) / sbuy )* 100
+    if spr < S:
+        return True
+    else:
+        return False
+
+def transactions(Y,X,crypto,currency):
+    if Y > len(all_data):
+        y = len(all_data)
+    else:
+        y = Y
+    queryparams = {'limit': y}
+    tran = requests.get("https://api.bitbay.net/rest/trading/transactions/"+crypto+'-'+currency, params = queryparams)
+    handle_exceptions(tran)
+    tran = tran.json()
+    vlist = []
+    for i in tran['items']:
+        vlist.append(i['r'])
+    maxl = float(max(vlist))
+    minl = float(min(vlist))
+    value = (abs(maxl - minl) / maxl) * 100
+    if value > X:
+        return True
+    else:
+        return False
+
+
+
+def candidate():
+    vl = []
+    for c in range(len(cryptos)):
+        if rsistore[-1][c][0] != None:
+            if rsistore[-1][c][0] < 50:
+                vl.append(None)
+            else:
+                vl.append(volstor[-1][c])
+        else:
+            vl.append(None)
+    v = -1
+    vv = 0
+    for i in range(len(vl)):
+        if vl[i] != None:
+            if vl[i] > vv:
+                vv = vl[i]
+                v = i
+    return v
 
 def get_volumen(crypto,currency):
-    fromtime = datetime.now() - timedelta(minutes=2)
+    fromtime = datetime.now() - timedelta(minutes=0.5)
     fromtime = int(fromtime.timestamp()) * 100
-    url = "https://api.bitbay.net/rest/trading/transactions/"+crypto+"-"+currency
     queryparams = {'fromTime': fromtime}
-    response = requests.request("GET", url, params=queryparams)
+    response = requests.get("https://api.bitbay.net/rest/trading/transactions/"+crypto+"-"+currency, params=queryparams)
     response = eval(response.text)
-    return sum([float(response['items'][i]['a']) for i in range(len(response['items']))])
+    return sum([float(response['items'][i]['a']) for i in range(len(response['items']))]) * 10
 
 def rsicount(all_data, store,size):
     nr = len(all_data[0])
@@ -116,10 +175,9 @@ def cryptostream_to_plot(crypto_set, currency, all_data):
     v_list = []
     c_list = []
     for crypto in crypto_set:
-        response = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/orderbook.json", timeout=5)
+        response = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/orderbook.json", timeout=15)
         handle_exceptions(response)
         v_list.append(get_volumen(crypto,currency))
-        print(get_volumen(crypto,currency))
         c_list.append([crypto,sellbuy(response.json()['asks'], response.json()['bids'])])
     volstor.append(v_list)
     all_data.append(c_list)
@@ -130,12 +188,13 @@ def graph_gen(a):
     cryptostream_to_plot(cryptos,currency,all_data)
     handlemean(all_data, mlwinwsize, meanlist)
     rsicount(all_data, rsistore, rsisize)
+    hv = candidate()
     plt.ion()
     plt.clf()
     plt.suptitle("Wykresy notowań kryptowalut")
     nr = len(all_data[0])
     for c in range(nr):
-        plt.subplot(3,nr, c+1)
+        ax = plt.subplot(3,nr, c+1)
         ys = []
         yb =[]
         yas = []
@@ -150,26 +209,59 @@ def graph_gen(a):
         plt.plot(t, yb, "-o", label=all_data[0][c][0] + ": buy")
         plt.plot(t, yas, "o--", label=all_data[0][c][0] + ": sell avarage")
         plt.plot(t, yab, "o--", label=all_data[0][c][0] + ": buy avarage")
+        if rsistore[-1][c][0] != None:
+            if rsistore[-1][c][0] >= 50:
+                for side in ['bottom', 'top', 'left', 'right']:
+                    ax.spines[side].set_color('green')
+                    ax.spines[side].set_linewidth(3)
+            elif rsistore[-1][c][0] < 50:
+                for side in ['bottom', 'top', 'left', 'right']:
+                    ax.spines[side].set_color('red')
+                    ax.spines[side].set_linewidth(3)
+        if hv ==c:
+            if spread(Y,S,all_data,c):
+                ax.text(0.3, 1.1, 'liquid asset',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes,
+                        color='orange', size = 12)
+            if transactions(Y,X,cryptos[c],currency):
+                ax.text(0.8, 1.1, 'volatile asset',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes,
+                        color='orange', size = 12)
         plt.xticks(rotation = 30, fontsize = 6 )
         plt.legend()
     for c in range(nr):
-        plt.subplot(3,nr, c + 1 + nr)
+        ax = plt.subplot(3,nr, c + 1 + nr)
         yv = []
         for vset in volstor:
             yv.append(vset[c])
         plt.bar(t, yv, align = "center")
         plt.ylabel("Volume")
         plt.xticks(rotation = 30, fontsize = 6)
+        if hv == c:
+            for side in ['bottom', 'top', 'left', 'right']:
+                ax.spines[side].set_color('orange')
+                ax.spines[side].set_linewidth(3)
     for c in range(nr):
-        plt.subplot(3,nr, c + 1 + 2 * nr)
+        ax = plt.subplot(3,nr, c + 1 + 2 * nr)
         yrsis = []
-        yrsib = []
+        #yrsib = []
         for rsiset in rsistore:
             yrsis.append(rsiset[c][0])
-            yrsib.append(rsiset[c][1])
+            #yrsib.append(rsiset[c][1])
         plt.plot(t, yrsis,"o--",label = all_data[0][c][0] + ": sell RSI")
-        plt.plot(t, yrsib, "o--",label = all_data[0][c][0] + ": but RSI")
+        #plt.plot(t, yrsib, "o--",label = all_data[0][c][0] + ": buy RSI")
         plt.ylabel("RSI")
+        if rsistore[-1][c][0] != None:
+            if rsistore[-1][c][0] >= 50:
+                for side in ['bottom','top','left','right']:
+                    ax.spines[side].set_color('green')
+                    ax.spines[side].set_linewidth(3)
+            elif rsistore[-1][c][0] < 50:
+                for side in ['bottom', 'top', 'left', 'right']:
+                    ax.spines[side].set_color('red')
+                    ax.spines[side].set_linewidth(3)
         plt.legend()
         plt.xticks(rotation=30, fontsize=6)
 
