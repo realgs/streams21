@@ -113,6 +113,12 @@ export default {
             },
           },
         },
+        {
+          seriesName: 'Avg. purchased value',
+          min: this.bounds.min,
+          max: this.bounds.max,
+          show: false,
+        },
       ]
 
       return { chart, plotOptions, xaxis, yaxis }
@@ -125,16 +131,19 @@ export default {
           name: 'Transaction volume',
           type: 'column',
           data: this.stripedData.map((el) => el.data.volume),
+          color: '#008FFB',
         },
         {
           name: 'Asks',
           type: 'line',
           data: this.stripedData.map((el) => el.data.ask),
+          color: '#eb4034',
         },
         {
           name: 'Bids',
           type: 'line',
           data: this.stripedData.map((el) => el.data.bid),
+          color: '#ebb134',
         },
       ]
     },
@@ -177,11 +186,13 @@ export default {
           name: 'Avg Asks',
           type: 'line',
           data: asksHistory,
+          color: '#43eb34',
         },
         {
           name: 'Avg Bids',
           type: 'line',
           data: bidsHistory,
+          color: '#eb347a',
         },
         {
           name: 'RSI',
@@ -192,7 +203,21 @@ export default {
       ]
     },
     chartSeries() {
-      return [...this.defaultSeries, ...this.avgSeries]
+      const avgPurchasedValues = this.avgPurchasePrice
+        ? Array(this.stripedData.length).fill(this.avgPurchasePrice)
+        : null
+
+      const avgPurchasedSeries = avgPurchasedValues
+        ? {
+            name: 'Avg. purchased value',
+            type: 'line',
+            data: avgPurchasedValues,
+            color: '#FFFF00',
+          }
+        : null
+
+      const series = [...this.defaultSeries, ...this.avgSeries]
+      return avgPurchasedSeries ? [...series, avgPurchasedSeries] : series
     },
   },
 }

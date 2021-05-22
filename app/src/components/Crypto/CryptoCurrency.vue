@@ -32,7 +32,7 @@
     <template v-if="canBeRendered">
       <div class="crypto-currency__chart">
         <Apexchart
-          width="1500"
+          width="2000"
           height="600"
           type="line"
           :options="chartOptions"
@@ -131,8 +131,21 @@ export default {
       const maxBid = this.stripedData.reduce(findMaxBid).data.bid
       const maxVolume = 15 * this.stripedData.reduce(findMaxVolume).data.volume
 
-      const min = minAsk < minBid ? minAsk : minBid
-      const max = maxAsk > maxBid ? maxAsk : maxBid
+      const tempMin = minAsk < minBid ? minAsk : minBid
+      const tempMax = maxAsk > maxBid ? maxAsk : maxBid
+
+      let min
+      let max
+
+      if (this.avgPurchasePrice && this.avgPurchasePrice > 0) {
+        if (this.avgPurchasePrice > tempMax)
+          (max = Math.floor(this.avgPurchasePrice)), (min = tempMin)
+        if (this.avgPurchasePrice < tempMin)
+          (min = Math.floor(this.avgPurchasePrice)), (max = tempMax)
+      } else {
+        min = tempMin
+        max = tempMax
+      }
 
       return {
         min: min - 0.01 * min,
@@ -276,7 +289,7 @@ export default {
   padding: 2rem 2rem 2rem 2rem;
   color: #fff;
   border-radius: 0.5rem;
-  height: 93vh;
+  max-height: 93vh;
 
   &__chart {
     background: #fff;

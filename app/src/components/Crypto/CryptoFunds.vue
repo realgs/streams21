@@ -99,7 +99,6 @@ export default {
     },
     sellUnits(id) {
       const sellPrice = prompt('Sell price')
-      console.log(sellPrice)
       if (sellPrice === null || sellPrice === '') return
 
       const buyData = this.buyData.find((el) => el.id === id)
