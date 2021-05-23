@@ -31,12 +31,12 @@ def get_volume(url, pair):
 
             if item_time <= LAST_VOLUME_LIST[pair]:
                 try:
-                    LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"],
+                                                                        "%Y-%m-%dT%H:%M:%S.%fZ")
                 except ValueError:
                     LAST_VOLUME_LIST[pair] = datetime.datetime.strptime(response[0]["executedAt"], "%Y-%m-%dT%H:%M:%SZ")
                 break
             volume += float(item["quantity"])
-        print(volume)
         return volume
 
 
@@ -57,6 +57,69 @@ def calculate_rsi(pair):
         b = 1
     rsi_value = 100 - (100 / (1 + abs((a / b))))
     return rsi_value
+
+
+def check_if_candidate(pair):
+    global PAIRS, dict_of_ask_bid_lists
+    highest_volume = 0
+    highest_pair = None
+    for pa in PAIRS:
+        if sum(dict_of_ask_bid_lists[pa][5][-3:-1]) > highest_volume:
+            highest_volume = dict_of_ask_bid_lists[pa][5][-1]
+            highest_pair = pa
+    if highest_pair == pair:
+        return "Yes"
+    else:
+        return "No"
+
+
+def get_x_last_transactions(n, pair):
+    global VOLUME_URLS, dict_of_ask_bid_lists
+    try:
+        response = requests.get(VOLUME_URLS[list(dict_of_ask_bid_lists.keys()).index(pair)]).json()
+    except requests.exceptions.ConnectionError:
+        print("Connection error has occurred")
+        return 0
+    rates = []
+    for g in range(n, -1, -1):
+        rates.append(float(response[-g-1]["rate"]))
+    return rates
+
+
+def is_volatile(pair):
+    global VOLATILE_EDGE, VOLATILE_NUMBER, dict_of_ask_bid_lists
+    rate_list = get_x_last_transactions(VOLATILE_NUMBER, pair)
+    difference = 0
+    for k in range(len(rate_list), 0, -1):
+        difference += abs(1 - (rate_list[-k]/rate_list[-k+1]))
+    if difference > VOLATILE_EDGE:
+        return ""
+    else:
+        return ",volatile asset"
+
+
+def is_liquid(pair):
+    global LIQUID_EDGE, dict_of_ask_bid_lists
+    if (dict_of_ask_bid_lists[pair][3][-1] - dict_of_ask_bid_lists[pair][4][-1]) / dict_of_ask_bid_lists[pair][3][-1] \
+            < LIQUID_EDGE:
+        return ",liquid"
+    else:
+        return ""
+
+
+def check_trend(pair, iteration):
+    global dict_of_ask_bid_lists
+    if iteration < 4:
+        return "None", "No", "", ""
+    rsi_values = dict_of_ask_bid_lists[pair][6]
+    if rsi_values[-3] > rsi_values[-2] > rsi_values[-1]:
+        return "downward", "No", "", ""
+    if (rsi_values[-3] > rsi_values[-2] and rsi_values[-2] < rsi_values[-1]) or rsi_values[-3] < rsi_values[-2] and \
+            rsi_values[-2] > rsi_values[-1]:
+        return "sideways", check_if_candidate(pair), is_volatile(pair), is_liquid(pair)
+    if rsi_values[-3] < rsi_values[-2] < rsi_values[-1]:
+        return "rising", check_if_candidate(pair), is_volatile(pair), is_liquid(pair)
+    return "None", "No", "", ""
 
 
 def get_bid_ask(url: str, pair: str, i: int):
@@ -99,7 +162,7 @@ def get_bid_ask(url: str, pair: str, i: int):
 
 
 def show_multiple_pairs():
-    global URLS, PAIRS, FREQUENCY, dict_of_ask_bid_lists
+    global URLS, PAIRS, FREQUENCY, dict_of_ask_bid_lists, TITLE_TEMPLATE, MOVING_AVERAGE_LENGTH
 
     def update_data(number):
         print(number)
@@ -113,10 +176,33 @@ def show_multiple_pairs():
             dict_of_ask_bid_lists[PAIRS[i]][4].append(res['avg_bid'])
             dict_of_ask_bid_lists[PAIRS[i]][5].append(res['volume'])
 
+            # ask
             list_of_lines[i * 6 + 0].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][1])
+            # bid
             list_of_lines[i * 6 + 1].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][2])
-            list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][3])
-            list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][4])
+
+            # averages
+            # moving average if we can (after MOVING_AVERAGE_LENGTH iterations)
+            if number > MOVING_AVERAGE_LENGTH:
+                moving_average_ask = dict_of_ask_bid_lists[PAIRS[i]][3].copy()
+                moving_average_ask[-1] = sum(moving_average_ask[-MOVING_AVERAGE_LENGTH:]) / MOVING_AVERAGE_LENGTH
+                list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                                                  moving_average_ask)
+
+                moving_average_bid = dict_of_ask_bid_lists[PAIRS[i]][4].copy()
+                moving_average_bid[-1] = sum(moving_average_bid[-MOVING_AVERAGE_LENGTH:]) / MOVING_AVERAGE_LENGTH
+                list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                                                  moving_average_bid)
+            # before we can
+            else:
+                list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                                                  dict_of_ask_bid_lists[PAIRS[i]][3])
+                list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                                                  dict_of_ask_bid_lists[PAIRS[i]][4])
+
+            current_trend = check_trend(PAIRS[i], number)
+            axs[0][i].set_title(TITLE_TEMPLATE.format(PAIRS[i], current_trend[0], current_trend[1], current_trend[2],
+                                                      current_trend[3]))
 
             rsi = calculate_rsi(PAIRS[i])
             dict_of_ask_bid_lists[PAIRS[i]][6].append(rsi)
@@ -138,9 +224,9 @@ def show_multiple_pairs():
 
     for j in range(len(PAIRS)):
         ask_chart, = axs[0][j].plot(dict_of_ask_bid_lists[PAIRS[j]][0], dict_of_ask_bid_lists[PAIRS[j]][1],
-                                        label='ask', color='red')
+                                    label='ask', color='red')
         bid_chart, = axs[0][j].plot(dict_of_ask_bid_lists[PAIRS[j]][0], dict_of_ask_bid_lists[PAIRS[j]][2],
-                                        label='bid', color='green')
+                                    label='bid', color='green')
         avg_ask_chart, = axs[0][j].plot(dict_of_ask_bid_lists[PAIRS[j]][0], dict_of_ask_bid_lists[PAIRS[j]][3],
                                         label='ask avg', color='blue')
         avg_bid_chart, = axs[0][j].plot(dict_of_ask_bid_lists[PAIRS[j]][0], dict_of_ask_bid_lists[PAIRS[j]][4],
@@ -151,7 +237,7 @@ def show_multiple_pairs():
         list_of_lines.append(avg_ask_chart)
         list_of_lines.append(avg_bid_chart)
 
-        axs[0][j].set_title(PAIRS[j])
+        axs[0][j].set_title(TITLE_TEMPLATE.format(PAIRS[j], "None", "No", "", ""))
         axs[0][j].grid()
         axs[0][j].legend(loc=2)
         # axs[0][j].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
@@ -177,9 +263,9 @@ def show_multiple_pairs():
         # axs[1][j].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
         axs[1][j].xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
-    #fig.autofmt_xdate()
+    # fig.autofmt_xdate()
     plt.xticks(rotation='horizontal')
-    _ = FuncAnimation(fig, update_data, interval=FREQUENCY*1000)
+    _ = FuncAnimation(fig, update_data, interval=FREQUENCY * 1000)
     plt.show()
 
 
@@ -187,7 +273,12 @@ if __name__ == "__main__":
     FREQUENCY = 5  # seconds
     REPEAT = 20
     USER_PARAMETER = 4
-    AVG_LENGTH = 3
+
+    AVG_LENGTH = 10  # how many periods we want to analyse
+    TITLE_TEMPLATE = "{}, TREND: {}, CANDIDATE: {} {} {}"
+    VOLATILE_NUMBER = 4  # number of probes we go back
+    VOLATILE_EDGE = 0.1  # %
+    LIQUID_EDGE = 0.1  # %
 
     URL = "https://api.bittrex.com/v3/markets/{}/orderbook"
     PAIRS = ['BTC-USD',
@@ -197,7 +288,7 @@ if __name__ == "__main__":
     URLS = list()
     for p in range(len(PAIRS)):
         URLS.append(URL.format(PAIRS[p]))
-    MAX_LENGTH = 20
+    MOVING_AVERAGE_LENGTH = 5
 
     VOLUME_URL = "https://api.bittrex.com/v3/markets/{}/trades"
     VOLUME_URLS = list()
