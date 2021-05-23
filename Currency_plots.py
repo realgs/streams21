@@ -8,19 +8,19 @@ from statistics import mean
 
 Currencies=['BCC' , 'LTC' , 'ETH']
 Currency_category='PLN'
-url_beg="https://bitbay.net/API/Public/"
-url_end="/ticker.json"
+Url_beg="https://bitbay.net/API/Public/"
+Url_end="/ticker.json"
 
-time_sleep=5
+Time_sleep=5
 
-trans_url = "https://api.bitbay.net/rest/trading/transactions/"
-volume_range=60
+Trans_url = "https://api.bitbay.net/rest/trading/transactions/"
+Volume_range=60
 
-window_RSI=40
-window_mean=20
+Window_RSI=40
+Window_mean=20
 
 S=3
-X=2
+X=10
 Y=12
 
 def download_data(currency,curr_category,url_beg,url_end): #c_currencies is a list
@@ -50,7 +50,7 @@ def download_trans(currency,curr_category,trans_url,Y): #c_currencies is a list
 
 def plot_data(x_data,plt,volumes,i):
     x_data.append(datetime.now().strftime("%H:%M:%S"))
-    ask, bid,volume = download_data(Currencies[i], Currency_category, url_beg, url_end)
+    ask, bid,volume = download_data(Currencies[i], Currency_category, Url_beg, Url_end)
 
     plt.append(ask)
     plt.append(bid)
@@ -115,7 +115,7 @@ def x_data(data):
     return data
 
 def plot(data,y_data,volumes,window_mean,currency,axs,l,sell_mean,buy_mean,wzrost,spadek,RSI_value,choice,changed_volumes):
-    RSI_vol=RSI(window_RSI,y_data[::2],wzrost,spadek,RSI_value)
+    RSI_vol=RSI(Window_RSI,y_data[::2],wzrost,spadek,RSI_value)
     volume = find_volume(volumes,changed_volumes)
     x=x_data(data)
     sell,buy=mean_data(window_mean,y_data[::2], y_data[1::2],sell_mean,buy_mean)
@@ -131,7 +131,7 @@ def plot(data,y_data,volumes,window_mean,currency,axs,l,sell_mean,buy_mean,wzros
     axs[1][l].bar(data, volume,color='r',alpha=0.7)
     axs[1][l].set_ylim(bottom=0,top=None)
     axs[1][l].set_ylabel('Wolumen',color='r')
-    val=f'Wolumen: {round(sum(volume[-int(volume_range/time_sleep):]),3)}'
+    val=f'Wolumen: {round(sum(volume[-int(Volume_range/Time_sleep):]),3)}'
     axs[1][l].text(0.2, 0.05, val, horizontalalignment='center',
                   verticalalignment='center', transform=axs[1][l].transAxes)
 
@@ -156,26 +156,25 @@ def plot(data,y_data,volumes,window_mean,currency,axs,l,sell_mean,buy_mean,wzros
     return RSI_vol,volume,y_data
 
 def volatile_asset(X, Y,i):
-    data=download_trans(Currencies[i],Currency_category,trans_url,Y)
+    data=download_trans(Currencies[i],Currency_category,Trans_url,Y)
 
     minimum = min(data)
     maximum = max(data)
 
-    diff = 100-(abs(maximum - minimum) / maximum) * 100
+    diff = (abs(maximum - minimum) / maximum) * 100
     diff = round(diff, 2)
-
     if diff > X:
-        return 'Zmienny (volatile asset)'
+        return 'Volatile asset'
     else:
-        return 'Nie jest zmienny '
+        return ''
 
 def spread(S,y_data):
-    diff = 100-100*(1 - (y_data[-2]- y_data[-1]) / y_data[-1])
+    diff = 100*((y_data[-2]- y_data[-1]) / y_data[-2])
 
     if diff<S:
-        return 'Ma płynny rynek'
+        return 'Liquid asset'
     else:
-        return 'Nie ma płynnego runku'
+        return ''
 
 
 
@@ -183,21 +182,22 @@ def increase_decrease_RSI(RSI_list,volume_list,axs,y_data):
     decisions=[]
     volume_max=[]
     for r in range(len(RSI_list)):
-        if RSI_list[r][-1] <= 50:
+        if RSI_list[r][-1] <= 40:
             decisions.append("Trend spadkowy")
-        if RSI_list[r][-1] > 50:
+        if RSI_list[r][-1] >= 60:
             decisions.append("Trend wzrostowy")
-            volume_max.append(round(sum(volume_list[r][-int(volume_range/time_sleep):]),3))
+            volume_max.append(round(sum(volume_list[r][-int(Volume_range/Time_sleep):]),3))
+        if RSI_list[r][-1] > 40 and RSI_list[r][-1] <60:
+            decisions.append('Trend boczny')
     for i in range(len(decisions)):
         if RSI_list[i][-1]!=0:
             axs[1][i].text(0.5, 0.95, decisions[i], horizontalalignment='center',
                        verticalalignment='center', transform=axs[1][i].transAxes)
             if len(volume_max) >= 1:
-                if decisions[i]=='Trend wzrostowy' and round(sum(volume_list[i][-int(volume_range/time_sleep):]),3)==max(volume_max):
+                if decisions[i]=='Trend wzrostowy' and round(sum(volume_list[i][-int(Volume_range/Time_sleep):]),3)==max(volume_max):
                     s=spread(S,y_data[i])
                     v=volatile_asset(X, Y,i)
                     axs[0][i].set_title("Najlepszy kandydat \n"+s+'\n'+v)
-
 
 
 def draw_plot(i):
@@ -208,9 +208,9 @@ def draw_plot(i):
     gs = fig.add_gridspec(2, 3, hspace=0)
     axs = gs.subplots(sharex=True)
 
-    BCC_RSI,BCC_volume,BCC_plt=plot(x_data_BCC_d,plt_BCC_d,BCC_volumes_d, window_mean, 'BCC',axs,0,sell_mean_BCC,buy_mean_BCC,wzrost_BCC,spadek_BCC,RSI_BCC,choice,changed_volumes_BCC)
-    LTC_RSI,LTC_volume,LTC_plt=plot(x_data_LTC_d, plt_LTC_d, LTC_volumes_d, window_mean, 'LTC',axs, 1,sell_mean_LTC,buy_mean_LTC,wzrost_LTC,spadek_LTC,RSI_LTC,choice,changed_volumes_LTC)
-    ETH_RSI,ETH_volume,ETH_plt=plot(x_data_ETH_d, plt_ETH_d, ETH_volumes_d, window_mean, 'ETH',axs, 2,sell_mean_ETH,buy_mean_ETH,wzrost_ETH,spadek_ETH,RSI_ETH,choice,changed_volumes_ETH)
+    BCC_RSI,BCC_volume,BCC_plt=plot(x_data_BCC_d,plt_BCC_d,BCC_volumes_d, Window_mean, 'BCC',axs,0,sell_mean_BCC,buy_mean_BCC,wzrost_BCC,spadek_BCC,RSI_BCC,choice,changed_volumes_BCC)
+    LTC_RSI,LTC_volume,LTC_plt=plot(x_data_LTC_d, plt_LTC_d, LTC_volumes_d, Window_mean, 'LTC',axs, 1,sell_mean_LTC,buy_mean_LTC,wzrost_LTC,spadek_LTC,RSI_LTC,choice,changed_volumes_LTC)
+    ETH_RSI,ETH_volume,ETH_plt=plot(x_data_ETH_d, plt_ETH_d, ETH_volumes_d, Window_mean, 'ETH',axs, 2,sell_mean_ETH,buy_mean_ETH,wzrost_ETH,spadek_ETH,RSI_ETH,choice,changed_volumes_ETH)
 
     increase_decrease_RSI([BCC_RSI,LTC_RSI,ETH_RSI],[BCC_volume,LTC_volume,ETH_volume],axs,[BCC_plt,LTC_plt,ETH_plt])
 
@@ -229,5 +229,5 @@ if __name__=="__main__":
     fig = plt.figure()
     # choice=input("RSI or volume?")
     choice='RSI and volume'
-    T_animation=animation(fig,draw_plot,interval=1000*time_sleep)
+    T_animation=animation(fig,draw_plot,interval=1000*Time_sleep)
     plt.show()
