@@ -106,11 +106,15 @@ def dynamic_plotting(interval):
         ax_lines.append((bids_line, asks_line, avg_bid_line,
                          avg_ask_line, RSI_line, transactions_line))
 
-    axes_asset_marks = []
+    axes_volatile_marks = []
+    axes_liquid_marks = []
     for i in range(N):
-        asset_mark = main_axes[i].text(1.1, 0.1, '',
-                                       transform=main_axes[i].transAxes)
-        axes_asset_marks.append(asset_mark)
+        volatile_mark = main_axes[i].text(1.1, 0.1, '',
+                                          transform=main_axes[i].transAxes)
+        liquid_mark = main_axes[i].text(1.1, 0.0, '',
+                                        transform=main_axes[i].transAxes)
+        axes_volatile_marks.append(volatile_mark)
+        axes_liquid_marks.append(liquid_mark)
 
     # def submit(text):
     #     y = float(text)
@@ -295,18 +299,21 @@ def dynamic_plotting(interval):
                 _last_asks = asks[i][-asset_scan_limit:]
                 bids_asks_ratio = []
                 for bid, ask in zip(_last_bids, _last_asks):
-                    ratio = abs((bid-ask) / ask)
+                    ratio = abs((bid-ask) / max(bid, ask))
                     bids_asks_ratio.append(ratio)
 
                 are_under_bound = list(map(lambda x: x < liquid_bound,
                                            bids_asks_ratio))
 
                 if any(is_over_bound) and i == canditate_index:
-                    axes_asset_marks[i].set_text('volatile asset !')
-                elif all(are_under_bound) and i == canditate_index:
-                    axes_asset_marks[i].set_text('liquid asset !')
+                    axes_volatile_marks[i].set_text('volatile asset !')
                 else:
-                    axes_asset_marks[i].set_text('')
+                    axes_volatile_marks[i].set_text('')
+
+                if all(are_under_bound) and i == canditate_index:
+                    axes_liquid_marks[i].set_text('liquid asset !')
+                else:
+                    axes_liquid_marks[i].set_text('')
 
         for i, (ax, crypto_currency) in enumerate(zip(main_axes,
                                                       CRYPTO_CURRENCIES)):
