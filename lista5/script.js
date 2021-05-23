@@ -7,17 +7,21 @@ let dash;
 let actualVolume = [0, 0, 0];
 let previousVolume = [0, 0, 0];
 let volume = [0, 0, 0];
+let lastNatNumVol = [0, 0, 0];
 let u = [];
 let d = [];
 let lastAverage = [0, 0, 0];
 let names = [,];
 let RSI = [0, 0, 0];
+let candidate;
+let lastCandidate;
+let volatile = [];
 
 const fetchVolume = (crypto, i) => {
     fetch(`https://api.bitbay.net/rest/trading/stats/${crypto}-${currency}`)
         .then((res) => res.json())
         .then((data) => {
-            if (actualVolume[i] == 0) {
+            if (actualVolume[i] === 0) {
                 actualVolume[i] = data.stats.v;
             } else {
                 previousVolume[i] = actualVolume[i];
@@ -26,6 +30,7 @@ const fetchVolume = (crypto, i) => {
 
             if (previousVolume[i] != 0 && actualVolume[i] - previousVolume[i] > 0) {
                 volume[i] = actualVolume[i] - previousVolume[i];
+                lastNatNumVol[i] = volume[i];
             } else {
                 volume[i] = 0;
             }
@@ -181,6 +186,102 @@ Plotly.plot("rsi-2", [
     },
 ]);
 
+const checkVolume = () => {
+    let maximum = 0;
+    RSI.map((el, i) => {
+        if (el < 70) {
+            if (lastNatNumVol[i] > maximum) {
+                maximum = lastNatNumVol[i];
+                lastCandidate = candidate;
+                candidate = i;
+            }
+        }
+    });
+
+    if (candidate) {
+        console.log(candidate);
+        console.log(maximum);
+        document.querySelector(`#candidate-${candidate}`).innerHTML = "To jest Kandydat";
+    }
+};
+
+const checkVolalite = (x, y) => {
+    if (lastCandidate !== candidate) {
+        volatile = [];
+    }
+
+    if (volatile.length === y) {
+        volatile.shift();
+    }
+
+    switch (candidate) {
+        case 0:
+            volatile.push(bsv[2]);
+            break;
+        case 1:
+            volatile.push(btc[2]);
+            break;
+        case 2:
+            volatile.push(dash[2]);
+            break;
+        default:
+            break;
+    }
+
+    if (volatile.length === y) {
+        let min = Math.min(...volatile);
+        let max = Math.max(...volatile);
+
+        let wall = min + (min * x) / 100;
+        console.log(wall);
+        console.log(max);
+        if (max > wall) {
+            console.log("volatile");
+            document.querySelector(`#volatile-0`).innerHTML = ``;
+            document.querySelector(`#volatile-1`).innerHTML = ``;
+            document.querySelector(`#volatile-2`).innerHTML = ``;
+
+            document.querySelector(`#volatile-${candidate}`).innerHTML = `volatile asset`;
+        } else {
+            document.querySelector(`#volatile-${candidate}`).innerHTML = ``;
+        }
+        volatile.shift();
+    }
+};
+
+const checkLiquidAsset = (s) => {
+    let ask;
+    let bid;
+    switch (candidate) {
+        case 0:
+            ask = bsv[0] * 1;
+            bid = bsv[1] * 1;
+            break;
+        case 1:
+            ask = btc[0] * 1;
+            bid = btc[1] * 1;
+            break;
+        case 2:
+            ask = dash[0] * 1;
+            bid = dash[1] * 1;
+            break;
+        default:
+            break;
+    }
+    let wall = ask + (ask * s) / 100;
+    console.log(wall);
+    console.log(bid);
+    if (bid > wall || bid < wall) {
+        document.querySelector(`#liq-0`).innerHTML = ``;
+        document.querySelector(`#liq-1`).innerHTML = ``;
+        document.querySelector(`#liq-2`).innerHTML = ``;
+
+        document.querySelector(`#liq-${candidate}`).innerHTML = `Liquid asset`;
+    } else {
+        document.querySelector(`#liq-${candidate}`).innerHTML = ``;
+    }
+};
+
 setInterval(() => {
     console.clear();
     cryptocurrencies.map((crypto) => fetchFromApi(crypto, currency));
@@ -263,4 +364,8 @@ setInterval(() => {
             }
         }
     }
+
+    checkVolume();
+    checkVolalite(-111, 3);
+    checkLiquidAsset(10);
 }, 2000);
