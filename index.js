@@ -15,28 +15,28 @@ app.get('/bitbay/transactions/:currency', async (req, res) => {
   const r = await fetch('https://api.bitbay.net/rest/trading/'
     +`transactions/${req.params['currency']}`)
   const json = await r.json()
-  let [ highestBidRate, highestBidAmount, highestBidValue ] = [null,null,null]
-  let [ lowestAskRate, lowestAskAmount, lowestAskValue ] = [null,null,null]
+  let [ highestBuyRate, highestBuyAmount, highestBuyValue ] = [null,null,null]
+  let [ lowestSellRate, lowestSellAmount, lowestSellValue ] = [null,null,null]
   json.items.forEach(item => {
     let value = Number(item.a) * Number(item.r)
     if (item.ty == 'Buy') {
-      if (highestBidValue == null || highestBidValue < value) {
-        highestBidRate = Number(item.r)
-        highestBidAmount = Number(item.a)
-        highestBidValue = value
+      if (highestBuyValue == null || highestBuyValue < value) {
+        highestBuyRate = Number(item.r)
+        highestBuyAmount = Number(item.a)
+        highestBuyValue = value
       }
     } else if (item.ty == 'Sell') {
-      if (lowestAskValue == null || lowestAskValue > value) {
-        lowestAskRate = Number(item.r)
-        lowestAskAmount = Number(item.a)
-        lowestAskValue = value
+      if (lowestSellValue == null || lowestSellValue > value) {
+        lowestSellRate = Number(item.r)
+        lowestSellAmount = Number(item.a)
+        lowestSellValue = value
       }
     }
   });
   res.send({
     currency: req.params['currency'],
-    bid: { rate: highestBidRate, amount: highestBidAmount },
-    ask: { rate: lowestAskRate,  amount: lowestAskAmount  }
+    buy:  { rate: highestBuyRate, amount: highestBuyAmount },
+    sell: { rate: lowestSellRate, amount: lowestSellAmount  }
   })
 })
 

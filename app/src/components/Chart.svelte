@@ -1,17 +1,19 @@
 <script>
 	import Chart from 'chart.js/auto'
 	import { onMount } from 'svelte'
-	import { normalizeArray } from '../utils.js'
+	import { fade } from 'svelte/transition';
+  import { normalizeArray } from '../utils.js';
 	import { dateToJS, sliceByDate } from '../date.js'
 
   export let currency
-  export let timestamps
-  export let bids
-  export let asks
+	export let timestamps
+  export let bids, asks
+	export let buys, sells
   export let trend
-  export let candidate
+  export let candidate, volatile, liquid
 
   export let range
+  export let normalize
 
   let canvas
   let chart
@@ -24,8 +26,15 @@
       bids.rate, asks.rate,
       bids.avg, asks.avg,
       bids.rsi, asks.rsi,
+			buys.rate, sells.rate,
       bids.vol
     ], datetime, timestamps)
+    if (normalize) {
+      datasets = datasets.map((dataset, i) => {
+        if (i == 4 || i == 5) return dataset
+        else return normalizeArray(dataset)
+      })
+    }
     chart.data.labels = timestampsEdited
     for (let i=0; i < chart.data.datasets.length; i++)
       chart.data.datasets[i].data = datasets[i]
@@ -55,38 +64,46 @@
         label: 'Bids',
         yAxisID: 'VALUES',
         borderColor: 'rgb(255, 153, 0)',
-        tension: 0
       },{
         label: 'Asks',
         yAxisID: 'VALUES',
         borderColor: 'rgb(0, 170, 255)',
-        tension: 0
       },{
-        label: 'Avg',
+        label: 'Bids Average',
         yAxisID: 'VALUES',
         borderColor: 'rgb(255, 173, 51)',
-        borderDash: [10,5],
+        borderDash: [20,5],
         tension: 0.5
       },{
-        label: 'Avg',
+        label: 'Asks Average',
         yAxisID: 'VALUES',
         borderColor: 'rgb(51, 187, 255)',
-        borderDash: [10,5],
+        borderDash: [20,5],
         tension: 0.5
       },{
-        label: 'RSI',
+        label: 'Bids RSI',
         yAxisID: 'RSI',
         borderColor: 'rgb(179, 107, 0)',
-        borderDash: [5,3],
+        borderDash: [12,5],
         tension: 0.5
       },{
-        label: 'RSI',
+        label: 'Asks RSI',
         yAxisID: 'RSI',
         borderColor: 'rgb(0, 119, 179)',
-        borderDash: [5,3],
+        borderDash: [12,5],
         tension: 0.5
       },{
-        label: 'Vol',
+        label: 'Buys',
+        yAxisID: 'VALUES',
+        borderColor: 'rgb(102, 61, 0)',
+        borderDash: [5,4],
+      },{
+        label: 'Sells',
+        yAxisID: 'VALUES',
+        borderColor: 'rgb(0, 68, 102)',
+        borderDash: [5,4],
+      },{
+        label: 'Volume',
         type: 'bar',
         yAxisID: 'VOLUME',
         borderColor: 'rgb(204, 238, 255)',
@@ -96,11 +113,16 @@
         fill: false,
         interaction: { intersect: false },
         radius: 0,
+				tension: 0,
         spanGaps: true,
         plugins: { legend: { position: 'bottom' } },
         scales: {
           VALUES: { position: 'left' },
-          RSI:    { position: 'right', grid: { drawOnChartArea: false } },
+          RSI: {
+						position: 'right',
+						min: 0, max: 100,
+						grid: { drawOnChartArea:false }
+					},
           VOLUME: { position: 'right', grid: { drawOnChartArea: false } },
         }
       }
@@ -114,14 +136,18 @@
 <h3>
   {currency}
   {#if trend == 1}
-    <img class="icon trend" src="/static/up.svg" alt="trend up">
+    <img transition:fade alt="trend up"
+			class="icon trend" src="/static/up.svg">
   {:else if trend == 0}
-    <img class="icon trend" src="/static/flat.svg" alt="trend flat">
+    <img transition:fade alt="trend flat"
+			class="icon trend" src="/static/flat.svg">
   {:else if trend == -1}
-    <img class="icon trend" src="/static/down.svg" alt="trend down">
+    <img transition:fade alt="trend down"
+			class="icon trend" src="/static/down.svg">
   {/if}
   {#if candidate}
-    <img class="icon candidate" src="/static/anchor.svg" alt="candidate">
+    <img transition:fade alt="candidate"
+			class="icon candidate" src="/static/anchor.svg">
   {/if}
 </h3>
 <canvas width="100" height="40" bind:this={canvas}></canvas>

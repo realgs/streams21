@@ -3,12 +3,12 @@
 	import { fade } from 'svelte/transition';
 	import { fetchOffers } from './utils.js'
 	import { dateToHTML } from './date.js'
-	import { calculateAverage, calculateRSI, calculateVolume } from './calculate.js'
+	import { calculateAverage, calculateRSI, calculateVolume }
+		from './calculate.js'
 	import Chart from './components/Chart.svelte'
 
 	
 	const RESOURCES = ['BTC-PLN','ETH-PLN','LTC-PLN']
-	const API_ENDPOINT = 'orderbook-limited' // transactions / orderbook-limited
 	const FETCH_FREQUENCY = 5   // seconds
 
 	let interval
@@ -22,15 +22,20 @@
 	let vol = 1/60
 	let avg = 5
 	let rsi = 5
+	let normalize = false
 
 	let charts = RESOURCES.map(resource => {
 		return {
 			currency: resource,
 			timestamps: [],
-			bids: { rate: [], amount: [], avg: [], rsi: [], vol: [] },
-			asks: {	rate: [], amount: [], avg: [], rsi: [], vol: [] },
+			bids:  { rate: [], amount: [], avg: [], rsi: [], vol: [] },
+			asks:  { rate: [], amount: [], avg: [], rsi: [], vol: [] },
+			buys:  { rate: [], amount: [] },
+			sells: { rate: [], amount: [] },
 			trend: 0,
-			candidate: false
+			candidate: false,
+			volatile: false,
+			liquid: false
 		}
 	})
 
@@ -49,8 +54,9 @@
 
 	function update() {
 		charts.forEach(async (chart) => {
-			let { timestamps, bids, asks } = chart
-			let { bid, ask } = await fetchOffers(chart.currency, API_ENDPOINT)
+			let { timestamps, bids, asks, buys, sells } = chart
+			let { bid, ask } = await fetchOffers(chart.currency, 'orderbook-limited')
+			let { buy, sell } = await fetchOffers(chart.currency, 'transactions')
 			// push a timestamp
 			timestamps.push( (new Date).toLocaleString() )
 			updateRange(timestamps)
@@ -59,6 +65,10 @@
 			asks.rate.push(ask.rate)
 			bids.amount.push(bid.amount)
 			asks.amount.push(ask.amount)
+			buys.rate.push(buy.rate)
+			sells.rate.push(sell.rate)
+			buys.amount.push(buy.amount)
+			sells.amount.push(sell.amount)
 			// additional values
 			// AVG
 			bids.avg.push(calculateAverage(bids.rate, avg))
@@ -76,21 +86,26 @@
 			// choose a candidate if possible
 			let candidate = charts.find(chart => chart.candidate == true)
 			if (chart.trend != -1) {
+				let assign = false
 				if (candidate) {
 					let candidateVol = candidate.bids.vol[candidate.bids.vol.length-1]
 					let currentVol = bids.vol[bids.vol.length-1]
-					if (currentVol > candidateVol) {
-						charts.forEach(chart => {	chart.candidate = false	})
-						chart.candidate = true
+					if (currentVol > candidateVol || candidate.trend == -1) {
+						candidate.candidate = false
+						candidate.volatile = false
+						candidate.liquid = false
+						assign = true
 					}
-				} else {
+				} else assign = true
+				if (assign) {
 					chart.candidate = true
+					chart.volatile = true
+					chart.liquid = true
 				}
 			}
 			charts = charts
 		})
 	}
-	
 
 	function toggle() {
 		if (interval)	stop()
@@ -114,9 +129,7 @@
 		<button on:click={toggle} class="{interval ? 'red' : 'green'}">
 			{#if interval}Stop{:else}Start{/if}
 		</button>
-		{#if interval}
-			<span transition:fade>running on <b>/{API_ENDPOINT}</b></span>
-		{/if}
+		{#if interval}<span transition:fade>running...</span>{/if}
 
 		<p>
 			Range from:
@@ -127,13 +140,14 @@
 				bind:value={range.set.time}
 				min={range.min.time} max={range.max.time}>
 		</p>
+		<p>Normalize values: <input type=checkbox bind:checked={normalize}></p>
 		<p>Volume frequency: <input type="number" bind:value={vol}> hours</p>
 		<p>Moving average: <input type="number" bind:value={avg}> samples</p>
 		<p>RSI: <input type="number" bind:value={rsi}> samples</p>
 	</nav>
 
 	{#each charts as chart}
-		<Chart {...chart} range={range.set}/>
+		<Chart {...chart} range={range.set} {normalize}/>
 	{/each}
 </main>
 
