@@ -15,6 +15,9 @@ h1,h2,h3,h4,h5,h6,
 button, input, label {
 	font-family: 'JetBrains Mono', monospace;
 }
+p {
+	margin: 0;
+}
 
 body {
 	color: #141414;

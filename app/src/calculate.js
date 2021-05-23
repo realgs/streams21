@@ -27,10 +27,23 @@ export function calculateRSI(values, x) {
   return 100 - 100/(1 + a/b)
 }
 
-export function calculateVolume(values, hours, timestamps) {
+export function calculateVolume(values, x) {
+  // Calculate Volume from the last x values
+  if (x > values.length) x = values.length
+  values = values.slice(values.length-x)
+  return values.reduce((a,b) => a+b, 0)
+}
+
+export function checkVolatile(values, x) {
+  // Check if the resource is volatile based on last x values
+  if (x > values.length) x = values.length
+  values = values.slice(values.length-x)
+  return values.reduce((a,b) => a+b, 0)
+}
+
+export function checkLiquid(values, x) {
   // Calculate Volume from a given amount of hours
-  let now = new Date
-  now.setTime(now.getTime() - (hours*60*60*1000))
-  values = sliceByDate([values], now.toLocaleString(), timestamps)
+  if (x > values.length) x = values.length
+  values = values.slice(values.length-x)
   return values.reduce((a,b) => a+b, 0)
 }

@@ -3,11 +3,12 @@
 	import { fade } from 'svelte/transition';
 	import { fetchOffers } from './utils.js'
 	import { dateToHTML } from './date.js'
-	import { calculateAverage, calculateRSI, calculateVolume }
-		from './calculate.js'
+	import { calculateAverage, calculateRSI, calculateVolume,
+		checkLiquid, checkVolatile } from './calculate.js'
 	import Chart from './components/Chart.svelte'
-
+	import Loader from './components/Loader.svelte'
 	
+
 	const RESOURCES = ['BTC-PLN','ETH-PLN','LTC-PLN']
 	const FETCH_FREQUENCY = 5   // seconds
 
@@ -22,6 +23,8 @@
 	let vol = 12
 	let avg = 5
 	let rsi = 5
+	let volatile = 5
+	let liquid = 5
 	let normalize = false
 
 	let charts = RESOURCES.map(resource => {
@@ -99,8 +102,8 @@
 				} else assign = true
 				if (assign) {
 					chart.candidate = true
-					chart.volatile = true
-					chart.liquid = true
+					chart.volatile = checkVolatile(buys.rate)
+					chart.liquid = checkLiquid(buys.rate, sells.rate, lio)
 				}
 			}
 			charts = charts
@@ -129,29 +132,43 @@
 		<button on:click={toggle} class="{interval ? 'red' : 'green'}">
 			{#if interval}Stop{:else}Start{/if}
 		</button>
-		{#if interval}<span transition:fade>running...</span>{/if}
+		{#if interval}<span transition:fade><Loader/></span>{/if}
 
 		<div class="inputs">
-			<label>Range from:
-				<input type="date"
-					bind:value={range.set.date}
-					min={range.min.date} max={range.max.date}>
-				<input type="time"
-					bind:value={range.set.time}
-					min={range.min.time} max={range.max.time}>
-			</label>
-			<label>Volume:
-				<input type="number" min="0" bind:value={vol}> <small>samples</small>
-			</label>
-			<label>Moving average:
-				<input type="number" min="0" bind:value={avg}> <small>samples</small>
-			</label>
-			<label>RSI:
-				<input type="number" min="0" bind:value={rsi}> <small>samples</small>
-			</label>
-			<label>Normalize:
-				<input type=checkbox min="0" bind:checked={normalize}>
-			</label>
+			{#if charts[0].timestamps.length > 0}
+				<label>Range from:
+					<input type="date"
+						bind:value={range.set.date}
+						min={range.min.date} max={range.max.date}>
+					<input type="time"
+						bind:value={range.set.time}
+						min={range.min.time} max={range.max.time}>
+				</label>
+			{:else}
+				<p>Range from: <small class="red">no data</small></p>
+			{/if}
+			<div>
+				<label>Volume:<br>
+					<input type="number" min="0" bind:value={vol}> <small>samples</small>
+				</label>
+				<label>Average:<br>
+					<input type="number" min="0" bind:value={avg}> <small>samples</small>
+				</label>
+				<label>RSI:<br>
+					<input type="number" min="0" bind:value={rsi}> <small>samples</small>
+				</label>
+			</div>
+			<div>
+				<label>Volatile:<br>
+					<input type="number" min="0" bind:value={volatile}> <small>%</small>
+				</label>
+				<label>Liquid:<br>
+					<input type="number" min="0" bind:value={liquid}> <small>%</small>
+				</label>
+				<label>Normalize:<br>
+					<input type=checkbox min="0" bind:checked={normalize}>
+				</label>
+			</div>
 		</div>
 	</nav>
 
@@ -166,27 +183,32 @@
 		padding: 10vh 20vw;
 	}
 
-	nav {
-		margin-bottom: 7.5vh;
-	}
-	nav > span {
-		margin-left: 10px;
-		font-size: small;
-	}
-
 	button {
 		border-radius: 5px;
 		height: 40px;
 		width: 80px;
 		font-weight: bold;
 	}
+	
+	nav {
+		margin-bottom: 7.5vh;
+	}
+	nav > span {
+		margin-left: 10px;
+	}
 
 	.inputs {
+		display: grid;
+		grid-template-columns: 200px 200px auto;
+  	grid-template-rows: auto auto;
+	}
+	.inputs > div {
 		display: flex;
 		flex-direction: column;
 	}
-	label {
-		margin-top: 10px;
+	p, label {
+		grid-column: span 3;
+		margin-top: 15px;
 	}
 	input {
 		border: none;
