@@ -20,37 +20,63 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from datetime import datetime, timedelta
 from pathlib import Path
 from PIL import Image
 import requests
 import time
 
 
-time_samples, data_storage, avg_storage, rsi_storage, volume_storage, askbid_storage =\
-    ([] for _ in range(6))
+time_samples, data_storage, avg_storage, rsi_storage, vol_storage, askbid_storage, trans_storage \
+    = ([] for _ in range(7))
 
 
-def get_data(crypto_pairs, data_storage, askbid_storage, volume_storage):
-
-    curr_temp, askbid_temp, vol_temp = ([] for _ in range(3))
+def get_data(crypto_pairs, data_storage, askbid_storage):
+    curr_temp, askbid_temp = ([] for _ in range(2))
 
     for pair in crypto_pairs:
         try:
-            request = requests.get(
+            request_orders = requests.get(
                 f"https://bitbay.net/API/Public/{pair[0]}{pair[1]}/ticker.json"
             )
-            orders = request.json()
+            orders = request_orders.json()
             curr_temp.append([f'{pair[0]}-{pair[1]}', (orders['ask'], orders['bid'])])
             askbid_temp.append((orders['ask'], orders['bid']))
-            vol_temp.append(orders['volume'])
 
         except requests.exceptions.RequestException:
-            print("Connection problem.")
+            print("Connection problem with ticker API.")
+            return None
+
+    askbid_storage.append(askbid_temp)
+    data_storage.append(curr_temp)
+
+
+def get_volume(crypto_pairs, volume_storage):
+
+    vol_temp = []
+
+    for pair in crypto_pairs:
+
+        now = datetime.now()
+        delta = timedelta(minutes=10)
+        unix_epoch_time = int((now - delta).timestamp()) * 1000
+
+        try:
+            request_volume = requests.get(
+                f"https://api.bitbay.net/rest/trading/transactions/{pair[0]}-{pair[1]}",
+                params={'limit': 50, 'fromTime': unix_epoch_time}
+            )
+            transactions = request_volume.json()
+            trans_amount = len(transactions['items'])
+            volume = sum([float(transactions['items'][i]['a']) for i in range(trans_amount)])
+            vol_temp.append(volume)
+
+        except requests.exceptions.RequestException:
+            print("Connection problem with transactions API.")
+            vol_temp.append(0)
             return None
 
     volume_storage.append(vol_temp)
-    askbid_storage.append(askbid_temp)
-    data_storage.append(curr_temp)
 
 
 def calculate_mov_avg(askbid_storage, avg_storage, window_size):
@@ -147,7 +173,9 @@ def draw_figure(frame_number):
     plt.style.use('Solarize_Light2')
     time_samples.append(time.strftime("%H:%M:%S", time.localtime()))
 
-    get_data(PAIRS, data_storage, askbid_storage, volume_storage)
+    # get_data(PAIRS, data_storage, askbid_storage, volume_storage)
+    get_data(PAIRS, data_storage, askbid_storage)
+    get_volume(PAIRS, vol_storage)
     calculate_mov_avg(askbid_storage, avg_storage, AVG_WINDOW)
     calculate_rsi(askbid_storage, rsi_storage, RSI_WINDOW)
 
@@ -191,6 +219,15 @@ def draw_figure(frame_number):
                             boxcoords="offset points", pad=0.3, frameon=0)
         axes.add_artist(ab)
 
+        for loc, spine in axes.spines.items():
+            if loc == 'bottom' or loc == 'top':
+                spine.set_position(("outward", 1))
+                spine.set_capstyle('butt')
+            else:
+                spine.set_position(("outward", -1))
+            spine.set_linewidth(3)
+            spine.set_edgecolor('#859900')
+            spine.set_alpha(0.7)
 
         plt.xlabel("Time", fontsize=9)
         plt.ylabel("Exchange Rates", fontsize=9)
@@ -220,8 +257,8 @@ def draw_figure(frame_number):
         plt.subplot(3, 3, curr_pair+7)
         volume = []
 
-        for volume_sample in volume_storage:
-            volume.append(volume_sample[curr_pair])
+        for vol_sample in vol_storage:
+            volume.append(vol_sample[curr_pair])
 
         plt.bar(time_samples, volume, align="center")
         plt.xlabel("Time", fontsize=9)
@@ -234,7 +271,7 @@ def draw_figure(frame_number):
         del time_samples[0]
         del data_storage[0]
         del avg_storage[0]
-        del volume_storage[0]
+        del vol_storage[0]
         del askbid_storage[0]
         del rsi_storage[0]
 
