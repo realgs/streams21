@@ -35,10 +35,7 @@ def spread(Y,S,all_data,c):
         return False
 
 def transactions(Y,X,crypto,currency):
-    if Y > len(all_data):
-        y = len(all_data)
-    else:
-        y = Y
+    y = Y
     queryparams = {'limit': y}
     tran = requests.get("https://api.bitbay.net/rest/trading/transactions/"+crypto+'-'+currency, params = queryparams)
     handle_exceptions(tran)
