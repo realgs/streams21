@@ -1,7 +1,7 @@
 # streams21
 Przetwarzanie strumieni danych
 
-![chart](https://imgur.com/a/X7jHldq)
+![chart](showtime.jpg)
 
 # running
 Requires Node.js (created on v14.16.1)
