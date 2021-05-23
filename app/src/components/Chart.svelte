@@ -5,6 +5,7 @@
   import { normalizeArray } from '../utils.js';
 	import { dateToJS, sliceByDate } from '../date.js'
 
+
   export let currency
 	export let timestamps
   export let bids, asks
@@ -24,8 +25,8 @@
     let timestampsEdited = editTimestamps(datetime)
     let datasets = sliceByDate([
       bids.rate, asks.rate,
-      bids.avg, asks.avg,
-      bids.rsi, asks.rsi,
+      bids.avg,  asks.avg,
+      bids.rsi,  asks.rsi,
 			buys.rate, sells.rate,
       bids.vol
     ], datetime, timestamps)

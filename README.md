@@ -1,6 +1,8 @@
 # streams21
 Przetwarzanie strumieni danych
 
+![chart](https://imgur.com/a/X7jHldq)
+
 # running
 Requires Node.js (created on v14.16.1)
 1. `cd app` `npm install` `npm run build` (first build Svelte files)

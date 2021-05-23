@@ -3,8 +3,8 @@
 	import { fade } from 'svelte/transition';
 	import { fetchOffers } from './utils.js'
 	import { dateToHTML } from './date.js'
-	import { calculateAverage, calculateRSI, calculateVolume,
-		checkLiquid, checkVolatile } from './calculate.js'
+	import { getSum, getAvg, calculateRSI, checkLiquid, checkVolatile }
+		from './calculate.js'
 	import Chart from './components/Chart.svelte'
 	import Loader from './components/Loader.svelte'
 	
@@ -23,8 +23,8 @@
 	let vol = 12
 	let avg = 5
 	let rsi = 5
-	let volatile = 5
-	let liquid = 5
+	let volatile = { samples: 5, percent: 5 }
+	let liquid   = { samples: 5, percent: 5 }
 	let normalize = false
 
 	let charts = RESOURCES.map(resource => {
@@ -55,6 +55,26 @@
 		if (!range.set.time) range.set.time = range.min.time
 	}
 
+	function defineTrend(rsi) {
+		if (rsi[rsi.length-1] > 70)	return 1
+		if (rsi[rsi.length-1] < 30) return -1
+		return 0
+	}
+
+	function chooseCandidate() {
+		let candidate = null
+		charts.forEach(chart => {
+			if (chart.trend != -1) {
+				if (candidate) {
+					let candidateVol = candidate.bids.vol[candidate.bids.vol.length-1]
+					let currentVol = chart.bids.vol[chart.bids.vol.length-1]
+					if (currentVol > candidateVol) candidate = chart
+				} else candidate = chart
+			}
+		})
+		return candidate
+	}
+
 	function update() {
 		charts.forEach(async (chart) => {
 			let { timestamps, bids, asks, buys, sells } = chart
@@ -74,37 +94,30 @@
 			sells.amount.push(sell.amount)
 			// additional values
 			// AVG
-			bids.avg.push(calculateAverage(bids.rate, avg))
-			asks.avg.push(calculateAverage(asks.rate, avg))
+			bids.avg.push(getAvg(bids.rate, avg))
+			asks.avg.push(getAvg(asks.rate, avg))
 			// RSI
 			bids.rsi.push(calculateRSI(bids.rate, rsi))
 			asks.rsi.push(calculateRSI(asks.rate, rsi))
-			// defining the trend
-			if (bids.rsi[bids.rsi.length-1] > 70)	chart.trend = 1
-			else if (bids.rsi[bids.rsi.length-1] < 30) chart.trend = -1
-			else chart.trend = 0
 			// VOL
-			bids.vol.push(calculateVolume(bids.amount, vol, timestamps))
-			asks.vol.push(calculateVolume(asks.amount, vol, timestamps))
-			// choose a candidate if possible
+			bids.vol.push(getSum(bids.amount, vol))
+			asks.vol.push(getSum(asks.amount, vol))
+			// define the trend
+			chart.trend = defineTrend(bids.rsi)
+			// reset candidates and choose one if possible
 			let candidate = charts.find(chart => chart.candidate == true)
-			if (chart.trend != -1) {
-				let assign = false
-				if (candidate) {
-					let candidateVol = candidate.bids.vol[candidate.bids.vol.length-1]
-					let currentVol = bids.vol[bids.vol.length-1]
-					if (currentVol > candidateVol || candidate.trend == -1) {
-						candidate.candidate = false
-						candidate.volatile = false
-						candidate.liquid = false
-						assign = true
-					}
-				} else assign = true
-				if (assign) {
-					chart.candidate = true
-					chart.volatile = checkVolatile(buys.rate)
-					chart.liquid = checkLiquid(buys.rate, sells.rate, lio)
-				}
+			let candidateNew = chooseCandidate()
+			if (candidateNew && candidateNew != candidate) {
+				if (candidate)
+					candidate.candidate = candidate.volatile = candidate.liquid = false
+				candidate = candidateNew
+				candidate.candidate = true
+			}
+			if (candidate) {
+				candidate.volatile = checkVolatile(buys.rate,
+					volatile.samples, volatile.percent)
+				candidate.liquid = checkLiquid(bids.rate, asks.rate,
+					liquid.samples, liquid.percent)
 			}
 			charts = charts
 		})
@@ -160,10 +173,16 @@
 			</div>
 			<div>
 				<label>Volatile:<br>
-					<input type="number" min="0" bind:value={volatile}> <small>%</small>
+					<input type="number" min="0" bind:value={volatile.percent}>
+						<small>%</small>
+					<input type="number" min="0" bind:value={volatile.samples}>
+						<small>samples</small>
 				</label>
 				<label>Liquid:<br>
-					<input type="number" min="0" bind:value={liquid}> <small>%</small>
+					<input type="number" min="0" bind:value={liquid.percent}>
+						<small>%</small>
+					<input type="number" min="0" bind:value={liquid.samples}>
+						<small>samples</small>
 				</label>
 				<label>Normalize:<br>
 					<input type=checkbox min="0" bind:checked={normalize}>
@@ -199,7 +218,7 @@
 
 	.inputs {
 		display: grid;
-		grid-template-columns: 200px 200px auto;
+		grid-template-columns: 175px 250px auto;
   	grid-template-rows: auto auto;
 	}
 	.inputs > div {
