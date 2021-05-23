@@ -135,20 +135,24 @@
 
 <h3>
   {currency}
-  {#if trend == 1}
-    <img transition:fade alt="trend up"
-			class="icon trend" src="/static/up.svg">
-  {:else if trend == 0}
-    <img transition:fade alt="trend flat"
-			class="icon trend" src="/static/flat.svg">
-  {:else if trend == -1}
-    <img transition:fade alt="trend down"
-			class="icon trend" src="/static/down.svg">
-  {/if}
-  {#if candidate}
-    <img transition:fade alt="candidate"
-			class="icon candidate" src="/static/anchor.svg">
-  {/if}
+  <div class="icons">
+    {#if trend == 1}
+      <img alt="trend up" class="trend" src="/static/up.svg">
+    {:else if trend == 0}
+      <img alt="trend flat" class="trend" src="/static/flat.svg">
+    {:else if trend == -1}
+      <img  alt="trend down" class="trend" src="/static/down.svg">
+    {/if}
+    {#if candidate}
+      <img transition:fade alt="candidate" src="/static/anchor.svg">
+    {/if}
+    {#if volatile}
+      <img transition:fade alt="volatile asset" src="/static/volatile.svg">
+    {/if}
+    {#if liquid}
+      <img transition:fade alt="liquid asset" src="/static/liquid.svg">
+    {/if}
+  </div>
 </h3>
 <canvas width="100" height="40" bind:this={canvas}></canvas>
 
@@ -158,16 +162,20 @@
     position: relative;
     margin-top: 20px;
   }
-  .icon {
+  .icons {
     position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 0;
     left: 0;
-    transform: translate(calc(-100% - 20px), -50%);
+    transform: translate(calc(-100% - 20px), -3px);
+  }
+  .icons > img {
     height: 30px;
+    margin-bottom: 10px;
   }
-  .trend {
-    top: 50%;
-  }
-  .candidate {
-    top: calc(150% + 20px);
+  .icons > .trend {
+    border-radius: 10px;
+    background-color: #ffffff;
   }
 </style>

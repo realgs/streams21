@@ -19,7 +19,7 @@
 	  max: { date: null, time: null },
 		set: { date: null, time: null }
 	}
-	let vol = 1/60
+	let vol = 12
 	let avg = 5
 	let rsi = 5
 	let normalize = false
@@ -131,19 +131,28 @@
 		</button>
 		{#if interval}<span transition:fade>running...</span>{/if}
 
-		<p>
-			Range from:
-			<input type="date"
-				bind:value={range.set.date}
-				min={range.min.date} max={range.max.date}>
-			<input type="time"
-				bind:value={range.set.time}
-				min={range.min.time} max={range.max.time}>
-		</p>
-		<p>Normalize values: <input type=checkbox bind:checked={normalize}></p>
-		<p>Volume frequency: <input type="number" bind:value={vol}> hours</p>
-		<p>Moving average: <input type="number" bind:value={avg}> samples</p>
-		<p>RSI: <input type="number" bind:value={rsi}> samples</p>
+		<div class="inputs">
+			<label>Range from:
+				<input type="date"
+					bind:value={range.set.date}
+					min={range.min.date} max={range.max.date}>
+				<input type="time"
+					bind:value={range.set.time}
+					min={range.min.time} max={range.max.time}>
+			</label>
+			<label>Volume:
+				<input type="number" min="0" bind:value={vol}> <small>samples</small>
+			</label>
+			<label>Moving average:
+				<input type="number" min="0" bind:value={avg}> <small>samples</small>
+			</label>
+			<label>RSI:
+				<input type="number" min="0" bind:value={rsi}> <small>samples</small>
+			</label>
+			<label>Normalize:
+				<input type=checkbox min="0" bind:checked={normalize}>
+			</label>
+		</div>
 	</nav>
 
 	{#each charts as chart}
@@ -156,22 +165,41 @@
 	main {
 		padding: 10vh 20vw;
 	}
+
 	nav {
-		margin-bottom: 5vh;
+		margin-bottom: 7.5vh;
 	}
 	nav > span {
 		margin-left: 10px;
 		font-size: small;
 	}
+
 	button {
 		border-radius: 5px;
 		height: 40px;
 		width: 80px;
 		font-weight: bold;
 	}
-	input[type='number'] {
-		width: 70px;
+
+	.inputs {
+		display: flex;
+		flex-direction: column;
 	}
+	label {
+		margin-top: 10px;
+	}
+	input {
+		border: none;
+		padding: 5px 10px;
+	}
+	input[type='number'] {
+		width: 60px;
+	}
+	input[type='checkbox'] {
+		width: 18px;
+		height: 18px;
+	}
+
 	.red {
 		color: #ff6464;
 		border-color: #ff6464;
