@@ -179,9 +179,9 @@ def draw_figure(frame_number):
 
         latest_ask_rsi = rsi_storage[-1][curr_pair][0]
         if latest_ask_rsi >= 70:
-            icon = bull_icon
+            icon = upward_icon
         elif latest_ask_rsi <= 30:
-            icon = teddy_icon
+            icon = downward_icon
         else:
             icon = question_icon
 
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
     RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
 
-    teddy_icon, bull_icon, question_icon = get_transparent_icons('teddy', 'bull', 'question')
+    downward_icon, upward_icon, question_icon = get_transparent_icons('downward', 'upward', 'question')
 
     animation = FuncAnimation(plt.figure(), draw_figure, interval=1000*FREQ)
     plt.get_current_fig_manager().window.state('zoomed')
