@@ -248,7 +248,7 @@ def draw_plot(time_interval):
                 position = min(buy_list0)
                 text[0].set_position((0, position))
             elif volume_info[1] == 1:
-                text[0] = []
+                text = []
                 text.append(axs[1,1].text(0,0,''))
                 voltaile_info = check_voltaile(buy_list1, X, Y)
                 liquid_info = check_liquid(buy_list1, sell_list1, S)
