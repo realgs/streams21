@@ -120,13 +120,21 @@ def RSI_trends(rate):
 
 
 def candidate(v_BTC, v_LTC, v_ETH, RSI_BTC_trend, RSI_LTC_trend, RSI_ETH_trend):
-    max_v = max(v_BTC, v_LTC, v_ETH)
-    if max_v == v_BTC and RSI_BTC_trend == "Time to sell!":
-        return 'BTC is the best candidate'
-    if max_v == v_LTC and RSI_LTC_trend == "Time to sell!":
-        return 'LTC is the best candidate'
-    if max_v == v_ETH and RSI_ETH_trend == "Time to sell!":
-        return 'ETH is the best candidate'
+    max_v = []
+    if RSI_BTC_trend == "Time to sell!":
+        max_v.append(v_BTC)
+    if RSI_LTC_trend == "Time to sell!":
+        max_v.append(v_LTC)
+    if RSI_ETH_trend == "Time to sell!":
+        max_v.append(v_ETH)
+    if len(max_v) > 0:
+        maximum = max(max_v)
+        if maximum == v_BTC:
+            return 'BTC is the best candidate'
+        if maximum == v_LTC:
+            return 'LTC is the best candidate'
+        if maximum == v_ETH:
+            return 'ETH is the best candidate'
     else:
         return "Neither of the currencies is in a downward trend "
 
@@ -142,7 +150,7 @@ def fluctuations(crypto, curr, X, Y):
     values = values[-Y:]
     minimum = min(values)
     maximum = max(values)
-    diff = (abs(maximum - minimum) / maximum) * 100
+    diff = abs((maximum - minimum) / maximum) * 100
     diff = round(diff, 2)
     if diff > X:
         return f'{diff}%', "Yes"
@@ -160,17 +168,15 @@ def spread(crypto, curr, S):
             buy.append(key["a"])
         if key["ty"] == "Sell":
             sell.append(key["a"])
-
-    buy = buy[-1]
-    print(buy)
-    sell = sell[-1]
-
-    diff = 1 - (sell - buy) / buy
-    diff = round(diff, 2)
-    if diff < S:
-        return f'{diff}%', "Yes"
-    else:
-        return f'{diff}%', "No"
+    if len(buy) > 0 and len(sell) > 0:
+        buy = buy[-1]
+        sell = sell[-1]
+        diff = 1 - ((sell - buy) / sell)
+        diff = round(diff, 2)
+        if diff < S:
+            return f'{diff}%', "Yes"
+        else:
+            return f'{diff}%', "No"
 
 
 def animated_plot(i):
@@ -215,54 +221,6 @@ def animated_plot(i):
     spr_LTC = spread(crypto[1], curr, S)
     spr_ETH = spread(crypto[2], curr, S)
 
-    ax[0, 0].cla()
-    ax[0, 0].plot(x_val, bid_y_val_BTC, label='Bid BTC', color='k')
-    ax[0, 0].plot(x_val, ask_y_val_BTC, label='Ask BTC', color='r')
-    ax[0, 0].plot(x_val, mean_bid_BTC_l, label='Mean bid BTC', ls='--', color='y')
-    ax[0, 0].plot(x_val, mean_ask_BTC_l, label='Mean ask BTC', ls='--', color='g')
-    ax[0, 0].set_xticks(x_value)
-    ax[0, 0].legend(loc='upper right')
-    ax[0, 0].set_xlabel('Time')
-    ax[0, 0].set_ylabel('Value')
-    ax[0, 0].set_xticklabels(x_value, rotation=45)
-    ax[0, 0].set_title("Bid and ask BTC")
-    ax[0, 0].text(0.3, 0.96, f'Volatile: {flu_BTC}', horizontalalignment='center',
-                  verticalalignment='center', transform=ax[0, 0].transAxes)
-    ax[0, 0].text(0.3, 0.1, f'Spread: {spr_BTC}', horizontalalignment='center',
-                  verticalalignment='center', transform=ax[0, 0].transAxes)
-
-    ax[0, 1].cla()
-    ax[0, 1].plot(x_val, bid_y_val_LTC, label='Bid LTC', color='k')
-    ax[0, 1].plot(x_val, ask_y_val_LTC, label='Ask LTC', color='r')
-    ax[0, 1].plot(mean_bid_LTC_l, label='Mean bid LTC', ls='--', color='y')
-    ax[0, 1].plot(mean_ask_LTC_l, label='Mean ask LTC', ls='--', color='g')
-    ax[0, 1].set_xticks(x_value)
-    ax[0, 1].legend(loc='upper right')
-    ax[0, 1].set_xlabel('Time')
-    ax[0, 1].set_ylabel('Value')
-    ax[0, 1].set_xticklabels(x_value, rotation=45)
-    ax[0, 1].set_title("Bid and ask LTC")
-    ax[0, 1].text(0.3, 0.96, f'Volatile: {flu_LTC}', horizontalalignment='center',
-                  verticalalignment='center', transform=ax[0, 1].transAxes)
-    ax[0, 1].text(0.3, 0.1, f'Spread: {spr_LTC}', horizontalalignment='center',
-                  verticalalignment='center', transform=ax[0, 1].transAxes)
-
-    ax[0, 2].cla()
-    ax[0, 2].plot(x_val, bid_y_val_ETH, label='Bid ETH', color='k')
-    ax[0, 2].plot(x_val, ask_y_val_ETH, label='Ask ETH', color='r')
-    ax[0, 2].plot(mean_bid_ETH_l, label='Mean bid ETH', ls='--', color='y')
-    ax[0, 2].plot(mean_ask_ETH_l, label='Mean ask ETH', ls='--', color='g')
-    ax[0, 2].set_xticks(x_value)
-    ax[0, 2].legend(loc='upper right')
-    ax[0, 2].set_xlabel('Time')
-    ax[0, 2].set_ylabel('Value')
-    ax[0, 2].set_xticklabels(x_value, rotation=45)
-    ax[0, 2].set_title("Bid and ask ETH")
-    ax[0, 2].text(0.3, 0.96, f'Volatile: {flu_ETH}', horizontalalignment='center',
-                  verticalalignment='center', transform=ax[0, 2].transAxes)
-    ax[0, 2].text(0.3, 0.1, f'Spread: {spr_ETH}', horizontalalignment='center',
-                  verticalalignment='center', transform=ax[0, 2].transAxes)
-
     volume_BTC = get_volume24(crypto[0], curr)
     vol_BTC_l.append(volume_BTC)
     vol_BTC_plot.append(0)
@@ -301,6 +259,66 @@ def animated_plot(i):
 
     best_candidate = candidate(vol_BTC_minute, vol_LTC_minute, vol_ETH_minute, RSI_BTC_trend, RSI_LTC_trend,
                                RSI_ETH_trend)
+
+    ax[0, 0].cla()
+    ax[0, 0].plot(x_val, bid_y_val_BTC, label='Bid BTC', color='k')
+    ax[0, 0].plot(x_val, ask_y_val_BTC, label='Ask BTC', color='r')
+    ax[0, 0].plot(x_val, mean_bid_BTC_l, label='Mean bid BTC', ls='--', color='y')
+    ax[0, 0].plot(x_val, mean_ask_BTC_l, label='Mean ask BTC', ls='--', color='g')
+    ax[0, 0].set_xticks(x_value)
+    ax[0, 0].legend(loc='upper right')
+    ax[0, 0].set_xlabel(f'Time \n')
+    ax[0, 0].set_ylabel('Value')
+    ax[0, 0].set_xticklabels(x_value, rotation=45)
+    if best_candidate == 'BTC is the best candidate':
+        ax[0, 0].set_title(f'Bid and ask BTC \n Volatile: {flu_BTC}, Spread: {spr_BTC}')
+    else:
+        ax[0, 0].set_title(f'Bid and ask BTC \n')
+        # if best_candidate == 'BTC is the best candidate':
+        #     ax[0, 0].text(0.3, 0.96, f'Volatile: {flu_BTC}', horizontalalignment='center',
+        #                   verticalalignment='center', transform=ax[0, 0].transAxes)
+        #     ax[0, 0].text(0.3, 0.1, f'Spread: {spr_BTC}', horizontalalignment='center',
+        #                   verticalalignment='center', transform=ax[0, 0].transAxes)
+
+    ax[0, 1].cla()
+    ax[0, 1].plot(x_val, bid_y_val_LTC, label='Bid LTC', color='k')
+    ax[0, 1].plot(x_val, ask_y_val_LTC, label='Ask LTC', color='r')
+    ax[0, 1].plot(mean_bid_LTC_l, label='Mean bid LTC', ls='--', color='y')
+    ax[0, 1].plot(mean_ask_LTC_l, label='Mean ask LTC', ls='--', color='g')
+    ax[0, 1].set_xticks(x_value)
+    ax[0, 1].legend(loc='upper right')
+    ax[0, 1].set_xlabel(f'Time \n')
+    ax[0, 1].set_ylabel('Value')
+    ax[0, 1].set_xticklabels(x_value, rotation=45)
+    if best_candidate == 'LTC is the best candidate':
+        ax[0, 1].set_title(f'Bid and ask LTC \n Volatile: {flu_LTC}, Spread: {spr_LTC}')
+    else:
+        ax[0, 1].set_title(f'Bid and ask LTC \n')
+    # if best_candidate == 'LTC is the best candidate':
+    #     ax[0, 1].text(0.3, 0.96, f'Volatile: {flu_LTC}', horizontalalignment='center',
+    #                   verticalalignment='center', transform=ax[0, 1].transAxes)
+    #     ax[0, 1].text(0.3, 0.1, f'Spread: {spr_LTC}', horizontalalignment='center',
+    #                   verticalalignment='center', transform=ax[0, 1].transAxes)
+
+    ax[0, 2].cla()
+    ax[0, 2].plot(x_val, bid_y_val_ETH, label='Bid ETH', color='k')
+    ax[0, 2].plot(x_val, ask_y_val_ETH, label='Ask ETH', color='r')
+    ax[0, 2].plot(mean_bid_ETH_l, label='Mean bid ETH', ls='--', color='y')
+    ax[0, 2].plot(mean_ask_ETH_l, label='Mean ask ETH', ls='--', color='g')
+    ax[0, 2].set_xticks(x_value)
+    ax[0, 2].legend(loc='upper right')
+    ax[0, 2].set_xlabel('Time')
+    ax[0, 2].set_ylabel('Value')
+    ax[0, 2].set_xticklabels(x_value, rotation=45)
+    if best_candidate == 'ETH is the best candidate':
+        ax[0, 2].set_title(f'Bid and ask ETH \n Volatile: {flu_ETH}, Spread: {spr_ETH}')
+    else:
+        ax[0, 2].set_title(f'Bid and ask ETH \n')
+    # if best_candidate == 'ETH is the best candidate':
+    #     ax[0, 2].text(0.3, 0.96, f'Volatile: {flu_ETH}', horizontalalignment='center',
+    #                   verticalalignment='center', transform=ax[0, 2].transAxes)
+    #     ax[0, 2].text(0.3, 0.1, f'Spread: {spr_ETH}', horizontalalignment='center',
+    #                   verticalalignment='center', transform=ax[0, 2].transAxes)
 
     ax[1, 0].cla()
     ax[1, 0].bar(x_val, v_BTC, label='Volume BTC', color='k')
@@ -373,7 +391,6 @@ def animated_plot(i):
 
     fig.tight_layout()
 
-
 if __name__ == '__main__':
     x_val = []
     bid_y_val_BTC = []
@@ -420,4 +437,3 @@ if __name__ == '__main__':
     ani = FuncAnimation(fig, animated_plot, interval=5000)
 
     plt.show()
-

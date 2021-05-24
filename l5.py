@@ -420,3 +420,4 @@ if __name__ == '__main__':
     ani = FuncAnimation(fig, animated_plot, interval=5000)
 
     plt.show()
+
