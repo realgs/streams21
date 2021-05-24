@@ -81,11 +81,11 @@ def choose_candidate():
             bat_variable += 1
         if crypto_ask_ZRX[-1] >= crypto_ask_ZRX[-2]:
             zrx_variable += 1
-    if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_BTC_volume:
+    if max(crypto_BTC_volume[-1], crypto_BAT_volume[-1], crypto_ZRX_volume[-1]) == float(crypto_BTC_volume[-1]):
         btc_variable += 1
-    if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_BAT_volume:
+    if max(crypto_BTC_volume[-1], crypto_BAT_volume[-1], crypto_ZRX_volume[-1]) == float(crypto_BAT_volume[-1]):
         bat_variable += 1
-    if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_ZRX_volume:
+    if max(crypto_BTC_volume[-1], crypto_BAT_volume[-1], crypto_ZRX_volume[-1]) == float(crypto_ZRX_volume[-1]):
         zrx_variable += 1
     if btc_variable == 2:
         # print("BTC - tendencja niespadkowa, największy wolumen")
@@ -190,23 +190,23 @@ def animate(i):
     bid_BAT, ask_BAT = crypto_get(f'BAT', 'PLN', 'ticker.json')
     bid_ZRX, ask_ZRX = crypto_get(f'ZRX', 'PLN', 'ticker.json')
 
-    volume_BTC = volume_get(f'transactions', 'BTC-PLN', 60)
-    volume_BAT = volume_get(f'transactions', 'BAT-PLN', 60)
-    volume_ZRX = volume_get(f'transactions', 'ZRX-PLN', 60)
+    volume_BTC = float(volume_get(f'transactions', 'BTC-PLN', 60))
+    volume_BAT = float(volume_get(f'transactions', 'BAT-PLN', 60))
+    volume_ZRX = float(volume_get(f'transactions', 'ZRX-PLN', 60))
 
     x_axis.append(datetime.now().strftime("%H:%M:%S"))
 
     crypto_bid_BTC.append(bid_BTC)
     crypto_ask_BTC.append(ask_BTC)
-    crypto_BTC_volume.append(volume_BTC)
+    crypto_BTC_volume.append(float(volume_BTC))
 
     crypto_bid_BAT.append(bid_BAT)
     crypto_ask_BAT.append(ask_BAT)
-    crypto_BAT_volume.append(volume_BAT)
+    crypto_BAT_volume.append(float(volume_BAT))
 
     crypto_bid_ZRX.append(bid_ZRX)
     crypto_ask_ZRX.append(ask_ZRX)
-    crypto_ZRX_volume.append(volume_ZRX)
+    crypto_ZRX_volume.append(float(volume_ZRX))
 
     left = max(0, len(x_axis) - 5)
     right = (len(x_axis))
