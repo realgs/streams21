@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import matplotlib
+import matplotlib.mlab as mlab
 import numpy as np
 
 
@@ -70,16 +72,15 @@ def animate(i):
     bid_cur3 = data['bid_cur3']
     ask_cur3 = data['ask_cur3']
 
-
-
     ax1.cla()
     ax2.cla()
     ax3.cla()
     ax4.cla()
     ax5.cla()
     ax6.cla()
-    ax7.cla()
-
+    ax1v.cla()
+    ax3v.cla()
+    ax5v.cla()
 
     plt.style.use('seaborn')
     currencies = ['ETH-PLN', 'BTC-PLN', 'DASH-PLN']
@@ -120,16 +121,14 @@ def animate(i):
     vol3 = vol24['vol3']
     color = 'tab:pink'
 
-    ax7.set_ylabel('sin')  # we already handled the x-label with ax1
-    ax7.plot(x, vol1, color=color, label='VOLUMEN')
-    ax7.tick_params(axis='y')
-    ax7.legend(loc="upper right")
+    ax1v.set_ylim([min(vol1)-1/10*(max(vol1)-min(vol1)), (max(vol1)-min(vol1))*3 + min(vol1)])
+    ax1v.fill_between(x, vol1, alpha=0.4)
 
-    xlim = ax7.get_ylim()
-    # example of how to zoomout by a factor of 0.1
-    factor = 5
-    new_xlim = (xlim[0] + xlim[1]) / 2 + np.array((-0.5, 0.5)) * (xlim[1] - xlim[0]) * (1 + factor)
-    ax7.set_ylim(new_xlim)
+    ax3v.set_ylim([min(vol2)-1/10*(max(vol2)-min(vol2)), (max(vol2)-min(vol2))*3 + min(vol2)])
+    ax3v.fill_between(x, vol2, alpha=0.4)
+
+    ax5v.set_ylim([min(vol3)-1/10*(max(vol3)-min(vol3)), (max(vol3)-min(vol3))*3 + min(vol3)])
+    ax5v.fill_between(x, vol3, alpha=0.4)
 
 
     for ax in (ax1, ax3, ax5):
@@ -173,8 +172,18 @@ def animate(i):
     plt.tight_layout()
 
 if __name__ == '__main__':
-    fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows=3, ncols=2, gridspec_kw={'width_ratios': [5, 1]})
-    ax7 = ax1.twinx()
+    fig = plt.figure()
+    ax1 = plt.subplot2grid((3, 6), (0, 0), rowspan=1, colspan=5)
+    ax2 = plt.subplot2grid((3, 6), (0, 5), rowspan=1, colspan=1)
+    ax3 = plt.subplot2grid((3, 6), (1, 0), rowspan=1, colspan=5)
+    ax4 = plt.subplot2grid((3, 6), (1, 5), rowspan=1, colspan=1)
+    ax5 = plt.subplot2grid((3, 6), (2, 0), rowspan=1, colspan=5)
+    ax6 = plt.subplot2grid((3, 6), (2, 5), rowspan=1, colspan=1)
+
+    ax1v = ax1.twinx()
+    ax3v = ax3.twinx()
+    ax5v = ax5.twinx()
+
     fig.set_size_inches(12, 8, forward=True)
     plt.locator_params(axis='x', nbins=10)
     anim = FuncAnimation(plt.gcf(), animate, interval=1000)
