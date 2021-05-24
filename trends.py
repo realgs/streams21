@@ -159,34 +159,13 @@ def calculate_rsi(askbid_storage, rsi_storage, window_size):
     rsi_storage.append(temp)
 
 
-def get_percent_diff(maxi, mini):
+def calculate_percent_diff(maxi, mini):
     if maxi == mini:
         return 100.0
     try:
         return (maxi / mini) * 100.0 - 100
     except ZeroDivisionError:
         return 0
-
-
-def get_icons(*icon_names, transparent=True):
-
-    processed_list = []
-    for icon_name in icon_names:
-
-        path = Path.cwd() / 'icons' / f'{icon_name}-256p.png'
-        icon_image = Image.open(path)
-
-        if transparent:
-            value = 32
-        else:
-            value = 196
-        alpha_channel = icon_image.getchannel('A')
-        with_alpha = alpha_channel.point(lambda i: value if i > 0 else 0)
-        icon_image.putalpha(with_alpha)
-
-        processed_list.append(icon_image)
-
-    return processed_list
 
 
 def classify_trend(rsi_storage, trend_list):
@@ -214,6 +193,39 @@ def select_candidate(trends_list, volume_slice):
         return volume_slice.index(highest_volume)
     else:
         return None
+
+
+def check_volatility(transaction_storage, pair, threshold, samples):
+
+    trans_slice = transaction_storage[-samples:]
+    temp = []
+    for sample in range(len(trans_slice)):
+        curr_trans = trans_slice[sample][pair]
+        trans_amount = len(curr_trans['items'])
+        inner_temp = [float(curr_trans['items'][tran]['r']) for tran in range(trans_amount)]
+        temp.extend(inner_temp)
+
+    percentage = calculate_percent_diff(max(temp), min(temp))
+
+    return (lambda perc: True if perc > threshold else False)(percentage)
+
+
+def get_icons(*icon_names, transparent=True):
+
+    processed_list = []
+    for icon_name in icon_names:
+
+        path = Path.cwd() / 'icons' / f'{icon_name}-256p.png'
+        icon_image = Image.open(path)
+
+        if transparent:
+            alpha_channel = icon_image.getchannel('A')
+            with_alpha = alpha_channel.point(lambda i: 32 if i > 0 else 0)
+            icon_image.putalpha(with_alpha)
+
+        processed_list.append(icon_image)
+
+    return processed_list
 
 
 def choose_trend_icon(trend):
@@ -258,6 +270,9 @@ def draw_figure(frame_number):
             avg_asks.append(avg_sample[curr_pair][0])
             avg_bids.append(avg_sample[curr_pair][1])
 
+        volatile = check_volatility(trans_storage, curr_pair, VOLATILE_PERC, VOLATILE_SAMPLES)
+        print(volatile)
+
         plt.plot(time_samples, asks, "-o", label=data_storage[0][curr_pair][0] + " ask")
         plt.plot(time_samples, bids, "-o", label=data_storage[0][curr_pair][0] + " bid")
         plt.plot(time_samples, avg_asks, "o:", color="#185986",
@@ -274,12 +289,14 @@ def draw_figure(frame_number):
                                   boxcoords="offset points", pad=0.3, frameon=0)
         axes.add_artist(ab_trend)
 
-        imagebox_volatile = OffsetImage(volatile_icon, zoom=0.1)
-        imagebox_volatile.image.axes = axes
-        ab_volatile = AnnotationBbox(imagebox_volatile, (0.95, 1.4), xycoords='axes fraction',
-                                     boxcoords="offset points", pad=0, frameon=0,
-                                     annotation_clip=False)
-        axes.add_artist(ab_volatile)
+        if volatile:
+
+            imagebox_volatile = OffsetImage(volatile_icon, zoom=0.1)
+            imagebox_volatile.image.axes = axes
+            ab_volatile = AnnotationBbox(imagebox_volatile, (0.95, 1.4), xycoords='axes fraction',
+                                         boxcoords="offset points", pad=0, frameon=0,
+                                         annotation_clip=False)
+            axes.add_artist(ab_volatile)
 
         imagebox_liquid = OffsetImage(liquid_icon, zoom=0.1)
         imagebox_liquid.image.axes = axes
@@ -356,8 +373,14 @@ if __name__ == '__main__':
     FREQ = 5
     # AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
     # RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
+    # VOLATILE_SAMPLES = int(input('Przedział z jakiego badać zmienność zasobu? (max 10): '))
+    # VOLATILE_PERC = int(input('Procentowy próg do uznania zasobu za zmienny?: '))
+    # SPREAD_PERC = int(input('Maksymalny procent spreadu do uznania zasobu za charakteryzujący się płynnym rynkiem?: '))
     AVG_WINDOW = 5
     RSI_WINDOW = 10
+    VOLATILE_SAMPLES = 4
+    VOLATILE_PERC = 1.8
+    SPREAD_PERC = 5
 
     downward_icon, upward_icon, question_icon = get_icons('downward', 'upward', 'question')
     volatile_icon, liquid_icon = get_icons('fire', 'liquidity', transparent=False)
