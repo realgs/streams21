@@ -1,9 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import matplotlib
-import matplotlib.mlab as mlab
-import numpy as np
 
 
 def every_nth_func(x_val):
@@ -150,14 +147,50 @@ def animate(i):
     rs2 = rsi['rsi2'][0]
     rs3 = rsi['rsi3'][0]
     ax2.barh('-', volume[0], align='edge')
-    ax2.set_title(f'VOLUMEN {currencies[0]}')
-    ax2.set_xlabel(f'Amount of crypto transferred {round(volume[0], 4)} \n RSI: {rs1}')
     ax4.barh('-', volume[1], align='edge')
-    ax4.set_title(f'VOLUMEN {currencies[1]}')
-    ax4.set_xlabel(f'Amount of crypto transferred {round(volume[1], 4)} \n RSI: {rs2}')
     ax6.barh('-', volume[2], align='edge')
-    ax6.set_title(f'VOLUMEN {currencies[2]}')
-    ax6.set_xlabel(f'Amount of crypto transferred {round(volume[2], 4)} \n RSI: {rs3}')
+
+
+    if rs1 > 70: trend1 = 'overbought'
+    elif rs1 < 70 and rs1 >30: trend1 = 'neutral'
+    else: trend1 = 'oversold'
+
+    if rs2 > 70: trend2 = 'overbought'
+    elif rs2 < 70 and rs2 >30: trend2 = 'neutral'
+    else: trend2 = 'oversold'
+
+    if rs3 > 70: trend3 = 'overbought'
+    elif rs3 < 70 and rs1 >30: trend3 = 'neutral'
+    else: trend3 = 'oversold'
+
+    candidate = []
+    for trend in (trend1, trend2, trend3):
+        if trend != 'overbought':
+            candidate.append(1)
+        else:
+            candidate.append(-1)
+
+    lastv1 = round(vol1[len(vol1)-1], 2)
+    lastv2 = round(vol2[len(vol2)-1], 2)
+    lastv3 = round(vol3[len(vol3)-1], 2)
+
+    lastvall = [lastv1, lastv2, lastv3]
+
+    for i in range(3):
+        if candidate[i] == 1:
+            candidate[i] = lastvall[i]
+
+    maxv_candidate = max(candidate)
+    candtext = ['-']*3
+    if maxv_candidate != -1:
+        candtext[lastvall.index(maxv_candidate)] = '\n**Best candidate**'
+
+    ax2.set_title(f'VOLUMEN {currencies[0]} {candtext[0]}')
+    ax4.set_title(f'VOLUMEN {currencies[1]} {candtext[1]}')
+    ax6.set_title(f'VOLUMEN {currencies[2]} {candtext[2]}')
+    ax2.set_xlabel(f'Volume: {lastv1} \n RSI: {round(rs1, 2)} \n TREND: {trend1}')
+    ax4.set_xlabel(f'Volume {lastv2} \n RSI: {round(rs2, 2)} \n TREND: {trend2}')
+    ax6.set_xlabel(f'Volume {lastv3} \n RSI: {round(rs3, 2)} \n TREND: {trend3}')
 
     for ax in (ax2, ax4, ax6):
         plt.sca(ax)
