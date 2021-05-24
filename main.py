@@ -60,6 +60,7 @@ def count_rsi(data_list, start, stop):
     rsi = 100 - (100 / (1 + (a / b)))
     return rsi
 
+
 def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list):
     buy, sell = get_data(crypt)
     buy_list.append(buy)
@@ -137,14 +138,14 @@ def animate(i):
     y3, y4, avg3, avg4, v1, rsi3, rsi4 = data_stream(CURRENCY[1], buys1, sells1, avg_buy1, avg_sell1, volume1, rsi_buy_values1, rsi_sell_values1)
     y5, y6, avg5, avg6, v2, rsi5, rsi6 = data_stream(CURRENCY[2], buys2, sells2, avg_buy2, avg_sell2, volume2, rsi_buy_values2, rsi_sell_values2)
     t.append(time.strftime("%H:%M:%S", time.localtime()))
-    for i in [y1, y2, avg1, avg2, v, rsi1, rsi2, t, y3, y4, avg3, avg4, v1, rsi3, rsi4, y5, y6, avg5, avg6, v2, rsi5, rsi6]:
-        if len(i) > 10:
-            i.pop(0)
-    trend_0 = trend(rsi_buy_values0)
-    trend_1 = trend(rsi_buy_values1)
-    trend_2 = trend(rsi_buy_values2)
+    for L in [y1, y2, avg1, avg2, v, rsi1, rsi2, t, y3, y4, avg3, avg4, v1, rsi3, rsi4, y5, y6, avg5, avg6, v2, rsi5, rsi6]:
+        if len(L) > 10:
+            L.pop(0)
+
+    trend_0, trend_1, trend_2 = trend(rsi_buy_values0), trend(rsi_buy_values1), trend(rsi_buy_values2)
     candidate, subtitle = choose_candidate([trend_0, trend_1, trend_2], [v, v1, v2])
     [l_title1, l_title2, l_title3], [v_title1, v_title2, v_title3] = set_title(candidate, [y1, y3, y5], [y2, y4, y6], X, Y, S)
+    
     plt.clf()
     plt.ion()
     plt.suptitle(subtitle, fontsize=18)
@@ -235,6 +236,7 @@ if __name__ == "__main__":
     N = 5  # input("Liczba próbek do wyliczenia średniej: ")#average
     START = 0  # input("Początek przdziału do wyliczenia RSI: ") #rsi start
     STOP = 10  # input("Koniec przdziału do wyliczenia RSI: ") # rsi stop
+
     buys0 = []
     sells0 = []
     avg_buy0 = []
