@@ -118,13 +118,21 @@
         spanGaps: true,
         plugins: { legend: { position: 'bottom' } },
         scales: {
-          VALUES: { position: 'left' },
+          VALUES: {
+            title: { text: 'Rate', display: true },
+            position: 'left',
+          },
           RSI: {
+            title: { text: 'RSI', display: true },
 						position: 'right',
 						min: 0, max: 100,
 						grid: { drawOnChartArea:false }
 					},
-          VOLUME: { position: 'right', grid: { drawOnChartArea: false } },
+          VOLUME: {
+            title: { text: 'Volume', display: true },
+            position: 'right',
+            grid: { drawOnChartArea: false }
+          },
         }
       }
     })
