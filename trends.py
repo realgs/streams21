@@ -58,13 +58,13 @@ def get_volume(crypto_pairs, volume_storage):
     for pair in crypto_pairs:
 
         now = datetime.now()
-        delta = timedelta(minutes=10)
+        delta = timedelta(minutes=15)
         unix_epoch_time = int((now - delta).timestamp()) * 1000
 
         try:
             request_volume = requests.get(
                 f"https://api.bitbay.net/rest/trading/transactions/{pair[0]}-{pair[1]}",
-                params={'limit': 50, 'fromTime': unix_epoch_time}
+                params={'limit': 30, 'fromTime': unix_epoch_time}
             )
             transactions = request_volume.json()
             trans_amount = len(transactions['items'])
@@ -168,16 +168,56 @@ def get_transparent_icons(*icon_names):
     return processed_list
 
 
+def classify_trend(rsi_storage, trend_list):
+
+    for curr_pair in range(3):
+        latest_ask_rsi = rsi_storage[-1][curr_pair][0]
+        if latest_ask_rsi >= 65:
+            trend_list[curr_pair] = 'upward'
+        elif latest_ask_rsi <= 35:
+            trend_list[curr_pair] = 'downward'
+        else:
+            trend_list[curr_pair] = 'horizontal'
+
+
+def select_candidate(trends_list, volume_slice):
+
+    temp = []
+    for curr_pair in range(3):
+
+        if trends_list[curr_pair] != 'downward':
+            temp.append(volume_slice[curr_pair])
+
+    if temp:
+        highest_volume = max(temp)
+        return volume_slice.index(highest_volume)
+    else:
+        return None
+
+
+def choose_trend_icon(trend):
+
+    if trend == 'upward':
+        return upward_icon
+    elif trend == 'downward':
+        return downward_icon
+    else:
+        return question_icon
+
+
 def draw_figure(frame_number):
 
     plt.style.use('Solarize_Light2')
     time_samples.append(time.strftime("%H:%M:%S", time.localtime()))
 
-    # get_data(PAIRS, data_storage, askbid_storage, volume_storage)
     get_data(PAIRS, data_storage, askbid_storage)
     get_volume(PAIRS, vol_storage)
     calculate_mov_avg(askbid_storage, avg_storage, AVG_WINDOW)
     calculate_rsi(askbid_storage, rsi_storage, RSI_WINDOW)
+
+    trends_of_pairs = ['']*3
+    classify_trend(rsi_storage, trends_of_pairs)
+    candidate = select_candidate(trends_of_pairs, vol_storage[-1])
 
     plt.ion()
     plt.clf()
@@ -205,29 +245,23 @@ def draw_figure(frame_number):
 
         axes = plt.gca()
 
-        latest_ask_rsi = rsi_storage[-1][curr_pair][0]
-        if latest_ask_rsi >= 70:
-            icon = upward_icon
-        elif latest_ask_rsi <= 30:
-            icon = downward_icon
-        else:
-            icon = question_icon
-
+        icon = choose_trend_icon(trends_of_pairs[curr_pair])
         imagebox = OffsetImage(icon, zoom=0.4)
         imagebox.image.axes = axes
         ab = AnnotationBbox(imagebox, (0.5, 0.5), xycoords='axes fraction',
                             boxcoords="offset points", pad=0.3, frameon=0)
         axes.add_artist(ab)
 
-        for loc, spine in axes.spines.items():
-            if loc == 'bottom' or loc == 'top':
-                spine.set_position(("outward", 1))
-                spine.set_capstyle('butt')
-            else:
-                spine.set_position(("outward", -1))
-            spine.set_linewidth(3)
-            spine.set_edgecolor('#859900')
-            spine.set_alpha(0.7)
+        if candidate == curr_pair:
+            for loc, spine in axes.spines.items():
+                if loc == 'bottom' or loc == 'top':
+                    spine.set_position(("outward", 1))
+                    spine.set_capstyle('butt')
+                else:
+                    spine.set_position(("outward", -1))
+                spine.set_linewidth(3)
+                spine.set_edgecolor('#859900')
+                spine.set_alpha(0.7)
 
         plt.xlabel("Time", fontsize=9)
         plt.ylabel("Exchange Rates", fontsize=9)
@@ -282,8 +316,10 @@ if __name__ == '__main__':
 
     PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('DASH', 'PLN')]
     FREQ = 5
-    AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
-    RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
+    # AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
+    # RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
+    AVG_WINDOW = 5
+    RSI_WINDOW = 10
 
     downward_icon, upward_icon, question_icon = get_transparent_icons('downward', 'upward', 'question')
 
