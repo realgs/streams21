@@ -22,7 +22,6 @@ Y = 3
 
 def volatile_asset():
     V_assert = ''
-    print("==== VOLATILE ASSERCION ====")
     if len(crypto_bid_BTC) > 3:
         for i in range(Y):
             tablica =[]
@@ -57,15 +56,14 @@ def volatile_asset():
 
 def liquid_asset():
     L_assert = ''
-    print('==== LIQUID ASSERCION ====')
     if abs( crypto_bid_BTC[-1] - crypto_ask_BTC[-1] ) < ((crypto_bid_BTC[-1] + crypto_ask_BTC[-1])*S)/2:
-        print('BTC jest liquid asset ')
+        # print('BTC jest liquid asset ')
         L_assert = 'BTC jest liquid asset '
     if abs( crypto_bid_BAT[-1] - crypto_ask_BAT[-1] ) < ((crypto_bid_BAT[-1] + crypto_ask_BAT[-1])*S)/2:
-        print('BAT jest liquid asset ')
+        # print('BAT jest liquid asset ')
         L_assert = 'BAT jest liquid asset '
     if abs( crypto_bid_ZRX[-1] - crypto_ask_ZRX[-1] ) < ((crypto_bid_ZRX[-1] + crypto_ask_ZRX[-1])*S)/2:
-        print('ZRX jest liquid asset ')
+        # print('ZRX jest liquid asset ')
         L_assert = 'ZRX jest liquid asset '
     return L_assert
     print('==========================')
@@ -90,18 +88,18 @@ def choose_candidate():
     if max(crypto_BTC_volume, crypto_BAT_volume, crypto_ZRX_volume) == crypto_ZRX_volume:
         zrx_variable += 1
     if btc_variable == 2:
-        print("BTC - tendencja niespadkowa, największy wolumen")
+        # print("BTC - tendencja niespadkowa, największy wolumen")
         candidate_Volume = "BTC - tendencja niespadkowa, największy wolumen"
     if bat_variable == 2:
-        print("BAT - tendencja niespadkowa, największy wolumen")
+        # print("BAT - tendencja niespadkowa, największy wolumen")
         candidate_Volume = "BAT - tendencja niespadkowa, największy wolumen"
     if zrx_variable == 2:
-        print("ZRX - tendencja niespadkowa, największy wolumen")
+        # print("ZRX - tendencja niespadkowa, największy wolumen")
         candidate_Volume = "ZRX - tendencja niespadkowa, największy wolumen"
     return candidate_Volume
     print('============================')
 
-def RSI_clasificator():
+def rsi_clasificator():
     if RSI_BTC == 0:
         print("Nastapi odwrócenie trendu na zwyżkowy dla BTC")
     if 0 < RSI_BTC[-1] <= 30:
@@ -138,9 +136,7 @@ def RSI_clasificator():
 
     print('============================')
 
-rsi_state = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-
-def Value_RSI(bessa, hossa, buyArray, stepback):
+def value_rsi(bessa, hossa, buyArray, stepback):
     if len(buyArray) > stepback:
         value = buyArray[len(buyArray) - 1] - buyArray[len(buyArray) - stepback]
         if value > 0:
@@ -155,7 +151,7 @@ def Value_RSI(bessa, hossa, buyArray, stepback):
     RSI = 100 - (100 / (1 + (x/y)))
     return RSI
 
-def Volume_get(resource, currency, fromTime):
+def volume_get(resource, currency, fromTime):
     try:
         _ADRES = f'{Volume_bitbay}/{resource}/{currency}'
 
@@ -194,9 +190,9 @@ def animate(i):
     bid_BAT, ask_BAT = crypto_get(f'BAT', 'PLN', 'ticker.json')
     bid_ZRX, ask_ZRX = crypto_get(f'ZRX', 'PLN', 'ticker.json')
 
-    volume_BTC = Volume_get(f'transactions', 'BTC-PLN', 60)
-    volume_BAT = Volume_get(f'transactions', 'BAT-PLN', 60)
-    volume_ZRX = Volume_get(f'transactions', 'ZRX-PLN', 60)
+    volume_BTC = volume_get(f'transactions', 'BTC-PLN', 60)
+    volume_BAT = volume_get(f'transactions', 'BAT-PLN', 60)
+    volume_ZRX = volume_get(f'transactions', 'ZRX-PLN', 60)
 
     x_axis.append(datetime.now().strftime("%H:%M:%S"))
 
@@ -219,9 +215,9 @@ def animate(i):
         plt.cla()
 
         #Rsi section
-        RSI_BTC.append(Value_RSI(bessa_BTC, hossa_BTC, crypto_bid_BTC, stepback))
-        RSI_BAT.append(Value_RSI(bessa_BAT, hossa_BAT, crypto_bid_BAT, stepback))
-        RSI_ZRX.append(Value_RSI(bessa_ZRX, hossa_ZRX, crypto_bid_ZRX, stepback))
+        RSI_BTC.append(value_rsi(bessa_BTC, hossa_BTC, crypto_bid_BTC, stepback))
+        RSI_BAT.append(value_rsi(bessa_BAT, hossa_BAT, crypto_bid_BAT, stepback))
+        RSI_ZRX.append(value_rsi(bessa_ZRX, hossa_ZRX, crypto_bid_ZRX, stepback))
 
         avg = 0
         for i in range(len(crypto_bid_BTC) - step, len(crypto_bid_BTC)):
@@ -245,20 +241,23 @@ def animate(i):
 
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        print("-------Obecny czas =", dt_string)
+        print("---------------Obecny czas =", dt_string)
 
         if wone == 'V':
 
             if choose_candidate() == "BTC - tendencja niespadkowa, największy wolumen":
                 label1 = "Kandydat"
+                print("BTC - tendencja niespadkowa, największy wolumen")
             else:
                 label1 = ' '
             if choose_candidate() == "BAT - tendencja niespadkowa, największy wolumen":
                 label2 = "Kandydat"
+                print("BAT - tendencja niespadkowa, największy wolumen")
             else:
                 label2 = ' '
             if choose_candidate() == "ZRX - tendencja niespadkowa, największy wolumen":
                 label3 = "Kandydat"
+                print("ZRX - tendencja niespadkowa, największy wolumen")
             else:
                 label3 = ' '
 
@@ -270,6 +269,7 @@ def animate(i):
             plot1.set_xlabel(f'{label1}', fontsize=15)
             plot1.set_ylabel('PLN', fontsize=15)
             plot1.set_yscale('log')
+            plot1.title.set_text('BTC bid / ask prices over time')
             plot1.legend()
 
             plot2.plot(x_axis, crypto_ask_BAT, linewidth=1, label='Asks_BAT' if i == 0 else "", color='#ff99ff')
@@ -279,12 +279,14 @@ def animate(i):
             plot2.set_xlim(left=left, right=right)
             plot2.set_xlabel(f'{label2}', fontsize=15)
             plot2.set_yscale('log')
+            plot2.title.set_text('BAT bid / ask prices over time')
             plot2.legend()
 
             plot3.plot(x_axis, crypto_ask_ZRX, linewidth=1, label='Asks_ZRX' if i == 0 else "", color='#bfff00')
             plot3.plot(x_axis, crypto_bid_ZRX, linewidth=1, label='Bids_ZRX' if i == 0 else "", color='#00e600')
             plot3.set_xlim(left=left, right=right)
             plot3.set_xlabel(f'{label3}', fontsize=15)
+            plot3.title.set_text('ZRX bid / ask prices over time')
             plot3.set_yscale('log')
             plot3.legend()
 
@@ -302,7 +304,7 @@ def animate(i):
             plot6.set_xlabel('Time', fontsize=15)
 
         if wone == 'R':
-            if volatile_asset() == 'BTCjest volatile_asset':
+            if volatile_asset() == 'BTC jest volatile_asset':
                 label11 = "Volatile"
             else:
                 label11 = ' '
@@ -336,6 +338,7 @@ def animate(i):
             plot1.set_xlabel(f'{label11}/ {label12}', fontsize=15)
             plot1.set_ylabel('PLN', fontsize=15)
             plot1.set_yscale('log')
+            plot1.title.set_text('BTC bid / ask prices over time')
             plot1.legend()
 
             plot2.plot(x_axis, crypto_ask_BAT, linewidth=1, label='Asks_BAT' if i == 0 else "", color='#ff99ff')
@@ -345,6 +348,7 @@ def animate(i):
             plot2.set_xlim(left=left, right=right)
             plot2.set_xlabel(f'{label21}/ {label22}', fontsize=15)
             plot2.set_yscale('log')
+            plot2.title.set_text('BAT bid / ask prices over time')
             plot2.legend()
 
             plot3.plot(x_axis, crypto_ask_ZRX, linewidth=1, label='Asks_ZRX' if i == 0 else "", color='#bfff00')
@@ -352,6 +356,7 @@ def animate(i):
             plot3.set_xlim(left=left, right=right)
             plot3.set_xlabel(f'{label31}/ {label32}', fontsize=15)
             plot3.set_yscale('log')
+            plot3.title.set_text('ZRX bid / ask prices over time')
             plot3.legend()
 
             plot4.plot(x_axis, RSI_BTC, color='#969696')
@@ -367,11 +372,13 @@ def animate(i):
             plot6.set_xlim(left=left, right=right)
             plot6.set_xlabel('Time', fontsize=15)
 
-            RSI_clasificator()
+            rsi_clasificator()
 
         plt.suptitle("Best bids and asks offers / Volumen / RSI")
-        liquid_asset()
-        volatile_asset()
+        # print('==== LIQUID ASSERCION ====')
+        # liquid_asset()
+        # print("==== VOLATILE ASSERCION ====")
+        # volatile_asset()
 
 if __name__ == '__main__':
     x_axis = []
