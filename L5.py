@@ -151,7 +151,7 @@ def draw_axes():
         axs[0, n].xaxis.set_major_locator(locator)
         axs[0, n].set_ylabel('Value')
         #axs[1,n].set_title('Volume')
-        axs[1, n].set_xlabel('Time')
+        #axs[1, n].set_xlabel('Time')
         axs[1, n].xaxis.set_major_locator(locator)
         axs[1, n].set_ylabel('Value')
         axs[2, n].set_xlabel('Time')
@@ -234,46 +234,53 @@ def draw_plot(time_interval):
             axs[2, 2].plot(time, RSI_sell_value2, label='RSI sell', color='darkred')
             axs[2, 2].legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
 
-
             volume_info = choose_max_volumen(volume0, volume1, volume2)
             if volume_info[1] == 0:
-                text = []
-                text.append(axs[1,0].text(0, 0, ''))
                 voltaile_info = check_voltaile(buy_list0, X, Y)
                 liquid_info = check_liquid(buy_list0, sell_list0, S)
                 axs[1, 0].set_title(f'{volume_info[0]}')
                 axs[1, 1].set_title('Volume')
                 axs[1, 2].set_title('Volume')
-                text[0].set_text(f'{voltaile_info}, {liquid_info}')
-                position = min(buy_list0)
-                text[0].set_position((0, position))
+                axs[1, 0].set_xlabel(f'{voltaile_info}\n{liquid_info}')
+                axs[1, 1].set_xlabel('')
+                axs[1, 2].set_xlabel('')
+                #text = []
+                #text.append(axs[1, 0].text(0, 0, ''))
+                #text[0].set_text(f'{voltaile_info} \n {liquid_info}')
+                #position = min(buy_list0)
+                #text[0].set_position((0, position))
             elif volume_info[1] == 1:
-                text = []
-                text.append(axs[1,1].text(0,0,''))
                 voltaile_info = check_voltaile(buy_list1, X, Y)
                 liquid_info = check_liquid(buy_list1, sell_list1, S)
                 axs[1, 1].set_title(f'{volume_info[0]}')
                 axs[1, 0].set_title('Volume')
                 axs[1, 2].set_title('Volume')
-                text[0].set_text(f'{voltaile_info}, {liquid_info}')
-                position = min(buy_list1)
-                text[0].set_position((0, position))
+                axs[1, 1].set_xlabel(f'{voltaile_info}\n{liquid_info}')
+                axs[1, 0].set_xlabel('')
+                axs[1, 2].set_xlabel('')
+                #text = []
+                #text.append(axs[1, 1].text(0, 0, ''))
+                #text[0].set_text(f'{voltaile_info} \n {liquid_info}')
+                #position = min(buy_list1)
+                #text[0].set_position((0, position))
             elif volume_info[1] == 2:
-                text = []
-                text.append(axs[1,2].text(0,0,''))
                 voltaile_info = check_voltaile(buy_list1, X, Y)
                 liquid_info = check_liquid(buy_list1, sell_list1, S)
                 axs[1, 2].set_title(f'{volume_info[0]}')
                 axs[1, 1].set_title('Volume')
                 axs[1, 0].set_title('Volume')
-                text[0].set_text(f'{voltaile_info}, {liquid_info}')
-                position = min(buy_list2)
-                text[0].set_position((0, position))
+                axs[1, 2].set_xlabel(f'{voltaile_info}\n{liquid_info}')
+                axs[1, 0].set_xlabel('')
+                axs[1, 1].set_xlabel('')
+                #text = []
+                #text.append(axs[1, 2].text(0, 0, ''))
+                #text[0].set_text(f'{voltaile_info} \n {liquid_info}')
+                #position = min(buy_list2)
+                #text[0].set_position((0, position))
             else:
-                axs[1,0].set_title(f'{volume_info[0]}')
-                axs[1,1].set_title(f'{volume_info[0]}')
-                axs[1,2].set_title(f'{volume_info[0]}')
-
+                axs[1, 0].set_title(f'{volume_info[0]}')
+                axs[1, 1].set_title(f'{volume_info[0]}')
+                axs[1, 2].set_title(f'{volume_info[0]}')
 
         elif len(buy0) and len(volume0) and len(sell0) and len(buy_RSI0) and len(sell_RSI0) and len(buy1) and len(sell1) and len(volume1) and len(buy_RSI1) and len(sell_RSI1) and len(buy2) and len(sell2) and len(volume2) and len(buy_RSI2) and len(sell_RSI2) > 2:
             time = [current_time[-2].strftime("%H:%M:%S"), current_time[-1].strftime("%H:%M:%S")]
@@ -314,43 +321,51 @@ def draw_plot(time_interval):
 
             volume_info = choose_max_volumen(volume0, volume1, volume2)
             if volume_info[1] == 0:
-                text = []
-                text.append(axs[1, 0].text(0, 0, ''))
                 voltaile_info = check_voltaile(buy_list0, X, Y)
                 liquid_info = check_liquid(buy_list0, sell_list0, S)
                 axs[1, 0].set_title(f'{volume_info[0]}')
                 axs[1, 1].set_title('Volume')
                 axs[1, 2].set_title('Volume')
-                text[0].set_text(f'{voltaile_info}, {liquid_info}')
-                position = min(buy_list0)
-                text[0].set_position((0, position))
+                axs[1, 0].set_xlabel(f'{voltaile_info}\n{liquid_info}')
+                axs[1, 1].set_xlabel('')
+                axs[1, 2].set_xlabel('')
+                #text = []
+                #text.append(axs[1, 0].text(0, 0, ''))
+                #text[0].set_text(f'{voltaile_info} \n {liquid_info}')
+                #position = min(buy_list0)
+                #text[0].set_position((0, position))
             elif volume_info[1] == 1:
-                text = []
-                text.append(axs[1, 1].text(0, 0, ''))
                 voltaile_info = check_voltaile(buy_list1, X, Y)
                 liquid_info = check_liquid(buy_list1, sell_list1, S)
                 axs[1, 1].set_title(f'{volume_info[0]}')
                 axs[1, 0].set_title('Volume')
                 axs[1, 2].set_title('Volume')
-                text[0].set_text(f'{voltaile_info}, {liquid_info}')
-                position = min(buy_list1)
-                text[0].set_position((0, position))
+                axs[1, 1].set_xlabel(f'{voltaile_info}\n{liquid_info}')
+                axs[1, 0].set_xlabel('')
+                axs[1, 2].set_xlabel('')
+                #text = []
+                #text.append(axs[1, 1].text(0, 0, ''))
+                #text[0].set_text(f'{voltaile_info} \n {liquid_info}')
+                #position = min(buy_list1)
+                #text[0].set_position((0, position))
             elif volume_info[1] == 2:
-                text = []
-                text.append(axs[1, 2].text(0, 0, ''))
                 voltaile_info = check_voltaile(buy_list1, X, Y)
                 liquid_info = check_liquid(buy_list1, sell_list1, S)
                 axs[1, 2].set_title(f'{volume_info[0]}')
                 axs[1, 1].set_title('Volume')
                 axs[1, 0].set_title('Volume')
-                text[0].set_text(f'{voltaile_info}, {liquid_info}')
-                position = min(buy_list2)
-                text[0].set_position((0, position))
+                axs[1, 2].set_xlabel(f'{voltaile_info}\n{liquid_info}')
+                axs[1, 0].set_xlabel('')
+                axs[1, 1].set_xlabel('')
+                #text = []
+                #text.append(axs[1, 2].text(0, 0, ''))
+                #text[0].set_text(f'{voltaile_info} \n {liquid_info}')
+                #position = min(buy_list2)
+                #text[0].set_position((0, position))
             else:
                 axs[1, 0].set_title(f'{volume_info[0]}')
                 axs[1, 1].set_title(f'{volume_info[0]}')
                 axs[1, 2].set_title(f'{volume_info[0]}')
-
         plt.pause(time_interval)
 
 
