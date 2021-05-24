@@ -1,11 +1,11 @@
 import requests
 from requests.exceptions import HTTPError
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
 from matplotlib.animation import FuncAnimation
 from numpy import *
 
-
+N = 3
 URL = 'https://bitbay.net/API/Public/'
 
 values_1_bid, values_1_ask = [], []
@@ -37,8 +37,7 @@ def get_data(currency1, currency2, category1, format1):
         data = eval(response.text)
         ask = data['ask']
         bid = data['bid']
-        volume = data['volume']
-        return ask, bid, volume
+        return ask, bid
 
 def moving_average(data, compartment):
     data_to_average = data[len(data) - compartment:]
@@ -69,11 +68,62 @@ def calculate_rsi(values_of_bid_or_ask, first, last):
     value_of_rsi = 100 - (100/(1+(a/b)))
     return value_of_rsi
 
+def get_volumen(currency1, currency2):
+    url = f"https://api.bitbay.net/rest/trading/transactions/{currency1}-{currency2}"
+    fromtime = (datetime.now() - timedelta(minutes=1))
+    fromtime = int(fromtime.timestamp()) * 1000
+    queryparams = {'fromTime': fromtime}
+    response = requests.request("GET", url, params=queryparams)
+    response = eval(response.text)
+    return sum([float(response['items'][i]['a']) for i in range(len(response['items']))])
+
+
+def trend_of_rsi(list_of_rsi_values):
+    indicator_rsi = list_of_rsi_values[-1]
+    if indicator_rsi >= 70:
+        return 'Rising trend'
+    elif indicator_rsi <= 30:
+        return 'Falling trend'
+    elif 70 > indicator_rsi > 30:
+        return 'Sideways trend'
+
+
+def candidate(list_of_trend, list_of_volume):
+    list_of_currency = ['LSK-PLN', 'ETH-PLN', 'LTC-PLN']
+    volumens_of_all = {}
+    for i in range(len(list_of_currency)):
+        if list_of_trend[i] == 'Rising trend' or 'Sideways trend':
+            volumens_of_all[list_of_volume[i][-1]] = i
+    if volumens_of_all:
+        max_volumen = max(volumens_of_all)
+        return list_of_currency[volumens_of_all[max_volumen]]
+    else:
+        return 'there is no stock'
+
+
+def fluctuation(list_of_ask, x, y):
+    fluctuation_list = list_of_ask[-y:]
+    maxi = max(fluctuation_list)
+    mini = min(fluctuation_list)
+    fluctuation_value = (abs(maxi - mini) / maxi) * 100
+    if fluctuation_value > x:
+        return 'Volatile asset'
+    else:
+        return ''
+
+def spread(list_of_ask, list_of_bid, s):
+    purchase = list_of_ask[-1]
+    sale = list_of_bid[-1]
+    spread_value = ((purchase - sale) / purchase) * 100
+    if spread_value < s:
+        return 'Liquid asset'
+    else:
+        return ''
 
 def plotting_graph(_):
-    ask1, bid1, volume11 = get_data('LSK', 'PLN', 'ticker', 'json')
-    ask2, bid2, volume22 = get_data('ETH', 'PLN', 'ticker', 'json')
-    ask3, bid3, volume33 = get_data('LTC', 'PLN', 'ticker', 'json')
+    ask1, bid1 = get_data('LSK', 'PLN', 'ticker', 'json')
+    ask2, bid2 = get_data('ETH', 'PLN', 'ticker', 'json')
+    ask3, bid3 = get_data('LTC', 'PLN', 'ticker', 'json')
 
     values_1_bid.append(bid1)
     values_2_bid.append(bid2)
@@ -91,9 +141,9 @@ def plotting_graph(_):
     avg_values_2_ask.append(moving_average(values_2_ask, SIZE))
     avg_values_3_ask.append(moving_average(values_3_ask, SIZE))
 
-    volume1.append(volume11)
-    volume2.append(volume22)
-    volume3.append(volume33)
+    volume1.append(get_volumen('LSK', 'PLN'))
+    volume2.append(get_volumen('ETH', 'PLN'))
+    volume3.append(get_volumen('LTC', 'PLN'))
 
     rsi_values_1_bid.append(calculate_rsi(values_1_bid, FIRST, LAST))
     rsi_values_2_bid.append(calculate_rsi(values_2_bid, FIRST, LAST))
@@ -127,9 +177,45 @@ def plotting_graph(_):
         if len(value) > 15:
             value.pop(0)
 
+    trend_1_ask = trend_of_rsi(rsi_values_1_ask)
+    trend_2_ask = trend_of_rsi(rsi_values_2_ask)
+    trend_3_ask = trend_of_rsi(rsi_values_3_ask)
+
+    trend_1_bid = trend_of_rsi(rsi_values_1_bid)
+    trend_2_bid = trend_of_rsi(rsi_values_2_bid)
+    trend_3_bid = trend_of_rsi(rsi_values_3_bid)
+
+    if AB == 'A':
+        candidate1 = candidate([trend_1_ask, trend_2_ask, trend_3_ask], [volume1, volume2, volume3])
+    else:
+        candidate1 = candidate([trend_1_bid, trend_2_bid, trend_3_bid], [volume1, volume2, volume3])
+
+    title_of_candidate = f'this currency has the highest volume without a Falling trend'
+    list_of_currency = ['LSK-PLN', 'ETH-PLN', 'LTC-PLN']
+    list_of_ask1 = [values_1_ask, values_2_ask, values_3_ask]
+    list_of_bid1 = [values_1_bid, values_2_bid, values_3_bid]
+    list_of_fluctuation = []
+    list_of_spread = []
+    list_of_title_candidate = []
+    for i in range(len(list_of_currency)):
+        if list_of_currency[i] == candidate1:
+            spread0 = spread(list_of_ask1[i], list_of_bid1[i], S)
+            fluctuation0 = fluctuation(list_of_ask1[i], X, Y)
+            list_of_fluctuation.insert(i, spread0)
+            list_of_spread.insert(i, fluctuation0)
+            list_of_title_candidate.insert(i, title_of_candidate)
+        else:
+            list_of_fluctuation.insert(i, '')
+            list_of_spread.insert(i, '')
+            list_of_title_candidate.insert(i, '')
+
+    fluctuation1, fluctuation2, fluctuation3 = list_of_fluctuation[0], list_of_fluctuation[1], list_of_fluctuation[2]
+    spread1, spread2, spread3 = list_of_spread[0], list_of_spread[1], list_of_spread[2]
+    title_candidate1, title_candidate2, title_candidate3 = list_of_title_candidate[0], list_of_title_candidate[1], list_of_title_candidate[2]
+
     plt.clf()
     plt.subplot(3, 3, 1)
-    plt.title('Chart bid and ask LSK', fontsize=8)
+    plt.title(f'Chart bid and ask LSK-PLN {title_candidate1} \n {fluctuation1} \n {spread1}', fontsize=8)
     plt.plot(t, values_1_bid, 'b-', label="bid")
     plt.plot(t, values_1_ask, 'g-', label="ask")
     plt.plot(t, avg_values_1_bid, 'r--', label="avg_bid")
@@ -140,7 +226,7 @@ def plotting_graph(_):
     plt.xticks(rotation=70, fontsize=8)
 
     plt.subplot(3, 3, 2)
-    plt.title('Chart bid and ask ETH', fontsize=8)
+    plt.title(f'Chart bid and ask ETH-PLN {title_candidate2} \n {fluctuation2} \n {spread2}', fontsize=8)
     plt.plot(t, values_2_bid, 'b-', label="bid")
     plt.plot(t, values_2_ask, 'g-', label="ask")
     plt.plot(t, avg_values_2_bid, 'r--', label="avg_bid")
@@ -151,7 +237,7 @@ def plotting_graph(_):
     plt.xticks(rotation=70, fontsize=8)
 
     plt.subplot(3, 3, 3)
-    plt.title('Chart bid and ask LTC', fontsize=8)
+    plt.title(f'Chart bid and ask LTC-PLN {title_candidate3} \n {fluctuation3} \n {spread3}', fontsize=8)
     plt.plot(t, values_3_bid, 'b-', label="bid")
     plt.plot(t, values_3_ask, 'g-', label="ask")
     plt.plot(t, avg_values_3_bid, 'r--', label="avg_bid")
@@ -167,7 +253,7 @@ def plotting_graph(_):
     plt.ylabel('amount of volume', fontsize=8)
     plt.xlabel('Time', fontsize=8)
     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    #plt.xticks(rotation=70, fontsize=6)
+    #  plt.xticks(rotation=70, fontsize=6)
     plt.xticks([])
 
     plt.subplot(3, 3, 5)
@@ -176,7 +262,7 @@ def plotting_graph(_):
     plt.ylabel('amount of volume', fontsize=8)
     plt.xlabel('Time', fontsize=8)
     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    #plt.xticks(rotation=70, fontsize=6)
+    # plt.xticks(rotation=70, fontsize=6)
     plt.xticks([])
 
     plt.subplot(3, 3, 6)
@@ -185,37 +271,37 @@ def plotting_graph(_):
     plt.ylabel('amount of volume', fontsize=8)
     plt.xlabel('Time', fontsize=8)
     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    #plt.xticks(rotation=70, fontsize=6)
+    # plt.xticks(rotation=70, fontsize=6)
     plt.xticks([])
 
     plt.subplot(3, 3, 7)
-    plt.title('Chart of RSI LSK', fontsize=8)
+    plt.title(f'Chart of RSI LSK- {trend_1_ask}', fontsize=8)
     plt.plot(t, rsi_values_1_bid, 'b-', label="rsi_bid")
-    plt.plot(t, rsi_values_1_ask, 'y--', label="rsi_ask")
+    plt.plot(t, rsi_values_1_ask, 'y-', label="rsi_ask")
     plt.ylabel('Value of RSI', fontsize=8)
     plt.xlabel('Time', fontsize=8)
     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    #plt.xticks(rotation=70, fontsize=6)
+    # plt.xticks(rotation=70, fontsize=6)
     plt.xticks([])
 
     plt.subplot(3, 3, 8)
-    plt.title('Chart of RSI ETH', fontsize=8)
+    plt.title(f'Chart of RSI ETH - {trend_2_ask}', fontsize=8)
     plt.plot(t, rsi_values_2_bid, 'b-', label="rsi_bid")
-    plt.plot(t, rsi_values_2_ask, 'y--', label="rsi_ask")
+    plt.plot(t, rsi_values_2_ask, 'y-', label="rsi_ask")
     plt.ylabel('Value of RSI', fontsize=8)
     plt.xlabel('Time', fontsize=8)
     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    #plt.xticks(rotation=70, fontsize=6)
+    # plt.xticks(rotation=70, fontsize=6)
     plt.xticks([])
 
     plt.subplot(3, 3, 9)
-    plt.title('Chart of RSI LTC', fontsize=8)
+    plt.title(f'Chart of RSI LTC - {trend_3_ask}', fontsize=8)
     plt.plot(t, rsi_values_3_bid, 'b-', label="rsi_bid")
-    plt.plot(t, rsi_values_3_ask, 'y--', label="rsi_ask")
+    plt.plot(t, rsi_values_3_ask, 'y-', label="rsi_ask")
     plt.ylabel('Value of RSI', fontsize=8)
     plt.xlabel('Time', fontsize=8)
     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    #plt.xticks(rotation=70, fontsize=6)
+    # plt.xticks(rotation=70, fontsize=6)
     plt.xticks([])
     plt.tight_layout()
 
@@ -224,7 +310,10 @@ if __name__ == '__main__':
     SIZE = int(input('Podaj wielkość przedziału do liczenia średniej ruchomej z zakresu <0,15>: '))
     FIRST = int(input('Podaj początek przedziału do liczenia RSI: '))
     LAST = int(input('Podaj koniec przedziału do liczenia RSI: '))
-
+    X = 5
+    Y = 3
+    S = 5
+    AB = str(input('if you want to classify the RSI indicator for ask write A, if for bid write B: '))
     INTERVAL = 5
     simulation = FuncAnimation(plt.figure(), plotting_graph, interval=1000*INTERVAL)
     plt.style.use('seaborn')
