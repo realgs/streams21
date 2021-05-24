@@ -274,12 +274,6 @@ def animated_plot(i):
         ax[0, 0].set_title(f'Bid and ask BTC \n Volatile: {flu_BTC}, Spread: {spr_BTC}')
     else:
         ax[0, 0].set_title(f'Bid and ask BTC \n')
-        # if best_candidate == 'BTC is the best candidate':
-        #     ax[0, 0].text(0.3, 0.96, f'Volatile: {flu_BTC}', horizontalalignment='center',
-        #                   verticalalignment='center', transform=ax[0, 0].transAxes)
-        #     ax[0, 0].text(0.3, 0.1, f'Spread: {spr_BTC}', horizontalalignment='center',
-        #                   verticalalignment='center', transform=ax[0, 0].transAxes)
-
     ax[0, 1].cla()
     ax[0, 1].plot(x_val, bid_y_val_LTC, label='Bid LTC', color='k')
     ax[0, 1].plot(x_val, ask_y_val_LTC, label='Ask LTC', color='r')
@@ -294,11 +288,6 @@ def animated_plot(i):
         ax[0, 1].set_title(f'Bid and ask LTC \n Volatile: {flu_LTC}, Spread: {spr_LTC}')
     else:
         ax[0, 1].set_title(f'Bid and ask LTC \n')
-    # if best_candidate == 'LTC is the best candidate':
-    #     ax[0, 1].text(0.3, 0.96, f'Volatile: {flu_LTC}', horizontalalignment='center',
-    #                   verticalalignment='center', transform=ax[0, 1].transAxes)
-    #     ax[0, 1].text(0.3, 0.1, f'Spread: {spr_LTC}', horizontalalignment='center',
-    #                   verticalalignment='center', transform=ax[0, 1].transAxes)
 
     ax[0, 2].cla()
     ax[0, 2].plot(x_val, bid_y_val_ETH, label='Bid ETH', color='k')
@@ -314,11 +303,6 @@ def animated_plot(i):
         ax[0, 2].set_title(f'Bid and ask ETH \n Volatile: {flu_ETH}, Spread: {spr_ETH}')
     else:
         ax[0, 2].set_title(f'Bid and ask ETH \n')
-    # if best_candidate == 'ETH is the best candidate':
-    #     ax[0, 2].text(0.3, 0.96, f'Volatile: {flu_ETH}', horizontalalignment='center',
-    #                   verticalalignment='center', transform=ax[0, 2].transAxes)
-    #     ax[0, 2].text(0.3, 0.1, f'Spread: {spr_ETH}', horizontalalignment='center',
-    #                   verticalalignment='center', transform=ax[0, 2].transAxes)
 
     ax[1, 0].cla()
     ax[1, 0].bar(x_val, v_BTC, label='Volume BTC', color='k')
@@ -391,6 +375,7 @@ def animated_plot(i):
 
     fig.tight_layout()
 
+
 if __name__ == '__main__':
     x_val = []
     bid_y_val_BTC = []
@@ -437,3 +422,4 @@ if __name__ == '__main__':
     ani = FuncAnimation(fig, animated_plot, interval=5000)
 
     plt.show()
+
