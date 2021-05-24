@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import requests
 import time
 
 base_currency = 'PLN'
 url1 = 'https://bitbay.net/API/Public/'
+url3 = "https://api.bitbay.net/rest/trading/transactions/"
 post1 = '/trades.json'
 post2 = '/orderbook.json'
 time_interval = 4
@@ -16,6 +18,16 @@ w_rsi = 2
 def get_data(url, currency_list, pos):
     try:
         req = requests.get(url + currency_list + base_currency + pos)
+        req.raise_for_status()
+        return req.json()
+
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+
+
+def get_data1(url, curr, base, end=None):
+    try:
+        req = requests.get(url+curr+'-'+base+end)
         req.raise_for_status()
         return req.json()
 
@@ -40,6 +52,7 @@ def calculate_rsi(data, w):
         a = 1
     else:
         a = rise / r_count
+
     if l_count == 0:
         b = 1
     else:
@@ -80,7 +93,7 @@ def create_plot(currency_list):
         axis[i].legend()
 
         axis[i].set_title(f'{currency_list[i] + base_currency}')
-        axis[i].xaxis.set_major_formatter('{x} s')
+        # axis[i].xaxis.set_major_formatter('{x} s')
 
     return figure, axis, line
 
@@ -114,13 +127,15 @@ if __name__ == '__main__':
     fig, ax, lines = create_plot(currencies)
 
     while True:
-        for i in range(50):
+        for i in range(100):
             t += 1
             times.append(t)
+            # times.append(time.strftime("%H:%M:%S", time.localtime()))
             for currency in currencies:
                 r = get_data(url1, currency, post1)
-                price[currency].append(r[i]['price'])
-                amount[currency].append(r[i]['amount'])
+                r3 = get_data1(url3, currency, base_currency, '?limit=100')['items'][i]
+                price[currency].append(float(r3['r']))
+                amount[currency].append(float(r3['a']))
                 r2 = get_data(url1, currency, post2)
 
                 result = (r2['asks'][0][0] - r2['bids'][0][0]) / r2['bids'][0][0]
@@ -152,8 +167,15 @@ if __name__ == '__main__':
                             mean[currencies[j]] +
                             rsi[currencies[j]]) * 2.1
                 ax[j].set_ylim(minim, maxim)
+
+                # plt.gcf().autofmt_xdate()
                 ax[j].set_xlim(0, max(times) + 15)
-                ax[j].set_yscale('symlog')
+                # ax[j].set_yscale('symlog')
+
+                # if j == 0:
+                #     ax[j].yaxis.set_ticks(np.arange(minim, maxim, 50))
+                # if j == 1:
+
 
                 ax[j].text(1.03, .85, '                                       ', fontsize=10, transform=ax[j].transAxes,
                            bbox=dict(facecolor='white', edgecolor="none", alpha=1))
