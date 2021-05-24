@@ -56,6 +56,9 @@ def total_avg(mylist):
     mylist = list(mylist)
     return sum(mylist)/len(mylist)
 
+def volatile_asset(index):
+    pass
+
 
 def animate(i):
     # read data
@@ -183,7 +186,30 @@ def animate(i):
     maxv_candidate = max(candidate)
     candtext = ['-']*3
     if maxv_candidate != -1:
-        candtext[lastvall.index(maxv_candidate)] = '\n**Best candidate**'
+        index = lastvall.index(maxv_candidate)
+
+    Y_samples = 5
+    X_percentage = 0.3
+    volatile = data[-Y_samples:]
+    volatilebid = list(volatile[f'bid_cur{index + 1}'])
+    volatileask = list(volatile[f'ask_cur{index + 1}'])
+
+    if 1 - (volatileask[0] +  abs(volatileask[-1]-volatileask[0]))/volatileask[0] >X_percentage or 1 - (volatilebid[0] +  abs(volatilebid[-1]-volatilebid[0]))/volatilebid[0] >X_percentage:
+        volatiletext = "yes"
+    else:
+        volatiletext = 'no'
+
+    Spread = 0.5
+    spreadask = data[f'ask_cur{index + 1}'][len(data)-1]
+    spreadabid = data[f'bid_cur{index + 1}'][len(data) - 1]
+    if (spreadask/spreadabid - 1) * 100 < Spread:
+        spreadtext = 'yes'
+    else:
+        spreadtext = 'no'
+
+    candtext[index] = '\n**Best candidate**' \
+                      f'\nVolatile asset: {volatiletext}' \
+                      f'\nLiquid asset: {spreadtext}'
 
     ax2.set_title(f'VOLUMEN {currencies[0]} {candtext[0]}')
     ax4.set_title(f'VOLUMEN {currencies[1]} {candtext[1]}')
