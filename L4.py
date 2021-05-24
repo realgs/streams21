@@ -1,60 +1,46 @@
 import requests
-import requests.exceptions
+import sys
 import time
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import numpy as np
 
-#loop
+#main
 t = 5
 
-#collectingdata, collectingvolumen
-x = "BTCPLN"
-y = "LTCPLN"
-z = "DASHPLN"
-dat = [x, y, z]
-
-#firstcalculating
-vb = 0
-vs = 0
-
-
-def weight(a, b):
-    if a > b:
-        return a
-    else:
-        return b
-
-def collectingdata():
-
-        try:
-            for i in dat:
-                l = requests.get("https://bitbay.net/API/Public/" + i + "/orderbook.json").json()
-                # print(l)
-
-        except requests.HTTPError as error:
-            print("Error:", error)
+#main
+x1 = "PLN"
+y1 = "BTC"
+y2 = "ETH"
+y3 = "LTC"
+daty = [y1, y2, y3]
 
 
 
-def collectingvolumen(time):
 
-    for i in dat:
-        l = requests.get("https://bitbay.net/API/Public/" + i + "/orderbook.json").json()
-        # print(l)
+def calculate(buy, sell):
+    o = round((1 - (sell - buy) / buy), 3)
+    print(str(o) + " %")
 
-        #timediff = dt.timedelta(0, time)
-        now = datetime.now()
-        then = now - timedelta(0, time)
-        then -= timedelta(0, time) - timedelta(0, time)
 
-        queue = {"from": int(then.timestamp()) * 1000, "to": int(now.timestamp()) * 1000}
+def theGreatest(array):
+    Lmax = max(array)
+    return Lmax
 
-        response = requests.request("GET", l, params = queue)
-        r = response.json()['items'][0]['a']
+def get_volume(firstCurrancy, secondCurrancy, time):
+    url = f"https://api.bitbay.net/rest/trading/transactions/{firstCurrancy}-{secondCurrancy}"
+
+    #timediff = dt.timedelta(0, time)
+    now = datetime.now()
+    before = now - timedelta(0, time)
+    before -= timedelta(0, time) - timedelta(0, time)
+    querystring = {"from": int(before.timestamp()) * 1000, "to": int(now.timestamp()) * 1000}
+
+
+    response = requests.request("GET", url, params=querystring)
+    r = response.json()['items'][0]['a']
 
     return r
-
 
 def firstcalculating(Sell, Buy, Samples):
     vb = 0
@@ -104,185 +90,174 @@ def calculateRSI(Decrease, Increase, Buy, Sample):
 
     return RSI
 
-def loop():
-        while 1:
-            secbreak()
-            time.sleep(t)
-            print("Mineło %d sek" % (t))
+def getCurrencyData(firstCurrency,secondCurrency, Category):
 
-if __name__=="__main__":
+    url = f"https://bitbay.net/API/Public/{firstCurrency}{secondCurrency}/{Category}.json"
+
+    response = requests.get(url)
 
 
-    #collectingdata()
+    if response.status_code == 200:
+        print(f"{firstCurrency}:")
+        json = response.json()
+        response = json
+        sell_price = response['ask']
+        buy_price = response['bid']
+        volume = response['volume']
+        calculate(buy_price, sell_price)
+        return buy_price, sell_price, volume
+    else:
+        print("Error when trying to fetch")
+        sys.exit()
 
+if __name__ == "__main__":
+    i = 0
+    x = []
+    xLabels = []
 
-    def secbreak():
-        collectingdata()
+    BTCSell = []
+    BTCBuy = []
+    BTCVolume = []
+    BTCAverageSell = []
+    BTCAverageBuy = []
 
-        dict = requests.get("https://bitbay.net/API/Public/"+x+"/orderbook.json").json()
-        bid1 = float(dict["bids"][0][0]) #Kupno
-        ask1 = float(dict["asks"][0][0]) #Sprzedaż
+    BTCDecrease = []
+    BTCIncrease = []
+    BTCRSI = []
 
-        diff = float(((1 - (ask1 - bid1)) / ask1) * 100)
-        print("Procentowa różnica między kupnem a sprzedażą to:", diff, "%")
+    ETHSell = []
+    ETHBuy = []
+    ETHVolume = []
+    ETHAverageSell = []
+    ETHAverageBuy = []
 
-        return bid1, ask1,
-    secbreak()
+    ETHDecrease = []
+    ETHIncrease = []
+    ETHRSI = []
 
+    LTCSell = []
+    LTCBuy = []
+    LTCVolume = []
+    LTCAverageSell = []
+    LTCAverageBuy = []
 
-    def plots(time):
-        i = 0
-        x = []
-        xLabels = []
+    LTCDecrease = []
+    LTCIncrease = []
+    LTCRSI = []
 
-        BTCSell = []
-        BTCBuy = []
-        BTCVolume = []
-        BTCAverageSell = []
-        BTCAverageBuy = []
+    plt.show()
+    fig, ax1 = plt.subplots(2, 3, figsize=(15, 6), squeeze=False)
+    fig.tight_layout(pad=2.0)
 
-        BTCDecrease = []
-        BTCIncrease = []
-        BTCRSI = []
-        # Ether
-        ETHSell = []
-        ETHBuy = []
-        ETHVolume = []
-        ETHAverageSell = []
-        ETHAverageBuy = []
+    ax20 = ax1[0][0].twinx()
+    ax21 = ax1[0][1].twinx()
+    ax22 = ax1[0][2].twinx()
 
-        ETHDecrease = []
-        ETHIncrease = []
-        ETHRSI = []
-        # Lisk
-        LTCSell = []
-        LTCBuy = []
-        LTCVolume = []
-        LTCAverageSell = []
-        LTCAverageBuy = []
+    plt.xlabel("Time")
+    ax1[0][0].set_title(y1)
+    ax1[0][1].set_title(y2)
+    ax1[0][2].set_title(y3)
 
-        LTCDecrease = []
-        LTCIncrease = []
-        LTCRSI = []
+    ax1[1][0].set_title("Volume")
+    ax1[1][1].set_title("Volume")
+    ax1[1][2].set_title("Volume")
 
-        plt.show()
-        fig, axes = plt.subplots(2, 3, figsize=(10, 4))
-        fig.tight_layout(pad=2.0)
+    ax1[0][0].grid()
+    ax1[0][1].grid()
+    ax1[0][2].grid()
 
-        plt.xlabel("Time")
-        axes[0][0].set_title(x)
-        axes[0][1].set_title(y)
-        axes[0][2].set_title(z)
+    while True:
+        x.append(datetime.now().strftime("%H:%M:%S"))
+        buyBTC, sellBTC, volumeBTC = getCurrencyData(y1, x1, "ticker")
+        buyETH, sellETH, volumeETH = getCurrencyData(y2, x1, "ticker")
+        buyLTC, sellLTC, volumeLTC = getCurrencyData(y3, x1, "ticker")
 
-        axes[1][0].set_title("Volume")
-        axes[1][1].set_title("Volume")
-        axes[1][2].set_title("Volume")
+        xLabels = x.copy()
+        if len(xLabels) > 4:
+            median = int(np.floor(np.median(np.arange(0, len(xLabels)))))
+            xLabels = [xLabels[0], xLabels[median], xLabels[-1]]
 
-        axes[0][0].grid()
-        axes[0][1].grid()
-        axes[0][2].grid()
+        BTCSell.append(sellBTC)
+        BTCBuy.append(buyBTC)
+        BTCVolume.append(get_volume(y1, x1, t))
 
-        while True:
-            x.append(datetime.now().strftime("%H:%M:%S"))
+        valueBuyB, valueSellB = firstcalculating(BTCSell, BTCBuy, len(daty))
+        BTCAverageSell.append(valueSellB)
+        BTCAverageBuy.append(valueBuyB)
 
-
-            bBTC, sBTC, = secbreak()
-            bETH, sETH, = secbreak()
-            bLTC, sLTC, = secbreak()
-
-            volumeBTC = collectingvolumen(time)
-            volumeETH = collectingvolumen(time)
-            volumeLCT = collectingvolumen(time)
-
-
-
-            xLabels = x.copy()
-            if len(xLabels) > 4:
-                median = int(np.floor(np.median(np.arange(0, len(xLabels)))))
-                xLabels = [xLabels[0], xLabels[median], xLabels[-1]]
-
-            BTCSell.append(sBTC)
-            BTCBuy.append(bBTC)
-            BTCVolume.append(collectingvolumen(x, t))
-
-            valueBuyB, valueSellB = firstcalculating(BTCSell, BTCBuy, len(dat))
-            BTCAverageSell.append(valueSellB)
-            BTCAverageBuy.append(valueBuyB)
-
-            RSIB = calculateRSI(BTCDecrease, BTCIncrease, BTCSell, len(dat))
-            BTCRSI.append(RSIB)
-
-            ETHSell.append(sETH)
-            ETHBuy.append(bETH)
-            ETHVolume.append(collectingvolumen(y, t))
-
-            valueBuyE, valueSellE = firstcalculating(ETHSell, ETHBuy, len(dat))
-            ETHAverageSell.append(valueSellE)
-            ETHAverageBuy.append(valueBuyE)
-
-            RSIE = calculateRSI(ETHDecrease, ETHIncrease, ETHBuy, len(dat))
-            ETHRSI.append(RSIE)
-
-            LTCSell.append(sLTC)
-            LTCBuy.append(bLTC)
-            LTCVolume.append(collectingvolumen(z, t))
-
-            valueBuy, valueSell = firstcalculating(LTCSell, LTCBuy, len(dat))
-            LTCAverageSell.append(valueSell)
-            LTCAverageBuy.append(valueBuy)
-
-            RSI = calculateRSI(LTCDecrease, LTCIncrease, LTCSell, len(dat))
-            LTCRSI.append(RSI)
-
-            axes[0][0].plot(x, BTCSell, color='green')
-            axes[0][0].plot(x, BTCBuy, color='magenta')
-            axes[0][0].set_xticks(xLabels)
-            axes[0][0].plot(x, BTCAverageBuy, color='blue', linestyle='dashed')
-            axes[0][0].plot(x, BTCAverageSell, color='orange', linestyle='dashed')
-            axes[0][0].plot(x, BTCRSI, color='red', linestyle='dashed')
-
-            axes[1][0].bar(x, BTCVolume, color='green')
-            axes[1][0].set_xticks(xLabels)
-
-            axes[0][1].plot(x, ETHSell, color='green')
-            axes[0][1].plot(x, ETHBuy, color='magenta')
-            axes[0][1].set_xticks(xLabels)
-            axes[0][1].plot(x, ETHAverageBuy, color='blue', linestyle='dashed')
-            axes[0][1].plot(x, ETHAverageSell, color='orange', linestyle='dashed')
-            axes[0][1].plot(x, ETHRSI, color='red', linestyle='dashed')
-
-            axes[1][1].bar(x, ETHVolume, color='green')
-            axes[1][1].set_xticks(xLabels)
-
-            axes[0][2].plot(x, LTCSell, color='green', label='Sell' if i == 0 else "")
-            axes[0][2].plot(x, LTCBuy, color='magenta', label='Buy' if i == 0 else "")
-            axes[0][2].plot(x, LTCAverageBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
-            axes[0][2].plot(x, LTCAverageSell, color='orange', linestyle='dashed',
-                            label='Ave.Sell' if i == 0 else "")
-            axes[0][2].plot(x, LTCRSI, color='red', linestyle='dashed', label='RSI' if i == 0 else "")
-
-            axes[0][2].set_xticks(xLabels)
-            axes[0][2].legend(loc="upper right")
-
-            axes[1][2].bar(x, LTCVolume, color='green')
-            axes[1][2].set_xticks(xLabels)
-
-            axes[0][0].set_yscale('log')
-            axes[0][1].set_yscale('log')
-            axes[0][2].set_yscale('log')
-            axes[1][0].set_yscale('log')
-            axes[1][1].set_yscale('log')
-            axes[1][2].set_yscale('log')
-
-            i += 1
-            plt.draw()
-            plt.pause(1e-17)
-            time.sleep(5)
+        RSIB = calculateRSI(BTCDecrease, BTCIncrease, BTCSell, len(daty))
+        BTCRSI.append(RSIB)
 
 
 
+        ETHSell.append(sellETH)
+        ETHBuy.append(buyETH)
+        ETHVolume.append(get_volume(y2, x1, t))
+
+        valueBuyE, valueSellE = firstcalculating(ETHSell, ETHBuy, len(daty))
+        ETHAverageSell.append(valueSellE)
+        ETHAverageBuy.append(valueBuyE)
+
+        RSIE = calculateRSI(ETHDecrease, ETHIncrease, ETHBuy, len(daty))
+        ETHRSI.append(RSIE)
 
 
-plots(time)
 
+        LTCSell.append(sellLTC)
+        LTCBuy.append(buyLTC)
+        LTCVolume.append(get_volume(y3, x1, t))
+
+        valueBuy, valueSell = firstcalculating(LTCSell, LTCBuy, len(daty))
+        LTCAverageSell.append(valueSell)
+        LTCAverageBuy.append(valueBuy)
+
+        RSI = calculateRSI(LTCDecrease, LTCIncrease, LTCSell, len(daty))
+        LTCRSI.append(RSI)
+
+        ax1[0][0].plot(x, BTCSell, color='green')
+        ax1[0][0].plot(x, BTCBuy, color='grey')
+        ax1[0][0].set_xticks(xLabels)
+        ax1[0][0].plot(x, BTCAverageBuy, color='#59981A', linestyle = '--')
+        ax1[0][0].plot(x, BTCAverageSell, color='black', linestyle = '--')
+        ax1[0][0].plot(x, BTCRSI, color='red', linestyle = '--')
+        ax20.plot(x, BTCRSI, color ='red', linestyle = '--')
+
+
+        ax1[1][0].bar(x, BTCVolume, color='green')
+        ax1[1][0].set_xticks(xLabels)
+
+        ax1[0][1].plot(x, ETHSell, color='green')
+        ax1[0][1].plot(x, ETHBuy, color='grey')
+        ax1[0][1].set_xticks(xLabels)
+        ax1[0][1].plot(x, ETHAverageBuy, color='#59981A', linestyle = '--')
+        ax1[0][1].plot(x, ETHAverageSell, color='black', linestyle = '--')
+        ax1[0][1].plot(x, ETHRSI, color='red', linestyle = '--')
+        ax21.plot(x, ETHRSI, color ='red', linestyle = '--')
+
+        ax1[1][1].bar(x, ETHVolume, color='green')
+        ax1[1][1].set_xticks(xLabels)
+
+        ax1[0][2].plot(x, LTCSell, color='green', label='Sell' if i == 0 else "")
+        ax1[0][2].plot(x, LTCBuy, color='grey', label='Buy' if i == 0 else "")
+        ax1[0][2].plot(x, LTCAverageBuy, color='#59981A', linestyle = '--', label='Ave.Buy' if i == 0 else "")
+        ax1[0][2].plot(x, LTCAverageSell, color='black', linestyle = '--', label='Ave.Sell' if i == 0 else "")
+        ax1[0][2].plot(x, LTCRSI, color='red', linestyle = '--', label='RSI' if i == 0 else "")
+        ax22.plot(x, LTCRSI, color='red', linestyle = '--',label='RSI')
+
+        ax1[0][2].set_xticks(xLabels)
+        ax1[0][2].legend(loc="upper right")
+
+        ax1[1][2].bar(x, LTCVolume, color='green')
+        ax1[1][2].set_xticks(xLabels)
+
+        ax20.set_ylabel('RSI',color='red')
+        ax21.set_ylabel('RSI',color='red')
+        ax22.set_ylabel('RSI',color='red')
+
+
+        i += 1
+        plt.draw()
+        plt.waitforbuttonpress()
+        plt.pause(1e-17)
+        time.sleep(5)
 
