@@ -210,6 +210,25 @@ def check_volatility(transaction_storage, pair, threshold, samples):
     return (lambda perc: True if perc > threshold else False)(percentage)
 
 
+def check_liquidity(transaction_storage, pair, threshold):
+
+    trans_slice = transaction_storage[-1:]
+    curr_trans = trans_slice[0][pair]
+    trans_amount = len(curr_trans['items'])
+
+    temp_asks = [float(curr_trans['items'][tran]['r']) for tran in range(trans_amount)
+                 if curr_trans['items'][tran]['ty'] == "Buy"]
+    temp_bids = [float(curr_trans['items'][tran]['r']) for tran in range(trans_amount)
+                 if curr_trans['items'][tran]['ty'] == "Sell"]
+
+    ask = sum(temp_asks) / len(temp_asks)
+    bid = sum(temp_bids) / len(temp_bids)
+
+    percentage = calculate_percent_diff(ask, bid)
+
+    return (lambda spread: True if spread < threshold else False)(percentage)
+
+
 def get_icons(*icon_names, transparent=True):
 
     processed_list = []
@@ -271,7 +290,7 @@ def draw_figure(frame_number):
             avg_bids.append(avg_sample[curr_pair][1])
 
         volatile = check_volatility(trans_storage, curr_pair, VOLATILE_PERC, VOLATILE_SAMPLES)
-        print(volatile)
+        liquid = check_liquidity(trans_storage, curr_pair, SPREAD_PERC)
 
         plt.plot(time_samples, asks, "-o", label=data_storage[0][curr_pair][0] + " ask")
         plt.plot(time_samples, bids, "-o", label=data_storage[0][curr_pair][0] + " bid")
@@ -298,12 +317,14 @@ def draw_figure(frame_number):
                                          annotation_clip=False)
             axes.add_artist(ab_volatile)
 
-        imagebox_liquid = OffsetImage(liquid_icon, zoom=0.1)
-        imagebox_liquid.image.axes = axes
-        ab_liquid = AnnotationBbox(imagebox_liquid, (0.9, 1.4), xycoords='axes fraction',
-                                   boxcoords="offset points", pad=0, frameon=0,
-                                   annotation_clip=False)
-        axes.add_artist(ab_liquid)
+        if liquid:
+
+            imagebox_liquid = OffsetImage(liquid_icon, zoom=0.1)
+            imagebox_liquid.image.axes = axes
+            ab_liquid = AnnotationBbox(imagebox_liquid, (0.9, 1.4), xycoords='axes fraction',
+                                       boxcoords="offset points", pad=0, frameon=0,
+                                       annotation_clip=False)
+            axes.add_artist(ab_liquid)
 
         if candidate == curr_pair:
             for loc, spine in axes.spines.items():
@@ -371,16 +392,11 @@ if __name__ == '__main__':
 
     PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('DASH', 'PLN')]
     FREQ = 5
-    # AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
-    # RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
-    # VOLATILE_SAMPLES = int(input('Przedział z jakiego badać zmienność zasobu? (max 10): '))
-    # VOLATILE_PERC = int(input('Procentowy próg do uznania zasobu za zmienny?: '))
-    # SPREAD_PERC = int(input('Maksymalny procent spreadu do uznania zasobu za charakteryzujący się płynnym rynkiem?: '))
-    AVG_WINDOW = 5
-    RSI_WINDOW = 10
-    VOLATILE_SAMPLES = 4
-    VOLATILE_PERC = 1.8
-    SPREAD_PERC = 5
+    AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
+    RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
+    VOLATILE_SAMPLES = int(input('Przedział z jakiego badać zmienność zasobu? (max 10): '))
+    VOLATILE_PERC = float(input('Procentowy próg do uznania zasobu za zmienny? (%): '))
+    SPREAD_PERC = float(input('Maksymalny procent spreadu do uznania zasobu za charakteryzujący się płynnym rynkiem? (%): '))
 
     downward_icon, upward_icon, question_icon = get_icons('downward', 'upward', 'question')
     volatile_icon, liquid_icon = get_icons('fire', 'liquidity', transparent=False)
