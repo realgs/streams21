@@ -228,8 +228,15 @@ def check_liquidity(transaction_storage, pair, threshold):
     temp_bids = [float(curr_trans['items'][tran]['r']) for tran in range(trans_amount)
                  if curr_trans['items'][tran]['ty'] == "Sell"]
 
-    ask = sum(temp_asks) / len(temp_asks)
-    bid = sum(temp_bids) / len(temp_bids)
+    try:
+        ask = sum(temp_asks) / len(temp_asks)
+    except ZeroDivisionError:
+        return 0
+
+    try:
+        bid = sum(temp_bids) / len(temp_bids)
+    except ZeroDivisionError:
+        return 0
 
     percentage = calculate_percent_diff(ask, bid)
 
