@@ -21,7 +21,7 @@ def get_icons(*icon_names, transparent=True):
 
         if transparent:
             alpha_channel = icon_image.getchannel('A')
-            with_alpha = alpha_channel.point(lambda i: 32 if i > 0 else 0)
+            with_alpha = alpha_channel.point(lambda a: 32 if a > 0 else 0)
             icon_image.putalpha(with_alpha)
 
         processed_list.append(icon_image)

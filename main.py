@@ -378,12 +378,17 @@ if __name__ == '__main__':
 
     PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('DASH', 'PLN')]
     FREQ = 5
-    AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
-    RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
-    VOLATILE_SAMPLES = int(input('Przedział z jakiego badać zmienność zasobu? (max 10): '))
-    VOLATILE_PERC = float(input('Procentowy próg do uznania zasobu za zmienny? (%): '))
-    SPREAD_PERC = float(input('Maksymalny procent spreadu do uznania zasobu za charakteryzujący '
-                              'się płynnym rynkiem? (%): '))
+    # AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
+    # RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
+    # VOLATILE_SAMPLES = int(input('Przedział z jakiego badać zmienność zasobu? (max 10): '))
+    # VOLATILE_PERC = float(input('Procentowy próg do uznania zasobu za zmienny? (%): '))
+    # SPREAD_PERC = float(input('Maksymalny procent spreadu do uznania zasobu za charakteryzujący '
+    #                           'się płynnym rynkiem? (%): '))
+    AVG_WINDOW = 5
+    RSI_WINDOW = 10
+    VOLATILE_SAMPLES = 5
+    VOLATILE_PERC = 1.9
+    SPREAD_PERC = 0.8
 
     downward_icon, upward_icon, question_icon = get_icons('downward', 'upward', 'question')
     volatile_icon, liquid_icon = get_icons('fire', 'liquidity', transparent=False)
