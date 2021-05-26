@@ -3,41 +3,43 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
-interval = 5
-cryptos = ["ETH","LTC","BTC"]
-currency = "PLN"
-t = []
-all_data = []
-mlwinwsize = 3
-meanlist = []
-volstor = []
-rsisize = 3
-rsistore = []
+
+Interval = 5
+Cryptos = ["ETH","LTC","BTC"]
+Currency = "PLN"
+T = []
+All_data = []
+Mlwinwsize = 3
+Meanlist = []
+Volstor = []
+Rsisize = 3
+Rsistore = []
 Y = 6
-X = 20
-S = 40
+X = 0.1
+S = 50
+Tranurl = "https://api.bitbay.net/rest/trading/transactions/"
+Apiurl = "https://bitbay.net/API/Public/"
 
-
-def spread(Y,S,all_data,c):
-    if Y > len(all_data):
-        y = len(all_data)
+def spread(Y,S,All_data,C):
+    if Y > len(All_data):
+        y = len(All_data)
     else:
         y = Y
     sbuy = float(0)
     ssell = float(0)
     for i in range(-y,-1):
-        ssell = ssell + float(all_data[i][c][1][0])
-        sbuy = sbuy +float(all_data[i][c][1][1])
+        ssell = ssell + float(All_data[i][C][1][0])
+        sbuy = sbuy +float(All_data[i][C][1][1])
     spr = ((sbuy - ssell) / sbuy )* 100
     if spr < S:
         return True
     else:
         return False
 
-def transactions(Y,X,crypto,currency):
+def transactions(Y,X,Crypto,Currency):
     y = Y
     queryparams = {'limit': y}
-    tran = requests.get("https://api.bitbay.net/rest/trading/transactions/"+crypto+'-'+currency, params = queryparams)
+    tran = requests.get(Tranurl + Crypto + '-' + Currency, params = queryparams)
     handle_exceptions(tran)
     tran = tran.json()
     vlist = []
@@ -45,7 +47,7 @@ def transactions(Y,X,crypto,currency):
         vlist.append(i['r'])
     maxl = float(max(vlist))
     minl = float(min(vlist))
-    value = (abs(maxl - minl) / maxl) * 100
+    value = ((maxl - minl) / maxl) * 100
     if value > X:
         return True
     else:
@@ -55,12 +57,12 @@ def transactions(Y,X,crypto,currency):
 
 def candidate():
     vl = []
-    for c in range(len(cryptos)):
-        if rsistore[-1][c][0] != None:
-            if rsistore[-1][c][0] < 50:
+    for c in range(len(Cryptos)):
+        if Rsistore[-1][c][0] != None:
+            if Rsistore[-1][c][0] < 50:
                 vl.append(None)
             else:
-                vl.append(volstor[-1][c])
+                vl.append(Volstor[-1][c])
         else:
             vl.append(None)
     v = -1
@@ -72,18 +74,18 @@ def candidate():
                 v = i
     return v
 
-def get_volumen(crypto,currency):
+def get_volumen(Crypto,Currency):
     fromtime = datetime.now() - timedelta(minutes=0.5)
     fromtime = int(fromtime.timestamp()) * 100
     queryparams = {'fromTime': fromtime}
-    response = requests.get("https://api.bitbay.net/rest/trading/transactions/"+crypto+"-"+currency, params=queryparams)
+    response = requests.get(Tranurl + Crypto + "-" + Currency, params=queryparams)
     response = eval(response.text)
     return sum([float(response['items'][i]['a']) for i in range(len(response['items']))]) * 10
 
-def rsicount(all_data, store,size):
-    nr = len(all_data[0])
-    if len(all_data) >= size:
-        shift = len(all_data) - size
+def rsicount(All_data, store,size):
+    nr = len(All_data[0])
+    if len(All_data) >= size:
+        shift = len(All_data) - size
         reg = []
         for c in range(nr):
             cry = []
@@ -93,7 +95,7 @@ def rsicount(all_data, store,size):
                 pc = 0
                 mc = 0
                 for i in range(0 + shift, size + shift - 1):
-                    change = float(all_data[i + 1][c][1][n]) - float(all_data[i][c][1][n])
+                    change = float(All_data[i + 1][c][1][n]) - float(All_data[i][c][1][n])
                     if change > 0:
                         p += change
                         pc += 1
@@ -120,27 +122,27 @@ def rsicount(all_data, store,size):
         store.append(r)
 
 
-def handlemean(all_data,winsize,meanlist):
-    nr = len(all_data[0])
-    if len(all_data) >= winsize:
-        shift = len(all_data) - winsize
+def handlemean(All_data, winsize, Meanlist):
+    nr = len(All_data[0])
+    if len(All_data) >= winsize:
+        shift = len(All_data) - winsize
         reg = []
         for c in range(nr):
             cry = []
             for n in range(2):
                 sum = 0
                 for i in range(0 + shift,winsize + shift):
-                    sum = sum + all_data[i][c][1][n]
+                    sum = sum + All_data[i][c][1][n]
                 mean = sum/winsize
                 cry.append(mean)
             reg.append(cry)
-        meanlist.append(reg)
+        Meanlist.append(reg)
 
     else:
         v = []
         for c in range(nr):
             v.append([None,None])
-        meanlist.append(v)
+        Meanlist.append(v)
 
 
 def sellbuy(sells, buys):
@@ -172,95 +174,123 @@ def cryptostream_to_plot(crypto_set, currency, all_data):
     v_list = []
     c_list = []
     for crypto in crypto_set:
-        response = requests.get("https://bitbay.net/API/Public/" + crypto + currency + "/orderbook.json", timeout=15)
+        response = requests.get(Apiurl + crypto + currency + "/orderbook.json", timeout=15)
         handle_exceptions(response)
         v_list.append(get_volumen(crypto,currency))
         c_list.append([crypto,sellbuy(response.json()['asks'], response.json()['bids'])])
-    volstor.append(v_list)
+    Volstor.append(v_list)
     all_data.append(c_list)
 
-
 def graph_gen(a):
-    t.append(time.strftime("%H:%M:%S", time.localtime()))
-    cryptostream_to_plot(cryptos,currency,all_data)
-    handlemean(all_data, mlwinwsize, meanlist)
-    rsicount(all_data, rsistore, rsisize)
+    global T
+    T.append(time.strftime("%H:%M:%S", time.localtime()))
+    if len(T) > 8:
+        T= T[-8:]
+    cryptostream_to_plot(Cryptos,Currency,All_data)
+    handlemean(All_data, Mlwinwsize, Meanlist)
+    rsicount(All_data, Rsistore, Rsisize)
     hv = candidate()
     plt.ion()
     plt.clf()
     plt.suptitle("Wykresy notowań kryptowalut")
-    nr = len(all_data[0])
+    nr = len(All_data[0])
     for c in range(nr):
         ax = plt.subplot(3,nr, c+1)
+        plt.title("Purchase / sale price",size = 6,loc = 'right')
         ys = []
         yb =[]
         yas = []
         yab = []
-        for set in all_data:
+        for set in All_data:
             ys.append(set[c][1][0])
             yb.append(set[c][1][1])
-        for aveset in meanlist:
+        for aveset in Meanlist:
             yas.append(aveset[c][0])
             yab.append(aveset[c][1])
-        plt.plot(t,ys,"-o",label = all_data[0][c][0] + ": sell")
-        plt.plot(t, yb, "-o", label=all_data[0][c][0] + ": buy")
-        plt.plot(t, yas, "o--", label=all_data[0][c][0] + ": sell avarage")
-        plt.plot(t, yab, "o--", label=all_data[0][c][0] + ": buy avarage")
-        if rsistore[-1][c][0] != None:
-            if rsistore[-1][c][0] >= 50:
+        if len(ys) > 8:
+            ys = ys[-8:]
+            yb = yb[-8:]
+
+        if len(yab) > 8:
+            yab = yab[-8:]
+            yas = yas[-8:]
+        plt.plot(T,ys,"-o",label = All_data[0][c][0] + ": sell")
+        plt.plot(T, yb, "-o", label=All_data[0][c][0] + ": buy")
+        plt.plot(T, yas, "o--", label=All_data[0][c][0] + ": sell avarage")
+        plt.plot(T, yab, "o--", label=All_data[0][c][0] + ": buy avarage")
+        if Rsistore[-1][c][0] != None:
+            if Rsistore[-1][c][0] >= 50:
                 for side in ['bottom', 'top', 'left', 'right']:
                     ax.spines[side].set_color('green')
                     ax.spines[side].set_linewidth(3)
-            elif rsistore[-1][c][0] < 50:
+            elif Rsistore[-1][c][0] < 50:
                 for side in ['bottom', 'top', 'left', 'right']:
                     ax.spines[side].set_color('red')
                     ax.spines[side].set_linewidth(3)
         if hv ==c:
-            if spread(Y,S,all_data,c):
+            if spread(Y,S,All_data,c):
+            #if True:
                 ax.text(0.3, 1.1, 'liquid asset',
                         verticalalignment='bottom', horizontalalignment='right',
                         transform=ax.transAxes,
                         color='orange', size = 12)
-            if transactions(Y,X,cryptos[c],currency):
+            else:
+                ax.text(0.4, 1.1, 'not liquid asset',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes,
+                        color='orange', size=12)
+            if transactions(Y,X,Cryptos[c],Currency):
+            #if True:
                 ax.text(0.8, 1.1, 'volatile asset',
                         verticalalignment='bottom', horizontalalignment='right',
                         transform=ax.transAxes,
                         color='orange', size = 12)
-        plt.xticks(rotation = 30, fontsize = 6 )
+            else:
+                ax.text(0.9, 1.1, 'not volatile asset',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes,
+                        color='orange', size=12)
+        plt.xticks(rotation = 10, fontsize = 5 )
         plt.legend()
     for c in range(nr):
         ax = plt.subplot(3,nr, c + 1 + nr)
+        plt.title("Volume",size = 6,loc = 'right')
         yv = []
-        for vset in volstor:
+        for vset in Volstor:
             yv.append(vset[c])
-        plt.bar(t, yv, align = "center")
+        if len(yv) > 8:
+            yv = yv[-8:]
+        plt.bar(T, yv, align = "center")
         plt.ylabel("Volume")
-        plt.xticks(rotation = 30, fontsize = 6)
+        plt.xticks(rotation = 10, fontsize = 5 )
         if hv == c:
             for side in ['bottom', 'top', 'left', 'right']:
                 ax.spines[side].set_color('orange')
                 ax.spines[side].set_linewidth(3)
     for c in range(nr):
         ax = plt.subplot(3,nr, c + 1 + 2 * nr)
+        plt.title("Rsi value",size = 6,loc = 'right')
         yrsis = []
         #yrsib = []
-        for rsiset in rsistore:
+        for rsiset in Rsistore:
             yrsis.append(rsiset[c][0])
             #yrsib.append(rsiset[c][1])
-        plt.plot(t, yrsis,"o--",label = all_data[0][c][0] + ": sell RSI")
+        if len(yrsis) > 8:
+            yrsis = yrsis[-8:]
+        plt.plot(T, yrsis,"o--",label = All_data[0][c][0] + ": sell RSI")
         #plt.plot(t, yrsib, "o--",label = all_data[0][c][0] + ": buy RSI")
         plt.ylabel("RSI")
-        if rsistore[-1][c][0] != None:
-            if rsistore[-1][c][0] >= 50:
+        if Rsistore[-1][c][0] != None:
+            if Rsistore[-1][c][0] >= 50:
                 for side in ['bottom','top','left','right']:
                     ax.spines[side].set_color('green')
                     ax.spines[side].set_linewidth(3)
-            elif rsistore[-1][c][0] < 50:
+            elif Rsistore[-1][c][0] < 50:
                 for side in ['bottom', 'top', 'left', 'right']:
                     ax.spines[side].set_color('red')
                     ax.spines[side].set_linewidth(3)
         plt.legend()
-        plt.xticks(rotation=30, fontsize=6)
+        plt.xticks(rotation = 10, fontsize = 5 )
 
 
 def main():
