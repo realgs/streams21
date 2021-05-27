@@ -100,7 +100,7 @@ def dynamic_plotting(interval):
     for i, currency in enumerate(CRYPTO_CURRENCIES):
         fig.text(x=0.01, y=0.85-(i/50), s=f'{currency}:')
 
-        crypto_amount_txt.append(fig.text(x=0.04, y=0.85-(i/50),
+        crypto_amount_txt.append(fig.text(x=0.045, y=0.85-(i/50),
                                           s=crypto_amount[i]))
 
     fig.text(x=0.01, y=0.85-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
