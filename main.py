@@ -75,8 +75,11 @@ def dynamic_plotting(interval):
     fig_grid_spec = fig.add_gridspec(3*N, 1)
 
     ax_slider = plt.axes([0.78, 0.95, 0.18, 0.02])
-    Y_slider = Slider(ax_slider, label='scan range\n(last days)',
-                      valmin=1, valmax=2, valstep=1, valinit=1)
+    ax_slider.set_axis_off()
+    ax_slider.set_visible(False)
+    Y_slider = Slider(ax_slider, label='',
+                      valmin=1, valmax=2, valstep=1, valinit=1,
+                      initcolor='none')
 
     main_axes = []
     volume_axes = []
