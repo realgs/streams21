@@ -68,6 +68,12 @@ def dynamic_plotting(interval):
     curr_trend_marks = ['' for _ in range(N)]
     hot_plot_marks = ['' for _ in range(N)]
     transactions = [[] for _ in range(N)]
+    user_buy_history = [[] for _ in range(N)]
+    user_buy_history_avg = [[] for _ in range(N)]
+    user_sell_history = [[] for _ in range(N)]
+    crypto_amount = [0 for _ in range(N)]
+
+    BALANCE = [0]
 
     fig = plt.figure(figsize=(15, 10), num='Please hire me',
                      constrained_layout=True)
@@ -80,6 +86,28 @@ def dynamic_plotting(interval):
     Y_slider = Slider(ax_slider, label='',
                       valmin=1, valmax=2, valstep=1, valinit=1,
                       initcolor='none')
+
+    # def submit(text):
+    #     y = float(text)
+    #     main_axes[0].scatter(date[-1], y, color='green')
+
+    # ax_input = plt.axes([0.01, 0.8, 0.05, 0.05])
+    # text_box = TextBox(ax_input, 'no\nkup\ncos')
+    # text_box.on_submit(submit)
+
+    fig.text(x=0.025, y=0.88, s='My wallet', fontweight='semibold')
+    crypto_amount_txt = []
+    for i, currency in enumerate(CRYPTO_CURRENCIES):
+        fig.text(x=0.01, y=0.85-(i/50), s=f'{currency}:')
+
+        crypto_amount_txt.append(fig.text(x=0.04, y=0.85-(i/50),
+                                          s=crypto_amount[i]))
+
+    fig.text(x=0.01, y=0.85-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
+             s='Balance:')
+    BALANCE_TXT = fig.text(x=0.045,
+                           y=0.85-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
+                           s=BALANCE[0])
 
     main_axes = []
     volume_axes = []
@@ -105,9 +133,13 @@ def dynamic_plotting(interval):
                                           label="transactions", color='green')
         RSI_line, = RSI_subaxes[i].plot_date(date, RSI_values[i], ':',
                                              label='RSI', color='lightgray')
+        avg_user_buy_line, = ax.plot_date(date, user_buy_history_avg[i], '--',
+                                          label='my buyings avg',
+                                          color='lime')
 
         ax_lines.append((bids_line, asks_line, avg_bid_line,
-                         avg_ask_line, RSI_line, transactions_line))
+                         avg_ask_line, RSI_line, transactions_line,
+                         avg_user_buy_line))
 
     axes_volatile_marks = []
     axes_liquid_marks = []
@@ -119,16 +151,9 @@ def dynamic_plotting(interval):
         axes_volatile_marks.append(volatile_mark)
         axes_liquid_marks.append(liquid_mark)
 
-    # def submit(text):
-    #     y = float(text)
-    #     main_axes[0].scatter(date[-1], y, color='green')
-
-    # ax_input = plt.axes([0.01, 0.8, 0.05, 0.05])
-    # text_box = TextBox(ax_input, 'no\nkup\ncos')
-    # text_box.on_submit(submit)
-
     def _update(frame):
         next_frame = next(counter)
+        BALANCE[0] += next_frame
 
         date.append(datetime.now() + timedelta(days=next_frame))
 
@@ -164,6 +189,10 @@ def dynamic_plotting(interval):
                 avg_asks[i].append(sum(last_Y_asks)/len(last_Y_asks))
             else:
                 avg_asks[i].append(sum(asks[i])/len(asks[i]))
+
+            if user_buy_history[i]:
+                user_buy_avg = sum(user_buy_history)/len(user_buy_history)
+                user_buy_history_avg[i].append(user_buy_avg)
 
         for i, ax in enumerate(volume_axes):
             if len(volumes[i]) < volume_chunk_size:
@@ -242,6 +271,8 @@ def dynamic_plotting(interval):
                 lines[4].set_data(date, RSI_values[i])
             if transactions[i]:
                 lines[5].set_data(date, transactions[i])
+            if user_buy_history[i]:
+                lines[5].set_data(date, user_buy_history[i])
 
         for i, values in enumerate(RSI_values):
             if len(values) > trend_scan_limit:
@@ -317,6 +348,11 @@ def dynamic_plotting(interval):
                     axes_liquid_marks[i].set_text('liquid asset !')
                 else:
                     axes_liquid_marks[i].set_text('')
+
+        for i in range(N):
+            crypto_amount_txt[i].set_text(crypto_amount[i])
+
+        BALANCE_TXT.set_text(BALANCE[0])
 
         for i, (ax, crypto_currency) in enumerate(zip(main_axes,
                                                       CRYPTO_CURRENCIES)):
