@@ -21,11 +21,10 @@
 #    tak, by po ponownym uruchomieniu można było wprowadzić nazwę pliku przechowującego dane
 #    i nie gromadzić danych od nowa.
 
+from utils import *
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from datetime import datetime, timedelta
-from utils import *
 import requests
 import time
 
@@ -61,9 +60,7 @@ def get_transactions(crypto_pairs, transaction_storage, limit, timeframe):
 
     for pair in crypto_pairs:
 
-        now = datetime.now()
-        delta = timedelta(minutes=timeframe)
-        unix_epoch_time = int((now - delta).timestamp()) * 1000
+        unix_epoch_time = get_unix_time(timeframe)
 
         try:
             request_volume = requests.get(
@@ -168,6 +165,7 @@ def calculate_rsi(askbid_storage, rsi_storage, window_size):
 def classify_trend(rsi_storage, trend_list):
 
     for curr_pair in range(3):
+
         latest_ask_rsi = rsi_storage[-1][curr_pair][0]
         if latest_ask_rsi >= 65:
             trend_list[curr_pair] = 'upward'
@@ -175,16 +173,6 @@ def classify_trend(rsi_storage, trend_list):
             trend_list[curr_pair] = 'downward'
         else:
             trend_list[curr_pair] = 'horizontal'
-
-
-def choose_trend_icon(trend):
-
-    if trend == 'upward':
-        return upward_icon
-    elif trend == 'downward':
-        return downward_icon
-    else:
-        return question_icon
 
 
 def select_candidate(trends_list, volume_slice):
@@ -212,7 +200,10 @@ def check_volatility(transaction_storage, pair, threshold, samples):
         inner_temp = [float(curr_trans['items'][tran]['r']) for tran in range(trans_amount)]
         temp.extend(inner_temp)
 
-    percentage = calculate_percent_diff(max(temp), min(temp))
+    try:
+        percentage = calculate_percent_diff(max(temp), min(temp))
+    except ValueError:
+        percentage = 0
 
     return (lambda perc: True if perc > threshold else False)(percentage)
 
@@ -238,7 +229,10 @@ def check_liquidity(transaction_storage, pair, threshold):
     except ZeroDivisionError:
         return 0
 
-    percentage = calculate_percent_diff(ask, bid)
+    try:
+        percentage = calculate_percent_diff(ask, bid)
+    except ValueError:
+        percentage = 0
 
     return (lambda spread: True if spread < threshold else False)(percentage)
 
@@ -275,9 +269,6 @@ def draw_figure(frame_number):
             avg_asks.append(avg_sample[curr_pair][0])
             avg_bids.append(avg_sample[curr_pair][1])
 
-        volatile = check_volatility(trans_storage, curr_pair, VOLATILE_PERC, VOLATILE_SAMPLES)
-        liquid = check_liquidity(trans_storage, curr_pair, SPREAD_PERC)
-
         plt.plot(time_samples, asks, "-o", label=data_storage[0][curr_pair][0] + " ask")
         plt.plot(time_samples, bids, "-o", label=data_storage[0][curr_pair][0] + " bid")
         plt.plot(time_samples, avg_asks, "o:", color="#185986",
@@ -287,30 +278,32 @@ def draw_figure(frame_number):
 
         axes = plt.gca()
 
-        icon_trend = choose_trend_icon(trends_of_pairs[curr_pair])
+        icon_trend = (lambda trend: upward_icon if trend == 'upward'
+                      else (downward_icon if trend == 'downward'
+                            else question_icon))(trends_of_pairs[curr_pair])
         imagebox_trend = OffsetImage(icon_trend, zoom=0.4)
         imagebox_trend.image.axes = axes
         ab_trend = AnnotationBbox(imagebox_trend, (0.5, 0.5), xycoords='axes fraction',
                                   boxcoords="offset points", pad=0.3, frameon=0)
         axes.add_artist(ab_trend)
 
-        if volatile:
+        volatile_test = check_volatility(trans_storage, curr_pair, VOLATILE_PERC, VOLATILE_SAMPLES)
+        vol_icon = (lambda test: volatile_icon if test else tp_volatile_icon)(volatile_test)
+        imagebox_volatile = OffsetImage(vol_icon, zoom=0.1)
+        imagebox_volatile.image.axes = axes
+        ab_volatile = AnnotationBbox(imagebox_volatile, (0.95, 1.4), xycoords='axes fraction',
+                                     boxcoords="offset points", pad=0, frameon=0,
+                                     annotation_clip=False)
+        axes.add_artist(ab_volatile)
 
-            imagebox_volatile = OffsetImage(volatile_icon, zoom=0.1)
-            imagebox_volatile.image.axes = axes
-            ab_volatile = AnnotationBbox(imagebox_volatile, (0.95, 1.4), xycoords='axes fraction',
-                                         boxcoords="offset points", pad=0, frameon=0,
-                                         annotation_clip=False)
-            axes.add_artist(ab_volatile)
-
-        if liquid:
-
-            imagebox_liquid = OffsetImage(liquid_icon, zoom=0.1)
-            imagebox_liquid.image.axes = axes
-            ab_liquid = AnnotationBbox(imagebox_liquid, (0.9, 1.4), xycoords='axes fraction',
-                                       boxcoords="offset points", pad=0, frameon=0,
-                                       annotation_clip=False)
-            axes.add_artist(ab_liquid)
+        liquid_test = check_liquidity(trans_storage, curr_pair, SPREAD_PERC)
+        liq_icon = (lambda test: liquid_icon if test else tp_liquid_icon)(liquid_test)
+        imagebox_liquid = OffsetImage(liq_icon, zoom=0.1)
+        imagebox_liquid.image.axes = axes
+        ab_liquid = AnnotationBbox(imagebox_liquid, (0.9, 1.4), xycoords='axes fraction',
+                                   boxcoords="offset points", pad=0, frameon=0,
+                                   annotation_clip=False)
+        axes.add_artist(ab_liquid)
 
         if candidate == curr_pair:
             for loc, spine in axes.spines.items():
@@ -320,8 +313,20 @@ def draw_figure(frame_number):
                 else:
                     spine.set_position(("outward", -1))
                 spine.set_linewidth(3)
-                spine.set_edgecolor('#859900')
+                # spine.set_edgecolor('#859900')
+                spine.set_edgecolor('#ffae1a')
+                # spine.set_edgecolor('#ff751a')
                 spine.set_alpha(0.7)
+
+        # nanosimy poziomą, przerywaną linią
+        # global counter
+        # counter += 1
+        # if counter >= 4 and counter < 10:
+        #     axes.axhline(y=999, color='r', linestyle='dashed')
+        # elif counter >= 10 and counter < 15:
+        #     axes.axhline(y=99, color='r', linestyle='dashed')
+        # else:
+        #     axes.axhline(y=999, color='r', linestyle='dashed')
 
         plt.xlabel("Time", fontsize=9)
         plt.ylabel("Exchange Rates", fontsize=9)
@@ -361,14 +366,8 @@ def draw_figure(frame_number):
         ax.margins(y=0.2)
         plt.xticks(rotation='vertical', fontsize=7)
 
-    if len(time_samples) > 9:
-        del time_samples[0]
-        del data_storage[0]
-        del avg_storage[0]
-        del vol_storage[0]
-        del askbid_storage[0]
-        del rsi_storage[0]
-        del trans_storage[0]
+    clear_older_data(data_storage, avg_storage, vol_storage, askbid_storage, rsi_storage,
+                     trans_storage, trigger_list=time_samples, treshold=10)
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.85)
@@ -376,7 +375,7 @@ def draw_figure(frame_number):
 
 if __name__ == '__main__':
 
-    PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('DASH', 'PLN')]
+    PAIRS = [('LTC', 'PLN'), ('ETH', 'PLN'), ('BCC', 'PLN')]
     FREQ = 5
     # AVG_WINDOW = int(input('Przedział z jakiego liczyć średnią (max 10): '))
     # RSI_WINDOW = int(input('Przedział z jakiego liczyć wskaźnik RSI? (max 10): '))
@@ -387,10 +386,13 @@ if __name__ == '__main__':
     AVG_WINDOW = 5
     RSI_WINDOW = 10
     VOLATILE_SAMPLES = 5
-    VOLATILE_PERC = 1.9
-    SPREAD_PERC = 0.8
+    VOLATILE_PERC = 5
+    SPREAD_PERC = 2.85
 
-    downward_icon, upward_icon, question_icon = get_icons('downward', 'upward', 'question')
+    counter = 0
+
+    downward_icon, upward_icon, question_icon, tp_volatile_icon, tp_liquid_icon \
+        = get_icons('downward', 'upward', 'question', 'fire', 'liquidity')
     volatile_icon, liquid_icon = get_icons('fire', 'liquidity', transparent=False)
 
     animation = FuncAnimation(plt.figure(), draw_figure, interval=1000*FREQ)
