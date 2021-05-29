@@ -45,15 +45,15 @@ def dynamic_plotting(interval):
     counter = itertools.count()
     N = len(CRYPTO_CURRENCIES)
 
-    asset_scan_limit = 5
-    trend_scan_limit = 5
-    rsi_default_limit = 10
-    volatile_bound = 0.05
-    liquid_bound = 0.05
-    volume_chunk_size = 10
-    hot_plot_mark = '⚑'
-    uptrend_mark = '↗'
-    downtrend_mark = '↘'
+    ASSET_SCAN_LIMIT = 5
+    TREND_SCAN_LIMIT = 5
+    RSI_DEFAULT_LIMIT = 10
+    VOLATILE_BOUND = 0.05
+    LIQUID_BOUND = 0.05
+    VOLUME_CHUNK_SIZE = 10
+    HOT_PLOT_MARK = '⚑'
+    UPTREND_MARK = '↗'
+    DOWNTREND_MARK = '↘'
 
     date = []
     bids = [[] for _ in range(N)]
@@ -195,14 +195,14 @@ def dynamic_plotting(interval):
                 user_buy_history_avg[i].append(user_buy_avg)
 
         for i, ax in enumerate(volume_axes):
-            if len(volumes[i]) < volume_chunk_size:
+            if len(volumes[i]) < VOLUME_CHUNK_SIZE:
                 volumes[i].append(orders[i]['bids'][0][1])
 
-            if len(volumes[i]) >= volume_chunk_size:
+            if len(volumes[i]) >= VOLUME_CHUNK_SIZE:
                 volume_chunk_val = sum(volumes[i])
                 volume_chunks[i].append(volume_chunk_val)
                 ax.bar(date[-1], volume_chunk_val, align='center',
-                       width=0.95*volume_chunk_size, color='powderblue')
+                       width=0.95*VOLUME_CHUNK_SIZE, color='powderblue')
                 ax_max_y = max(volume_chunks[i])
                 ratio = volume_chunk_val / ax_max_y
                 too_small_bar = True if ratio < 0.3 else False
@@ -216,7 +216,7 @@ def dynamic_plotting(interval):
                             round(volume_chunk_val, 2), ha='center',
                             va='center', fontsize='x-small')
 
-            if len(volumes[i]) == volume_chunk_size:
+            if len(volumes[i]) == VOLUME_CHUNK_SIZE:
                 volumes[i] = []
 
         for i in range(N):
@@ -237,9 +237,9 @@ def dynamic_plotting(interval):
                 a = np.mean(bid_gains[i][-Y_slider.val:])
                 b = np.mean(bid_losses[i][-Y_slider.val:])
             else:
-                if len(bids[i]) > rsi_default_limit:
-                    a = np.mean(bid_gains[i][-rsi_default_limit:]),
-                    b = np.mean(bid_losses[i][-rsi_default_limit:])
+                if len(bids[i]) > RSI_DEFAULT_LIMIT:
+                    a = np.mean(bid_gains[i][-RSI_DEFAULT_LIMIT:]),
+                    b = np.mean(bid_losses[i][-RSI_DEFAULT_LIMIT:])
                 else:
                     a, b = np.mean(bid_gains[i]), np.mean(bid_losses[i])
 
@@ -275,13 +275,13 @@ def dynamic_plotting(interval):
                 lines[5].set_data(date, user_buy_history[i])
 
         for i, values in enumerate(RSI_values):
-            if len(values) > trend_scan_limit:
-                last_values = values[-trend_scan_limit:]
+            if len(values) > TREND_SCAN_LIMIT:
+                last_values = values[-TREND_SCAN_LIMIT:]
                 last_rsi_mean = np.mean(last_values)
                 if 60 <= last_rsi_mean < 80 or last_rsi_mean <= 30:
-                    curr_trend_marks[i] = uptrend_mark
+                    curr_trend_marks[i] = UPTREND_MARK
                 elif 30 < last_rsi_mean < 50 or last_rsi_mean >= 80:
-                    curr_trend_marks[i] = downtrend_mark
+                    curr_trend_marks[i] = DOWNTREND_MARK
                 else:
                     curr_trend_marks[i] = ''
 
@@ -290,7 +290,7 @@ def dynamic_plotting(interval):
         canditate_index = None
         if all(volume_chunks):
             for i in range(N):
-                if curr_trend_marks[i] != downtrend_mark:
+                if curr_trend_marks[i] != DOWNTREND_MARK:
                     canditate_indexes.append(i)
 
             if canditate_indexes:
@@ -307,36 +307,36 @@ def dynamic_plotting(interval):
                         hot_plot_idx = i
 
                 if hot_plot_idx:
-                    hot_plot_marks[hot_plot_idx] = hot_plot_mark
+                    hot_plot_marks[hot_plot_idx] = HOT_PLOT_MARK
 
                 for i in range(N):
                     if i != hot_plot_idx or \
-                            curr_trend_marks[i] == downtrend_mark:
+                            curr_trend_marks[i] == DOWNTREND_MARK:
                         hot_plot_marks[i] = ''
                     elif i == hot_plot_idx and \
-                            curr_trend_marks[i] != downtrend_mark:
+                            curr_trend_marks[i] != DOWNTREND_MARK:
                         canditate_index = hot_plot_idx
 
         for i in range(N):
-            if len(transactions[i]) > asset_scan_limit:
-                last_trans = transactions[i][-asset_scan_limit:]
+            if len(transactions[i]) > ASSET_SCAN_LIMIT:
+                last_trans = transactions[i][-ASSET_SCAN_LIMIT:]
                 trans_mean = np.mean(last_trans)
                 trans_ratio = []
                 for transaction in last_trans:
                     ratio = abs((transaction-trans_mean)/trans_mean)
                     trans_ratio.append(ratio)
 
-                is_over_bound = list(map(lambda x: x > volatile_bound,
+                is_over_bound = list(map(lambda x: x > VOLATILE_BOUND,
                                          trans_ratio))
 
-                _last_bids = bids[i][-asset_scan_limit:]
-                _last_asks = asks[i][-asset_scan_limit:]
+                _last_bids = bids[i][-ASSET_SCAN_LIMIT:]
+                _last_asks = asks[i][-ASSET_SCAN_LIMIT:]
                 bids_asks_ratio = []
                 for bid, ask in zip(_last_bids, _last_asks):
                     ratio = abs((bid-ask) / max(bid, ask))
                     bids_asks_ratio.append(ratio)
 
-                are_under_bound = list(map(lambda x: x < liquid_bound,
+                are_under_bound = list(map(lambda x: x < LIQUID_BOUND,
                                            bids_asks_ratio))
 
                 if any(is_over_bound) and i == canditate_index:
