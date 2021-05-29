@@ -107,7 +107,13 @@ def dynamic_plotting(interval):
              s='Balance:')
     BALANCE_TXT = fig.text(x=0.045,
                            y=0.85-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
-                           s=BALANCE[0])
+                           s=f'{str(BALANCE[0])} {BALANCE[1]}')
+
+    currency_textbox_ax = plt.axes([0.04, 0.65, 0.033, 0.025])
+    currency_amount_textbox_ax = plt.axes([0.04, 0.62, 0.033, 0.025])
+    price_textbox_ax = plt.axes([0.04, 0.59, 0.033, 0.025])
+    buy_button_ax = plt.axes([0.02, 0.55, 0.033, 0.025])
+    sell_button_ax = plt.axes([0.06, 0.55, 0.033, 0.025])
 
     main_axes = []
     volume_axes = []
@@ -150,6 +156,44 @@ def dynamic_plotting(interval):
                                         transform=main_axes[i].transAxes)
         axes_volatile_marks.append(volatile_mark)
         axes_liquid_marks.append(liquid_mark)
+
+
+    OPERATION_CURRENCY_TEXTBOX = TextBox(currency_textbox_ax, 'Currency: ')
+    OPERATION_AMOUNT_TEXTBOX = TextBox(currency_amount_textbox_ax, 'Amount: ')
+    OPERATION_PRICE_TEXTBOX = TextBox(price_textbox_ax, 'Price: ')
+    BUY_BUTTON = Button(buy_button_ax, label='BUY', color='lawngreen',
+                        hovercolor='limegreen')
+    SELL_BUTTON = Button(sell_button_ax, label='SELL', color='red',
+                         hovercolor='indianred')
+
+    def buy_on_click(event):
+        operation_data = [OPERATION_CURRENCY_TEXTBOX.text,
+                          OPERATION_AMOUNT_TEXTBOX.text,
+                          OPERATION_PRICE_TEXTBOX.text]
+        space_free_data = list(map(lambda x: x.replace(' ', ''),
+                                   operation_data))
+
+        currency, amount, price = space_free_data
+
+        print(f'>{currency}<',
+              f'>{amount}<',
+              f'>{price}<')
+
+    def sell_on_click(event):
+        operation_data = [OPERATION_CURRENCY_TEXTBOX.text,
+                          OPERATION_AMOUNT_TEXTBOX.text,
+                          OPERATION_PRICE_TEXTBOX.text]
+        space_free_data = list(map(lambda x: x.replace(' ', ''),
+                                   operation_data))
+
+        currency, amount, price = space_free_data
+
+        print(f'>{currency}<',
+              f'>{amount}<',
+              f'>{price}<')
+
+    BUY_BUTTON.on_clicked(func=buy_on_click)
+    SELL_BUTTON.on_clicked(func=sell_on_click)
 
     def _update(frame):
         next_frame = next(counter)
@@ -352,7 +396,7 @@ def dynamic_plotting(interval):
         for i in range(N):
             crypto_amount_txt[i].set_text(crypto_amount[i])
 
-        BALANCE_TXT.set_text(BALANCE[0])
+        BALANCE_TXT.set_text(f'{str(BALANCE[0])} {BALANCE[1]}')
 
         for i, (ax, crypto_currency) in enumerate(zip(main_axes,
                                                       CRYPTO_CURRENCIES)):
