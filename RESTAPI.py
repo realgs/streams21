@@ -6,6 +6,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import time
 import warnings
+import json
 
 warnings.filterwarnings("ignore")
 
@@ -16,6 +17,9 @@ BASE_CURRENCY = "PLN"
 FIRST_CRYPTO = "LTC"
 SECOND_CRYPTO = "ETH"
 THIRD_CRYPTO = "LSK"
+AVERAGE_USER_BUY_PRICE_BTC = []
+AVERAGE_USER_BUY_PRICE_ETH = []
+AVERAGE_USER_BUY_PRICE_LSK = []
 S = 5
 X = 5
 Y = 3
@@ -287,16 +291,25 @@ if __name__ == "__main__":
             median = int(np.floor(np.median(np.arange(0, len(xLabels)))))
             xLabels = [xLabels[0], xLabels[median], xLabels[-1]]
 
+
+
+
         BTCSellArray.append(sellBTC)
         BTCBuyArray.append(buyBTC)
         BTCVolumeArray.append(getVolumeNewAPI(FIRST_CRYPTO, BASE_CURRENCY, TIME_IN_VOLUME))
 
         valueBuyB, valueSellB = calculateAverage(BTCSellArray, BTCBuyArray, AVERAGE_SAMPLES_NUMBER)
+        print(f"buy: {valueBuyB}")
         BTCAverageArraySell.append(valueSellB)
         BTCAverageArrayBuy.append(valueBuyB)
 
         RSIB = calculateRSI(BTCDecreaseArray, BTCIncreaseArray, BTCSellArray, RSI_SAMPLES_NUMBER)
         BTCRSIArray.append(RSIB)
+
+
+
+
+
 
         # Ether
         ETHSellArray.append(sellETH)
@@ -321,64 +334,91 @@ if __name__ == "__main__":
         RSI = calculateRSI(LSKDecreaseArray, LSKIncreaseArray, LSKSellArray, RSI_SAMPLES_NUMBER)
         LSKRSIArray.append(RSI)
 
-        if len(LSKRSIArray) > 3 and len(ETHRSIArray) > 3 and len(BTCRSIArray) > 3:
-            trendB = checkWhatTrend(BTCRSIArray)
-            BTCTrendArray.append(trendB)
-            axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB}')
 
-            trendE = checkWhatTrend(ETHRSIArray)
-            ETHTrendArray.append(trendE)
-            axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE}')
 
-            trendL = checkWhatTrend(LSKRSIArray)
-            LSKTrendArray.append(trendL)
-            axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL}')
+        with open("data.json", 'r') as fp:
+            data = json.load(fp)
+            fp.close()
 
-            out = defineCandidate(trendB, trendE, trendL, BTCVolumeArray, ETHVolumeArray, LSKVolumeArray)
-            if out == "BTC":
-                axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB} [K]')
-                if defineAsLiquid(buyBTC, sellBTC, 5):
-                    axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB} [K][L]')
-                if defineAsVolatile(BTCBuyArray, Y, X):
-                    axes[0][0].set_title(f'{FIRST_CRYPTO}|Trend: {trendB} [K][L][V]')
-            elif out == "ETH":
-                axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE} [K]')
-                if defineAsLiquid(buyETH, sellETH, 5):
-                    axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE} [K][L]')
-                if defineAsVolatile(ETHBuyArray, Y, X):
-                    axes[0][1].set_title(f'{SECOND_CRYPTO}|Trend: {trendE} [K][L][V]')
-            else:
-                axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL} [K]')
-                if defineAsLiquid(buyLSK, sellLSK, 5):
-                    axes[0][2].set_title(f'{THIRD_CRYPTO}|Trend: {trendL} [K][L]')
-                if defineAsVolatile(LSKBuyArray, Y, X):
-                    axes[0][1].set_title(f'{THIRD_CRYPTO}|Trend: {trendL} [K][L][V]')
+        data["BTC"] = valueSellB
+        data["ETH"] = valueSellE
+        data["LSK"] = valueSell
+
+        file = open("data.json", "w")
+        json.dump(data, file)
+        file.close()
+
+        with open('buysBTC.txt') as f:
+            lines = f.readlines()
+
+        count = 0
+        number = 0
+
+        for line in lines:
+            number += 1
+            count += float(line)
+        AVERAGE_USER_BUY_PRICE_ETH.append(count / number)
+        f.close()
+
+        with open('buysETH.txt') as f:
+            lines = f.readlines()
+
+        count = 0
+        number = 0
+
+        for line in lines:
+            number += 1
+            count += float(line)
+        AVERAGE_USER_BUY_PRICE_LSK.append(count / number)
+        f.close()
+
+        with open('buysLSK.txt') as f:
+            lines = f.readlines()
+
+        count = 0
+        number = 0
+
+        for line in lines:
+            number += 1
+            count += float(line)
+        AVERAGE_USER_BUY_PRICE_BTC.append(count / number)
+        f.close()
+
+
+
+
 
         axes[0][0].plot(x, BTCSellArray, color='red')
         axes[0][0].plot(x, BTCBuyArray, color='magenta')
+
+        axes[0][0].plot(x, AVERAGE_USER_BUY_PRICE_BTC, color='green', linestyle='dashed')
         axes[0][0].set_xticks(xLabels)
-        axes[0][0].plot(x, BTCAverageArrayBuy, color='blue', linestyle='dashed')
-        axes[0][0].plot(x, BTCAverageArraySell, color='orange', linestyle='dashed')
-        axes[0][0].plot(x, BTCRSIArray, color='green', linestyle='dashed')
+
+        # axes[0][0].plot(x, BTCAverageArrayBuy, color='blue', linestyle='dashed')
+        # axes[0][0].plot(x, BTCAverageArraySell, color='orange', linestyle='dashed')
 
         axes[1][0].bar(x, BTCVolumeArray, color='red')
         axes[1][0].set_xticks(xLabels)
 
         axes[0][1].plot(x, ETHSellArray, color='red')
         axes[0][1].plot(x, ETHBuyArray, color='magenta')
+
+        axes[0][1].plot(x, AVERAGE_USER_BUY_PRICE_ETH, color='green', linestyle='dashed')
+
         axes[0][1].set_xticks(xLabels)
-        axes[0][1].plot(x, ETHAverageArrayBuy, color='blue', linestyle='dashed')
-        axes[0][1].plot(x, ETHAverageArraySell, color='orange', linestyle='dashed')
-        axes[0][1].plot(x, ETHRSIArray, color='green', linestyle='dashed')
+        # axes[0][1].plot(x, ETHAverageArrayBuy, color='blue', linestyle='dashed')
+        # axes[0][1].plot(x, ETHAverageArraySell, color='orange', linestyle='dashed')
 
         axes[1][1].bar(x, ETHVolumeArray, color='red')
         axes[1][1].set_xticks(xLabels)
 
         axes[0][2].plot(x, LSKSellArray, color='red', label='Sell' if i == 0 else "")
         axes[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
-        axes[0][2].plot(x, LSKAverageArrayBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
-        axes[0][2].plot(x, LSKAverageArraySell, color='orange', linestyle='dashed', label='Ave.Sell' if i == 0 else "")
-        axes[0][2].plot(x, LSKRSIArray, color='green', linestyle='dashed', label='RSI' if i == 0 else "")
+
+        # axes[0][2].plot(x, AVERAGE_USER_BUY_PRICE_LSK, color='magenta', linestyle='dashed' if i == 0 else "")
+
+        # axes[0][2].plot(x, LSKAverageArrayBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
+        # axes[0][2].plot(x, LSKAverageArraySell, color='orange', linestyle='dashed', label='Ave.Sell' if i == 0 else "")
 
         axes[0][2].set_xticks(xLabels)
         axes[0][2].legend(loc="upper right")
@@ -392,6 +432,7 @@ if __name__ == "__main__":
         axes[1][0].set_yscale('log')
         axes[1][1].set_yscale('log')
         axes[1][2].set_yscale('log')
+
 
         i += 1
         plt.draw()
