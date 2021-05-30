@@ -16,7 +16,7 @@ params = {'legend.fontsize': 'x-small',
 pylab.rcParams.update(params)
 plt.rcParams['legend.numpoints'] = 1
 
-
+# if elem['currency'] == sellingElem['currency'] and elem['amountInitial'] == sellingElem['amountInitial'] and elem['cost'] == sellingElem['cost']
 def choiceState():
     f = open("D:\\Python\\projekty\\Przetwarzanie_strumieni_danych\\choice.txt", "r")
     data = json.load(f)
@@ -24,7 +24,7 @@ def choiceState():
 
 BITBAY_ADRES = 'https://bitbay.net/API/Public'
 NEW_BITBAY_ADRES = 'https://api.bitbay.net/rest/trading'
-FREQUENCY = 3
+FREQUENCY = 6
 MOVING_AVR_SCALE = choiceState()['yMovAv']
 Y_RSI = choiceState()['yRsi']
 Y = 3
@@ -75,8 +75,6 @@ def RSIcalculator(decrease, increase, buyArray, period):
             increase.append(value)
         else:
             decrease.append(value)
-        print(f'decrease: {decrease}')
-        print(f'increase: {increase}')
 
         a = (sum(increase) + 1) / (len(increase) + 1)
         b = (sum(decrease) + 1) / (len(decrease) + 1)
@@ -133,6 +131,59 @@ def typeOfVolume(volumes, types):
 
     return volumeDataBase, liqAsset
 
+def averageOfCustomerBids(bidArray, askArray):
+    if len(bidArray) != 0:
+        howMany = 0
+        btcSum = 0
+        notEmptyAskArray = [elem for elem in askArray if elem['amountLeft'] != 0]
+        if notEmptyAskArray != []:
+            for elem in notEmptyAskArray:
+                selling(elem)
+        for bidValue in bidArray:
+            if bidValue['amountLeft'] != 0:
+                btcSum += bidValue['amountLeft'] * bidValue['cost']
+                howMany += bidValue['amountLeft']
+        try:
+            btcSum /= howMany
+        except ZeroDivisionError:
+            btcSum = 0
+        return round(btcSum, 2)
+    return None
+
+def selling(sellingObject):
+    f = open("D:\\Python\\projekty\\Przetwarzanie_strumieni_danych\\choice.txt", "r")
+    data = json.load(f)
+    currentSellingObjectIndex = data['asks'].index(sellingObject)
+    sellingCurrency = data['asks'][currentSellingObjectIndex]['currency']
+    for elem in data['bids']:
+        if elem['currency'] == sellingCurrency and elem['amountLeft'] > 0:
+            amountAfterSelling = elem['amountLeft'] - data['asks'][currentSellingObjectIndex]['amountLeft']
+            if amountAfterSelling == 0:
+                cost = elem['amountLeft'] * elem['cost']
+                profit = data['asks'][currentSellingObjectIndex]['amountLeft'] * data['asks'][currentSellingObjectIndex]['cost']
+                data['profit'][sellingCurrency] += profit - cost
+                elem['amountLeft'] = 0
+                data['asks'][currentSellingObjectIndex]['amountLeft'] = 0
+                break
+            elif amountAfterSelling < 0:
+                cost = elem['amountLeft'] * elem['cost']
+                profit = elem['amountLeft'] * data['asks'][currentSellingObjectIndex]['cost']
+                data['profit'][sellingCurrency] += profit - cost
+                elem['amountLeft'] = 0
+                data['asks'][currentSellingObjectIndex]['amountLeft'] = abs(amountAfterSelling)
+            elif amountAfterSelling > 0:
+                cost = data['asks'][currentSellingObjectIndex]['amountLeft'] * elem['cost']
+                profit = data['asks'][currentSellingObjectIndex]['amountLeft'] * data['asks'][currentSellingObjectIndex]['cost']
+                data['profit'][sellingCurrency] += profit - cost
+                elem['amountLeft'] = amountAfterSelling
+                data['asks'][currentSellingObjectIndex]['amountLeft'] = 0
+                break
+    f.close()
+    g = open("D:\\Python\\projekty\\Przetwarzanie_strumieni_danych\\choice.txt", "w")
+    json.dump(data, g)
+    g.close()
+
+
 def animate(i):
     bidBTC, askBTC = dataPicker('BTC', 'PLN', 'ticker.json')
     bidLTC, askLTC = dataPicker('BSV', 'PLN', 'ticker.json')
@@ -140,7 +191,6 @@ def animate(i):
     volumeBTC = volumePicker('transactions', 'ETH-PLN', 60)
     volumeLTC = volumePicker('transactions', 'BSV-PLN', 60)
     volumeDASH = volumePicker('transactions', 'XLM-PLN', 60)
-    print(volumeBTC, volumeLTC, volumeDASH)
     points_BTC_bid.append(bidBTC)
     points_BTC_ask.append(askBTC)
     points_BTC_volume.append(float(volumeBTC))
@@ -184,6 +234,23 @@ def animate(i):
         if abs(1 - liqDiff) > S:
             volumeDataBase[liqAsset] += f' LA'
 
+    # Customer values
+    bidsDataBase = {"BTC": 0, "BSV": 0, "XLM": 0}
+    if len(choiceState()['bids']) != 0:
+        btcBidList = [elem for elem in choiceState()['bids'] if elem["currency"] == "BTC"]
+        bsvBidList = [elem for elem in choiceState()['bids'] if elem["currency"] == "BSV"]
+        xlmBidList = [elem for elem in choiceState()['bids'] if elem["currency"] == "XLM"]
+        btcAskList = [elem for elem in choiceState()['asks'] if elem["currency"] == "BTC"]
+        bsvAskList = [elem for elem in choiceState()['asks'] if elem["currency"] == "BSV"]
+        xlmAskList = [elem for elem in choiceState()['asks'] if elem["currency"] == "XLM"]
+        bidsDataBase['BTC'] = averageOfCustomerBids(btcBidList, btcAskList)
+        bidsDataBase['BSV'] = averageOfCustomerBids(bsvBidList, bsvAskList)
+        bidsDataBase['XLM'] = averageOfCustomerBids(xlmBidList, xlmAskList)
+    print(f'\nbidsDataBase: {bidsDataBase}\n')
+
+    askBTCleft = sum([elem["amountLeft"] for elem in choiceState()["bids"] if elem["currency"] == "BTC"])
+    askBSVleft = sum([elem["amountLeft"] for elem in choiceState()["bids"] if elem["currency"] == "BSV"])
+    askXLMleft = sum([elem["amountLeft"] for elem in choiceState()["bids"] if elem["currency"] == "XLM"])
 
     # Plots
     with plt.style.context('seaborn'):
@@ -193,8 +260,9 @@ def animate(i):
         ax1.plot(points_x, points_BTC_ask, color='#ff0000', linewidth=1.5, label='BTC Asks' if i == 1 else "")
         ax1.plot(points_x, points_BTC_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='BTC Bids AVR' if i == 1 else "")
         ax1.plot(points_x, points_BTC_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='BTC Asks AVR' if i == 1 else "")
+        ax1.plot(points_x, [bidsDataBase['BTC'] for i in range(len(points_x))], color='#6600ff', linestyle='-.', linewidth=1.5, label='BTC AVR Customer' if i == 1 else "")
         ax1.set_xlim(left= left, right= right)
-        ax1.set_xlabel('Czas', fontsize=12)
+        ax1.set_xlabel(f'Obecny bilans: {choiceState()["profit"]["BTC"]}, pozostało {askBTCleft} jednostek', fontsize=12)
         ax1.set_ylabel('Wartość w złotówkach', fontsize=12)
         ax1.set_yscale('log')
         ax1.legend()
@@ -203,8 +271,9 @@ def animate(i):
         ax2.plot(points_x, points_LTC_ask, color='#ff0000', linewidth=1.5, label='LTC Asks' if i == 1 else "")
         ax2.plot(points_x, points_LTC_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='LTC Bids AVR' if i == 1 else "")
         ax2.plot(points_x, points_LTC_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='LTC Asks AVR' if i == 1 else "")
+        ax2.plot(points_x, [bidsDataBase['BSV'] for i in range(len(points_x))], color='#6600ff', linestyle='-.', linewidth=1.5, label='LTC AVR Customer' if i == 1 else "")
         ax2.set_xlim(left= left, right= right)
-        ax2.set_xlabel('Czas', fontsize=12)
+        ax2.set_xlabel(f'Obecny bilans: {choiceState()["profit"]["BSV"]}, pozostało {askBSVleft} jednostek', fontsize=12)
         ax2.set_yscale('log')
         ax2.legend()
 
@@ -212,8 +281,9 @@ def animate(i):
         ax3.plot(points_x, points_DASH_ask, color='#ff0000', linewidth=1.5, label='DASH Asks' if i == 1 else "")
         ax3.plot(points_x, points_DASH_bid_avr, color='#003300', linestyle='--', linewidth=1.5, label='DASH Bids AVR' if i == 1 else "")
         ax3.plot(points_x, points_DASH_ask_avr, color='#4d0000', linestyle='--', linewidth=1.5, label='DASH Asks AVR' if i == 1 else "")
+        ax3.plot(points_x, [bidsDataBase['XLM'] for i in range(len(points_x))], color='#6600ff', linestyle='-.', linewidth=1.5, label='LTC AVR Customer' if i == 1 else "")
         ax3.set_xlim(left= left, right= right)
-        ax3.set_xlabel('Czas', fontsize=12)
+        ax3.set_xlabel(f'Obecny bilans: {choiceState()["profit"]["XLM"]}, pozostało {askXLMleft} jednostek', fontsize=12)
         ax3.set_yscale('log')
         ax3.legend()
 
