@@ -61,7 +61,7 @@ def count_rsi(data_list, start, stop):
     return rsi
 
 
-def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list):
+def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t):
     buy, sell = get_data(crypt)
     buy_list.append(buy)
     sell_list.append(sell)
@@ -75,12 +75,12 @@ def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_
     rsi_buy_list.append(count_rsi(buy_list, START, STOP))
     rsi_sell_list.append(count_rsi(sell_list, START, STOP))
 
-
+    t.append(time.strftime("%H:%M:%S", time.localtime()))
     f = open('trades/{crypt}.json'.format(crypt= crypt), 'a')
     f.write(str(buy) + ' ' + str(sell) + '\n')
     f.close
 
-    return buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list
+    return buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t
 
 
 def trend(rsi_list):
@@ -139,12 +139,12 @@ def set_title(candidate, buy_list, sell_list, X, Y, S):
 
 
 def animate(i):
-    global X, Y, S
-    y1, y2, avg1, avg2, v, rsi1, rsi2 = data_stream(CURRENCY[0], buys0, sells0, avg_buy0, avg_sell0, volume0, rsi_buy_values0, rsi_sell_values0)
-    y3, y4, avg3, avg4, v1, rsi3, rsi4 = data_stream(CURRENCY[1], buys1, sells1, avg_buy1, avg_sell1, volume1, rsi_buy_values1, rsi_sell_values1)
-    y5, y6, avg5, avg6, v2, rsi5, rsi6 = data_stream(CURRENCY[2], buys2, sells2, avg_buy2, avg_sell2, volume2, rsi_buy_values2, rsi_sell_values2)
-    t.append(time.strftime("%H:%M:%S", time.localtime()))
-    for L in [y1, y2, avg1, avg2, v, rsi1, rsi2, t, y3, y4, avg3, avg4, v1, rsi3, rsi4, y5, y6, avg5, avg6, v2, rsi5, rsi6]:
+    global X, Y, S, t1, t2, t3
+    y1, y2, avg1, avg2, v, rsi1, rsi2,  t1 = data_stream(CURRENCY[0], buys0, sells0, avg_buy0, avg_sell0, volume0, rsi_buy_values0, rsi_sell_values0, t1)
+    y3, y4, avg3, avg4, v1, rsi3, rsi4, t2 = data_stream(CURRENCY[1], buys1, sells1, avg_buy1, avg_sell1, volume1, rsi_buy_values1, rsi_sell_values1, t2)
+    y5, y6, avg5, avg6, v2, rsi5, rsi6, t3 = data_stream(CURRENCY[2], buys2, sells2, avg_buy2, avg_sell2, volume2, rsi_buy_values2, rsi_sell_values2, t3)
+
+    for L in [y1, y2, avg1, avg2, v, rsi1, rsi2, t1, t2, t3, y3, y4, avg3, avg4, v1, rsi3, rsi4, y5, y6, avg5, avg6, v2, rsi5, rsi6]:
         if len(L) > 10:
             L.pop(0)
 
@@ -160,23 +160,23 @@ def animate(i):
 # -----------------------------------------------------------------------
     plt.subplot(331)
     plt.title(f'{CURRENCY[0]} chart {l_title1} \n {v_title1}')
-    plt.plot(t, y1, label="buys", color="blue")
-    plt.plot(t, y2, label="sells", color="yellow")
-    plt.plot(t, avg1, '--', label='buy avg', color='green')
-    plt.plot(t, avg2, '--', label='sell avg', color='red')
+    plt.plot(t1, y1, label="buys", color="blue")
+    plt.plot(t1, y2, label="sells", color="yellow")
+    plt.plot(t1, avg1, '--', label='buy avg', color='green')
+    plt.plot(t1, avg2, '--', label='sell avg', color='red')
     plt.ylabel("Currency rate")
 
     plt.xticks([])
     plt.subplot(334)
     plt.title('Volume chart')
-    plt.bar(t, v, label='volume', color='gray')
+    plt.bar(t1, v, label='volume', color='gray')
     plt.xticks([])
     plt.ylabel("Volume values")
 
     plt.subplot(337)
     plt.title(f'RSI chart - {trend_0}')
-    plt.plot(t, rsi1, label='buy RSI', color='orange')
-    plt.plot(t, rsi2, ':', label='sell RSI', color='purple')
+    plt.plot(t1, rsi1, label='buy RSI', color='orange')
+    plt.plot(t1, rsi2, ':', label='sell RSI', color='purple')
     plt.ylabel("RSI value")
 
     plt.xticks(rotation='vertical')
@@ -185,21 +185,21 @@ def animate(i):
 # -----------------------------------------------------------------------
     plt.subplot(332)
     plt.title(f'{CURRENCY[1]} chart {l_title2} \n {v_title2}')
-    plt.plot(t, y3, label="buys", color="blue")
-    plt.plot(t, y4, label="sells", color="yellow")
-    plt.plot(t, avg3, '--', label='buy avg', color='green')
-    plt.plot(t, avg4, '--', label='sell avg', color='red')
+    plt.plot(t2, y3, label="buys", color="blue")
+    plt.plot(t2, y4, label="sells", color="yellow")
+    plt.plot(t2, avg3, '--', label='buy avg', color='green')
+    plt.plot(t2, avg4, '--', label='sell avg', color='red')
 
     plt.xticks([])
     plt.subplot(335)
     plt.title('Volume chart')
-    plt.bar(t, v1, label='volume', color='gray')
+    plt.bar(t2, v1, label='volume', color='gray')
     plt.xticks([])
 
     plt.subplot(338)
     plt.title(f'RSI chart - {trend_1}')
-    plt.plot(t, rsi3, label='buy RSI', color='orange')
-    plt.plot(t, rsi4, ':', label='sell RSI', color='purple')
+    plt.plot(t2, rsi3, label='buy RSI', color='orange')
+    plt.plot(t2, rsi4, ':', label='sell RSI', color='purple')
 
     plt.xticks(rotation='vertical')
     plt.xlabel("Time")
@@ -207,23 +207,23 @@ def animate(i):
 #-----------------------------------------------------------------------
     plt.subplot(333)
     plt.title(f'{CURRENCY[2]} chart {l_title3} \n {v_title3}')
-    plt.plot(t, y5, label="buys", color="blue")
-    plt.plot(t, y6, label="sells", color="yellow")
-    plt.plot(t, avg5, '--', label='buy avg', color='green')
-    plt.plot(t, avg6, '--', label='sell avg', color='red')
+    plt.plot(t3, y5, label="buys", color="blue")
+    plt.plot(t3, y6, label="sells", color="yellow")
+    plt.plot(t3, avg5, '--', label='buy avg', color='green')
+    plt.plot(t3, avg6, '--', label='sell avg', color='red')
 
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.xticks([])
     plt.subplot(336)
     plt.title('Volume chart')
-    plt.bar(t, v2, label='volume', color='gray')
+    plt.bar(t3, v2, label='volume', color='gray')
     plt.xticks([])
 
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.subplot(339)
     plt.title(f'RSI chart - {trend_2}')
-    plt.plot(t, rsi5, label='buy RSI', color='orange')
-    plt.plot(t, rsi6, ':', label='sell RSI', color='purple')
+    plt.plot(t3, rsi5, label='buy RSI', color='orange')
+    plt.plot(t3, rsi6, ':', label='sell RSI', color='purple')
 
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.xticks(rotation='vertical')
@@ -243,6 +243,7 @@ if __name__ == "__main__":
     START = 0  # input("Początek przdziału do wyliczenia RSI: ") #rsi start
     STOP = 10  # input("Koniec przdziału do wyliczenia RSI: ") # rsi stop
 
+    t1, t2, t3 = [], [], []
     buys0 = []
     sells0 = []
     avg_buy0 = []
@@ -250,7 +251,7 @@ if __name__ == "__main__":
     volume0 = []
     rsi_buy_values0 = []
     rsi_sell_values0 = []
-    t = []
+
 
     buys1 = []
     sells1 = []
