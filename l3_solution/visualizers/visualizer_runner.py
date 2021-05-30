@@ -3,15 +3,15 @@ from l3_solution.visualizers.bit_bay_trade_chart_visualizer import BitbayTradeCh
 import traceback
 
 
-class DownloadTradeInfoJob:
+class VisualizerRunner:
     bit_bay_service = BitBayService()
     visualizer = BitbayTradeChartVisualizer()
 
-    def execute(self):
+    def execute(self, shared_json):
         try:
-            self.visualizer.visualize(self.bit_bay_service)
+            self.visualizer.visualize(self.bit_bay_service, shared_json)
         except:
             print("Download or visualize trade Fail")
             traceback.print_exc()
-            self.visualizer.config = {"range_elements": None, "range_rsi": None}
-            self.execute()
+            self.visualizer.config = {"range": 20}
+            self.execute(shared_json)

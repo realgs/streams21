@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trade manager</title>
+</head>
+<body>
+<h1>Buy crypto</h1>
+<form action="http://localhost:5000/buy" method="GET">
+    <div>
+        <label for="cryptoid">Crypto id BTC/LTC/ETH</label>
+        <input name="cryptoid" id="cryptoid" value="BTC" type="text">
+    </div>
+    <div>
+        <label for="quantity">Quantity</label>
+        <input name="quantity" id="quantity" value="10" type="number">
+    </div>
+    <div>
+        <label for="price">Price</label>
+        <input name="price" id="price" value="10" type="number">
+    </div>
+    <div>
+        <button>Buy crypto</button>
+    </div>
+</form>
+<h1>Sell crypto</h1>
+<form action="http://localhost:5000/sell" method="GET">
+    <div>
+        <label for="cryptoid">Crypto id BTC/LTC/ETH</label>
+        <input name="cryptoid" id="cryptoid" value="BTC">
+    </div>
+    <div>
+        <label for="quantity">Quantity</label>
+        <input name="quantity" id="quantity" value="10" type="number">
+    </div>
+    <div>
+        <button>Sell crypto</button>
+    </div>
+</form>
+<h1>Load wallet</h1>
+<form action="http://localhost:5000/loadwallet" method="GET">
+    <div>
+        <label for="file">File name</label>
+        <input name="file" id="file" value="backup_wallet.json">
+    </div>
+    <div>
+        <button>Load</button>
+    </div>
+</form>
+</body>
+</html>
