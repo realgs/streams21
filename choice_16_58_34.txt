@@ -1,0 +1,1 @@
+{"type": "rsi", "yRsi": 5, "yMovAv": 3, "profit": {"BTC": 0.0, "BSV": 0.0, "XLM": 0.0}, "bids": [], "asks": []}
