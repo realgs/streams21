@@ -152,6 +152,13 @@ def draw_axes(list_currencies):
         axs[2, n].set_ylabel('Value')
     return fig, axs, currencies_amount
 
+def draw_black_axes(axs, number):
+    axs[2, number].spines['bottom'].set_color('k')
+    axs[2, number].spines['top'].set_color('k')
+    axs[2, number].spines['left'].set_color('k')
+    axs[2, number].spines['right'].set_color('k')
+
+
 
 def draw_plot(time_interval):
     fig, axs, currencies_amount = draw_axes(list_currencies)
@@ -185,6 +192,9 @@ def draw_plot(time_interval):
 
                 candidate = choose_candidate(list_currencies, RSI_buy)
                 if candidate != '':
+                    draw_black_axes(axs, 0)
+                    draw_black_axes(axs, 1)
+                    draw_black_axes(axs, 2)
                     axs[2, candidate].spines['bottom'].set_color('g')
                     axs[2, candidate].spines['top'].set_color('g')
                     axs[2, candidate].spines['left'].set_color('g')
@@ -216,6 +226,10 @@ def draw_plot(time_interval):
                 axs[2, curr].plot(time, RSI_sell_value, label='RSI sell', color='coral')
                 candidate = choose_candidate(list_currencies, RSI_buy)
                 if candidate != '':
+                    draw_black_axes(axs, 0)
+                    draw_black_axes(axs, 1)
+                    draw_black_axes(axs, 2)
+
                     axs[2, candidate].spines['bottom'].set_color('g')
                     axs[2, candidate].spines['top'].set_color('g')
                     axs[2, candidate].spines['left'].set_color('g')
