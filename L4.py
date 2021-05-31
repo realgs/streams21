@@ -146,7 +146,7 @@ if __name__ == "__main__":
     LTCRSI = []
 
     plt.show()
-    fig, ax1 = plt.subplots(2, 3, figsize=(15, 6), squeeze=False)
+    fig, ax1 = plt.subplots(2, 3, figsize=(17, 6), squeeze=False)
     fig.tight_layout(pad=2.0)
 
     ax20 = ax1[0][0].twinx()
@@ -219,7 +219,7 @@ if __name__ == "__main__":
         ax1[0][0].set_xticks(xLabels)
         ax1[0][0].plot(x, BTCAverageBuy, color='#59981A', linestyle = '--')
         ax1[0][0].plot(x, BTCAverageSell, color='black', linestyle = '--')
-        ax1[0][0].plot(x, BTCRSI, color='red', linestyle = '--')
+        #ax1[0][0].plot(x, BTCRSI, color='red', linestyle = '--')
         ax20.plot(x, BTCRSI, color ='red', linestyle = '--')
 
 
@@ -231,7 +231,7 @@ if __name__ == "__main__":
         ax1[0][1].set_xticks(xLabels)
         ax1[0][1].plot(x, ETHAverageBuy, color='#59981A', linestyle = '--')
         ax1[0][1].plot(x, ETHAverageSell, color='black', linestyle = '--')
-        ax1[0][1].plot(x, ETHRSI, color='red', linestyle = '--')
+        #ax1[0][1].plot(x, ETHRSI, color='red', linestyle = '--')
         ax21.plot(x, ETHRSI, color ='red', linestyle = '--')
 
         ax1[1][1].bar(x, ETHVolume, color='green')
@@ -241,12 +241,12 @@ if __name__ == "__main__":
         ax1[0][2].plot(x, LTCBuy, color='grey', label='Buy' if i == 0 else "")
         ax1[0][2].plot(x, LTCAverageBuy, color='#59981A', linestyle = '--', label='Ave.Buy' if i == 0 else "")
         ax1[0][2].plot(x, LTCAverageSell, color='black', linestyle = '--', label='Ave.Sell' if i == 0 else "")
-        ax1[0][2].plot(x, LTCRSI, color='red', linestyle = '--', label='RSI' if i == 0 else "")
-        ax22.plot(x, LTCRSI, color='red', linestyle = '--',label='RSI')
+        #ax1[0][2].plot(x, LTCRSI, color='red', linestyle = '--', label='RSI' if i == 0 else "")
+        ax22.plot(x, LTCRSI, color='red', linestyle = '--',label = 'RSI' if i == 0 else "")
 
         ax1[0][2].set_xticks(xLabels)
         ax1[0][2].legend(loc="upper right")
-
+        ax22.legend(loc="lower right")
         ax1[1][2].bar(x, LTCVolume, color='green')
         ax1[1][2].set_xticks(xLabels)
 
@@ -257,7 +257,6 @@ if __name__ == "__main__":
 
         i += 1
         plt.draw()
-        plt.waitforbuttonpress()
+
         plt.pause(1e-17)
         time.sleep(5)
-
