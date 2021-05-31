@@ -152,12 +152,12 @@ def draw_axes(list_currencies):
         axs[2, n].set_ylabel('Value')
     return fig, axs, currencies_amount
 
+
 def draw_black_axes(axs, number):
     axs[2, number].spines['bottom'].set_color('k')
     axs[2, number].spines['top'].set_color('k')
     axs[2, number].spines['left'].set_color('k')
     axs[2, number].spines['right'].set_color('k')
-
 
 
 def draw_plot(time_interval):
