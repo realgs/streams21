@@ -55,7 +55,10 @@ def calculate_rsi(pair):
     else:
         a = 1
         b = 1
-    rsi_value = 100 - (100 / (1 + abs((a / b))))
+    try:
+        rsi_value = 100 - (100 / (1 + abs((a / b))))
+    except ZeroDivisionError:
+        return 50
     return rsi_value
 
 
@@ -181,24 +184,32 @@ def show_multiple_pairs():
             # bid
             list_of_lines[i * 6 + 1].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][2])
 
-            # averages
-            # moving average if we can (after MOVING_AVERAGE_LENGTH iterations)
-            if number > MOVING_AVERAGE_LENGTH:
-                moving_average_ask = dict_of_ask_bid_lists[PAIRS[i]][3].copy()
-                moving_average_ask[-1] = sum(moving_average_ask[-MOVING_AVERAGE_LENGTH:]) / MOVING_AVERAGE_LENGTH
+            #moving averages
+            if len(dict_of_ask_bid_lists[PAIRS[i]][7]) < MOVING_AVERAGE_LENGTH:
+                moving_average_ask = (sum(dict_of_ask_bid_lists[PAIRS[i]][7])+dict_of_ask_bid_lists[PAIRS[i]][3][-1]) \
+                                     / (len(dict_of_ask_bid_lists[PAIRS[i]][7])+1)
+                dict_of_ask_bid_lists[PAIRS[i]][7].append(moving_average_ask)
                 list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
-                                                  moving_average_ask)
+                                                  dict_of_ask_bid_lists[PAIRS[i]][7])
 
-                moving_average_bid = dict_of_ask_bid_lists[PAIRS[i]][4].copy()
-                moving_average_bid[-1] = sum(moving_average_bid[-MOVING_AVERAGE_LENGTH:]) / MOVING_AVERAGE_LENGTH
+                moving_average_bid = (sum(dict_of_ask_bid_lists[PAIRS[i]][8]) + dict_of_ask_bid_lists[PAIRS[i]][4][-1])\
+                                     / (len(dict_of_ask_bid_lists[PAIRS[i]][8]) + 1)
+                dict_of_ask_bid_lists[PAIRS[i]][8].append(moving_average_bid)
                 list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
-                                                  moving_average_bid)
-            # before we can
+                                                  dict_of_ask_bid_lists[PAIRS[i]][8])
+
             else:
+                moving_average_ask = (sum(dict_of_ask_bid_lists[PAIRS[i]][7][-MOVING_AVERAGE_LENGTH:]) +
+                                      dict_of_ask_bid_lists[PAIRS[i]][3][-1]) / (MOVING_AVERAGE_LENGTH+1)
+                dict_of_ask_bid_lists[PAIRS[i]][7].append(moving_average_ask)
                 list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
-                                                  dict_of_ask_bid_lists[PAIRS[i]][3])
+                                                  dict_of_ask_bid_lists[PAIRS[i]][7])
+
+                moving_average_bid = (sum(dict_of_ask_bid_lists[PAIRS[i]][8][-MOVING_AVERAGE_LENGTH:]) +
+                                      dict_of_ask_bid_lists[PAIRS[i]][4][-1]) / (MOVING_AVERAGE_LENGTH+1)
+                dict_of_ask_bid_lists[PAIRS[i]][8].append(moving_average_bid)
                 list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
-                                                  dict_of_ask_bid_lists[PAIRS[i]][4])
+                                                  dict_of_ask_bid_lists[PAIRS[i]][8])
 
             current_trend = check_trend(PAIRS[i], number)
             axs[0][i].set_title(TITLE_TEMPLATE.format(PAIRS[i], current_trend[0], current_trend[1], current_trend[2],
@@ -288,7 +299,7 @@ if __name__ == "__main__":
     URLS = list()
     for p in range(len(PAIRS)):
         URLS.append(URL.format(PAIRS[p]))
-    MOVING_AVERAGE_LENGTH = 5
+    MOVING_AVERAGE_LENGTH = 10
 
     VOLUME_URL = "https://api.bittrex.com/v3/markets/{}/trades"
     VOLUME_URLS = list()
@@ -304,8 +315,8 @@ if __name__ == "__main__":
 
     dict_of_ask_bid_lists = dict()
     for p in PAIRS:
-        # time, ask, bid, ask_avg, bid_avg, volume, rsi
-        dict_of_ask_bid_lists[p] = [list(), list(), list(), list(), list(), list(), list()]
+        # time, ask, bid, ask_avg, bid_avg, volume, rsi, moving_avg_ask, moving_avg_bid
+        dict_of_ask_bid_lists[p] = [list(), list(), list(), list(), list(), list(), list(), list(), list()]
 
     dict_of_changes = dict()
     for p in PAIRS:
@@ -313,3 +324,5 @@ if __name__ == "__main__":
         dict_of_changes[p] = [list(), list()]
 
     show_multiple_pairs()
+
+# okno przesuwne po best ask/bid po czasie
