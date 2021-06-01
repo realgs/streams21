@@ -1,26 +1,15 @@
 import requests
 import itertools
 import warnings
+import json
 import numpy as np
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.dates import ConciseDateFormatter, AutoDateLocator
-from matplotlib.widgets import Slider  # , TextBox
+from matplotlib.widgets import Slider, TextBox, Button
 
 warnings.filterwarnings("ignore")
-
-
-def _max(L):
-    if not L:
-        return 0
-    return max(L)
-
-
-def _min(L):
-    if not L:
-        return 0
-    return min(L)
 
 
 def get_bitbay_data(category, crypto_currency, main_currency):
@@ -44,6 +33,7 @@ def dynamic_plotting(interval):
 
     counter = itertools.count()
     N = len(CRYPTO_CURRENCIES)
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
     ASSET_SCAN_LIMIT = 5
     TREND_SCAN_LIMIT = 5
@@ -70,10 +60,37 @@ def dynamic_plotting(interval):
     transactions = [[] for _ in range(N)]
     user_buy_history = [[] for _ in range(N)]
     user_buy_history_avg = [[] for _ in range(N)]
-    user_sell_history = [[] for _ in range(N)]
     crypto_amount = [0 for _ in range(N)]
+    buyings = [[] for _ in range(N)]
+    sells = [[] for _ in range(N)]
 
-    BALANCE = [0]
+    BALANCE = [100_000, MAIN_CURRENCY]
+
+    load_wallet_data = input('\
+Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
+    if load_wallet_data.lower() == 'y':
+        file_path = input('Please enter relative file path\n>> ')
+
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+            date = list(map(lambda x: datetime.strptime(x, DATE_FORMAT),
+                            data['date']))
+            BALANCE = data['BALANCE']
+            bids = data['bids']
+            asks = data['asks']
+            avg_bids = data['avg_bids']
+            avg_asks = data['avg_asks']
+            volumes = data['volumes']
+            volume_chunks = data['volume_chunks']
+            RSI_values = data['RSI_values']
+            bid_gains = data['bid_gains']
+            bid_losses = data['bid_losses']
+            curr_trend_marks = data['curr_trend_marks']
+            hot_plot_marks = data['hot_plot_marks']
+            transactions = data['transactions']
+            user_buy_history = data['user_buy_history']
+            user_buy_history_avg = data['user_buy_history_avg']
+            crypto_amount = data['crypto_amount']
 
     fig = plt.figure(figsize=(15, 10), num='Please hire me',
                      constrained_layout=True)
@@ -87,33 +104,28 @@ def dynamic_plotting(interval):
                       valmin=1, valmax=2, valstep=1, valinit=1,
                       initcolor='none')
 
-    # def submit(text):
-    #     y = float(text)
-    #     main_axes[0].scatter(date[-1], y, color='green')
-
-    # ax_input = plt.axes([0.01, 0.8, 0.05, 0.05])
-    # text_box = TextBox(ax_input, 'no\nkup\ncos')
-    # text_box.on_submit(submit)
-
-    fig.text(x=0.025, y=0.88, s='My wallet', fontweight='semibold')
+    fig.text(x=0.025, y=0.865, s='My wallet', fontweight='semibold')
     crypto_amount_txt = []
     for i, currency in enumerate(CRYPTO_CURRENCIES):
-        fig.text(x=0.01, y=0.85-(i/50), s=f'{currency}:')
+        curr_text = fig.text(x=0.01, y=0.835-(i/50), s=f'{currency}: ')
+        curr_amount_text = fig.text(x=0.01+(len(curr_text.get_text()))*0.004,
+                                    y=0.835-(i/50),
+                                    s=crypto_amount[i])
 
-        crypto_amount_txt.append(fig.text(x=0.045, y=0.85-(i/50),
-                                          s=crypto_amount[i]))
+        crypto_amount_txt.append(curr_amount_text)
 
-    fig.text(x=0.01, y=0.85-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
+    fig.text(x=0.01, y=0.835-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
              s='Balance:')
     BALANCE_TXT = fig.text(x=0.045,
-                           y=0.85-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
-                           s=f'{str(BALANCE[0])} {BALANCE[1]}')
+                           y=0.835-((1/50)*(len(CRYPTO_CURRENCIES)+0.25)),
+                           s=f'{BALANCE[0]:,.2f} {BALANCE[1]}')
 
     currency_textbox_ax = plt.axes([0.04, 0.65, 0.033, 0.025])
     currency_amount_textbox_ax = plt.axes([0.04, 0.62, 0.033, 0.025])
     price_textbox_ax = plt.axes([0.04, 0.59, 0.033, 0.025])
     buy_button_ax = plt.axes([0.02, 0.55, 0.033, 0.025])
     sell_button_ax = plt.axes([0.06, 0.55, 0.033, 0.025])
+    save_button_ax = plt.axes([0.005, 0.975, 0.025, 0.02])
 
     main_axes = []
     volume_axes = []
@@ -157,7 +169,6 @@ def dynamic_plotting(interval):
         axes_volatile_marks.append(volatile_mark)
         axes_liquid_marks.append(liquid_mark)
 
-
     OPERATION_CURRENCY_TEXTBOX = TextBox(currency_textbox_ax, 'Currency: ')
     OPERATION_AMOUNT_TEXTBOX = TextBox(currency_amount_textbox_ax, 'Amount: ')
     OPERATION_PRICE_TEXTBOX = TextBox(price_textbox_ax, 'Price: ')
@@ -165,8 +176,9 @@ def dynamic_plotting(interval):
                         hovercolor='limegreen')
     SELL_BUTTON = Button(sell_button_ax, label='SELL', color='red',
                          hovercolor='indianred')
+    SAVE_BUTTON = Button(save_button_ax, label='SAVE')
 
-    def buy_on_click(event):
+    def buy_on_click(_):
         operation_data = [OPERATION_CURRENCY_TEXTBOX.text,
                           OPERATION_AMOUNT_TEXTBOX.text,
                           OPERATION_PRICE_TEXTBOX.text]
@@ -174,12 +186,20 @@ def dynamic_plotting(interval):
                                    operation_data))
 
         currency, amount, price = space_free_data
+        amount, price = map(float, (amount, price))
+        currency_index = CRYPTO_CURRENCIES.index(currency.upper())
 
-        print(f'>{currency}<',
-              f'>{amount}<',
-              f'>{price}<')
+        user_buy_history[currency_index].append(price)
+        crypto_amount[currency_index] += amount
+        BALANCE[0] -= amount * price
+        buyings[currency_index].append((amount, price))
 
-    def sell_on_click(event):
+        main_axes[currency_index].text(date[-1], price, str(amount),
+                                       fontsize='x-small', ha='right',
+                                       va='baseline')
+        main_axes[currency_index].scatter(date[-1], price, color='lime')
+
+    def sell_on_click(_):
         operation_data = [OPERATION_CURRENCY_TEXTBOX.text,
                           OPERATION_AMOUNT_TEXTBOX.text,
                           OPERATION_PRICE_TEXTBOX.text]
@@ -187,19 +207,51 @@ def dynamic_plotting(interval):
                                    operation_data))
 
         currency, amount, price = space_free_data
+        amount, price = map(float, (amount, price))
+        currency_index = CRYPTO_CURRENCIES.index(currency.upper())
 
-        print(f'>{currency}<',
-              f'>{amount}<',
-              f'>{price}<')
+        crypto_amount[currency_index] -= amount
+        BALANCE[0] += amount * price
+        sells[currency_index].append((amount, price))
+
+        main_axes[currency_index].text(date[-1], price, str(amount),
+                                       fontsize='x-small', ha='right',
+                                       va='baseline')
+        main_axes[currency_index].scatter(date[-1], price, color='red')
+
+    def save_on_click(_):
+        data = {'date': list(map(str, date)),
+                'BALANCE': BALANCE,
+                'bids': bids,
+                'asks': asks,
+                'avg_bids': avg_bids,
+                'avg_asks': avg_asks,
+                'volumes': volumes,
+                'volume_chunks': volume_chunks,
+                'RSI_values': RSI_values,
+                'bid_gains': bid_gains,
+                'bid_losses': bid_losses,
+                'curr_trend_marks': curr_trend_marks,
+                'hot_plot_marks': hot_plot_marks,
+                'transactions': transactions,
+                'user_buy_history': user_buy_history,
+                'user_buy_history_avg': user_buy_history_avg,
+                'crypto_amount': crypto_amount}
+
+        with open('data.json', 'w') as f:
+            json.dump(data, f, indent=4)
+
+        print('Saving the data...')
 
     BUY_BUTTON.on_clicked(func=buy_on_click)
     SELL_BUTTON.on_clicked(func=sell_on_click)
+    SAVE_BUTTON.on_clicked(func=save_on_click)
 
     def _update(frame):
         next_frame = next(counter)
-        BALANCE[0] += next_frame
 
-        date.append(datetime.now() + timedelta(days=next_frame))
+        # date.append(datetime.now() + timedelta(days=next_frame))
+        date.append(datetime.now())
 
         if len(date) <= 50:
             Y_slider.valmax = len(date)
@@ -235,8 +287,11 @@ def dynamic_plotting(interval):
                 avg_asks[i].append(sum(asks[i])/len(asks[i]))
 
             if user_buy_history[i]:
-                user_buy_avg = sum(user_buy_history)/len(user_buy_history)
+                usr_bh = user_buy_history[i]
+                user_buy_avg = sum(usr_bh)/len(usr_bh)
                 user_buy_history_avg[i].append(user_buy_avg)
+            else:
+                user_buy_history_avg[i].append(np.mean(bids[i]+asks[i]))
 
         for i, ax in enumerate(volume_axes):
             if len(volumes[i]) < VOLUME_CHUNK_SIZE:
@@ -290,6 +345,13 @@ def dynamic_plotting(interval):
             RS = a / b
             RSI = 100 - (100 / (1+RS))
 
+            try:
+                _ = iter(RSI)
+            except Exception:
+                print('iter found')
+            else:
+                RSI = RSI[0]
+
             nan_msg = None
             a_is_nan = np.isnan(a)
             b_is_nan = np.isnan(b)
@@ -316,7 +378,7 @@ def dynamic_plotting(interval):
             if transactions[i]:
                 lines[5].set_data(date, transactions[i])
             if user_buy_history[i]:
-                lines[5].set_data(date, user_buy_history[i])
+                lines[6].set_data(date, user_buy_history_avg[i])
 
         for i, values in enumerate(RSI_values):
             if len(values) > TREND_SCAN_LIMIT:
@@ -396,7 +458,7 @@ def dynamic_plotting(interval):
         for i in range(N):
             crypto_amount_txt[i].set_text(crypto_amount[i])
 
-        BALANCE_TXT.set_text(f'{str(BALANCE[0])} {BALANCE[1]}')
+        BALANCE_TXT.set_text(f'{BALANCE[0]:,.2f} {BALANCE[1]}')
 
         for i, (ax, crypto_currency) in enumerate(zip(main_axes,
                                                       CRYPTO_CURRENCIES)):
@@ -446,13 +508,13 @@ def dynamic_plotting(interval):
     mng = plt.get_current_fig_manager()
     mng.resize(1920, 1080)
 
-    _ = FuncAnimation(fig, _update, interval=interval)
+    _ = FuncAnimation(fig, _update, interval=interval, cache_frame_data=False)
     plt.show()
 
 
 if __name__ == '__main__':
     MAIN_CURRENCY = 'PLN'
     CRYPTO_CURRENCIES = ['BTC', 'LTC', 'DASH']
-    INTERVAL_SEC = 1
+    INTERVAL_SEC = 3
 
     dynamic_plotting(INTERVAL_SEC*1000)
