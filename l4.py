@@ -4,6 +4,7 @@ import numpy as np
 from sys import exit
 from datetime import datetime, timedelta
 
+
 def link(currency_type, type): #sklejone wszystkie url
     if type == 'ticker':
         return f'https://bitbay.net/API/Public/{currency_type}/ticker.json'

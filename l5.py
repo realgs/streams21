@@ -1,8 +1,10 @@
 import requests
 import matplotlib.pyplot as plt
-import numpy as np
+from matplotlib.offsetbox import AnchoredText
 from sys import exit
 from datetime import datetime, timedelta
+from matplotlib.ticker import MaxNLocator
+
 
 def link(currency_type, type):
     if type == 'ticker':
@@ -24,6 +26,9 @@ def get_data(currency_type):
 
     return bid, ask
 
+def get_time(current_time):
+    current_time.append(datetime.now())
+    return current_time
 
 def get_volumen(currency_type):
     fromtime = int((datetime.now() - timedelta(seconds=60)).timestamp()) * 1000
@@ -38,10 +43,9 @@ def list_average(list_, elements_a):
     for i in range(len(list_)-1, 0, -3):
         clean.append(list_[i])
     data = clean[-elements_a:]
-    a = len(data)
     if len(data) == 0:
         return None
-    return sum(data) / a
+    return sum(data) / len(data)
 
 def RSI_value(list_, elements_r):
     clean = []
@@ -73,52 +77,65 @@ def RSI_value(list_, elements_r):
 def draw_axes():
     fig, axs = plt.subplots(3, 3, figsize=(12, 5), constrained_layout=True)
     for i, currency_type in enumerate(CURRENCIES):
-        plt.suptitle('Cryptocurrencies traiding',fontsize=24)
+        plt.suptitle('Cryptocurrencies trading',fontsize=24)
+        locator = MaxNLocator(nbins = 3)
         axs[0][i].set_title(currency_type)
         axs[0][i].set_xlabel('Time')
         axs[0][i].set_ylabel('Value')
+
         axs[1][i].set_title('Volume')
         axs[1][i].set_xlabel('Time')
         axs[1][i].set_ylabel('Value')
+
         axs[2][i].set_title('RSI')
         axs[2][i].set_xlabel('Time')
         axs[2][i].set_ylabel('Value')
+    
+        axs[0][i].xaxis.set_major_locator(locator)
+        axs[1][i].xaxis.set_major_locator(locator)
+        axs[2][i].xaxis.set_major_locator(locator)
     return fig, axs
 
 
-def check_trend(list):
-    avg = list_average(list, len(list))
-    trend = list[-1]
-    if avg > trend:
-        return 'Upward trend'
-    elif avg < trend:
-        return 'Downward trend'
+def check_trend(rsi):
+    if rsi >= 70:
+        return 'Trend: U'
+    if rsi <= 30:
+        return 'Trend: D'
     else:
-        return 'Sideways trend'
+        return 'Trend: S'
 
-def check_voltaile(buy_list, X, Y):
-    if len(buy_list) < Y:
-        return '---'
-    y_samples = buy_list[-Y:]
+def check_voltaile(buy_list, X, Y, n):
+    data = []
+    data.append(buy_list[i] for i in range(len(buy_list)-(3-n), 0, 3))
+    if len(data) < Y:
+        return ''
+    y_samples = data[-Y:]
     oscilation = ((max(y_samples) - min(y_samples))/max(y_samples)) * 100
     if oscilation > X:
         return 'Volatile asset'
     else:
-        return '---'
+        return ''
 
 
-def check_liquid(buy_list, sell_list, S):
-    difference = ((buy_list[-1] - sell_list[-1])/buy_list[-1]) * 100
+def check_liquid(buy_list, sell_list, S, n):
+    data_b, data_s = [], []
+    for i in range(n, len(buy_list), 3):
+        data_b.append(buy_list[i])
+    for i in range(n, len(sell_list), 3):
+        data_s.append(sell_list[i] )
+    difference = ((data_b[-1] - data_s[-1])/data_s[-1]) * 100
     if difference < S:
         return 'Liquid asset'
     else:
-        return '---'
+        return ''
 
 def draw_plot(time_interval):
 
     fig, axs = draw_axes()
-    buy, sell, volume, buy_list, sell_list, avg_buy_list, avg_sell_list, rsi_buy_list, rsi_sell_list = [], [], [], [], [], [], [], [], []
+    buy, sell, volume, buy_list, sell_list, avg_buy_list, avg_sell_list, rsi_buy_list, rsi_sell_list, text = [], [], [], [], [], [], [], [], [], []
     i = 0
+    current_time = []
     while True:
         for a, currency_type in enumerate(CURRENCIES):
 
@@ -139,10 +156,14 @@ def draw_plot(time_interval):
             avg_sell_list.append(sell_avg)
             rsi_buy_list.append(RSI_value(buy_list, elements_r))
             rsi_sell_list.append(RSI_value(sell_list, elements_r))
+            
+            text.append(check_trend(RSI_value(buy_list, elements_r)))
 
+            
 
             if len(buy) and len(sell) and len(rsi_buy_list) and len(rsi_sell_list) >= 4:
-        
+                
+                # time = [time_list[-2].strftime("%H:%M:%S:"), time_list[-1].strftime("%H:%M:%S:")]
                 x = [(i - 1) * time_interval, i * time_interval]
                 selling_cost = [sell[-4], sell[-1]]
                 purchase_cost = [buy[-4], buy[-1]]
@@ -160,15 +181,42 @@ def draw_plot(time_interval):
 
                 axs[1][a].bar(x, volume_value, label='Volume ', color='purple')
                 axs[1][a].set_xticks([])
+                axs[1][a].set(facecolor = 'white')
+
+                at = AnchoredText(text[-1], loc='lower left', prop=dict(size=8), frameon=True, bbox_to_anchor=(0., 1.), bbox_transform=axs[1][a].transAxes)
+                at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+                axs[1][a].add_artist(at)
 
                 axs[2][a].plot(x, RSI_buy_value, label='RSI buy', color='lightgreen' )
                 axs[2][a].plot(x, RSI_sell_value, label='RSI sell', color='darkgreen')
 
+                time_list = get_time(current_time)
                 if len(buy) and len(sell) and len(rsi_buy_list) and len(rsi_sell_list) == 6:
                     axs[0][2].legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
                     axs[1][2].legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
                     axs[2][2].legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+
+
+        if len(buy) and len(sell) and len(rsi_buy_list) and len(rsi_sell_list) >= 6:
+            candidate_v = volume[-3:]
+            candidate_t = text[-3:]
+
+            for z in range(3):
+                if candidate_t[z] == 'Trend: D':
+                    candidate_v[z] = 0
+
+            max_ = max(candidate_v)
+            n = candidate_v.index(max_)
+            axs[1][n].set(facecolor = '#ccffcc')
                 
+            v = check_voltaile(buy_list, X, Y, n)
+            l = check_liquid(buy_list, sell_list,  S, n)
+
+            at2 = AnchoredText(v + l, loc='lower left', prop=dict(size=8), frameon=True, bbox_to_anchor=(0., 1.25), bbox_transform=axs[1][n].transAxes)
+            at2.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+            axs[1][n].add_artist(at2)
+            
+
         i += 1
         plt.pause(time_interval)
 
@@ -190,6 +238,7 @@ def check_value(name):
 if __name__ == '__main__':
     SLEEPING_TIME = 5
     CURRENCIES = ['ETH-PLN', 'BTC-PLN', 'LTC-PLN']
+    # current_time = datetime.now.strftime("%H:%M:%S")
 
     # c = int(input("Wybierz walutę: 0 - ethereum, 1 - bitcoin, 2 - litecoin "))
     # check_value(c)
@@ -210,5 +259,9 @@ if __name__ == '__main__':
     elements_a_start = 10
     elements_a_stop = 15
     elements_r = 15
+
+    X = 5
+    Y = 5
+    S = 3
 
     draw_plot(SLEEPING_TIME)
