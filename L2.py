@@ -45,4 +45,3 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             print('User hit the interrupt key')
             sys.exit()
-
