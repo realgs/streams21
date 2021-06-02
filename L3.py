@@ -67,7 +67,7 @@ def draw_plot(list_currencies, time_interval):
 
 if __name__ == '__main__':
     try:
-        list_currencies = ['BTC', 'LTC', 'TRX']
+        list_currencies = ['BTC-PLN', 'LTC-PLN', 'TRX-PLN']
         time_interval = 5
         draw_plot(list_currencies, time_interval)
     except KeyboardInterrupt:
