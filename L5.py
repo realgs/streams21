@@ -5,9 +5,9 @@ from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
 
 CURRENCY = ["BTC-PLN", "ETH-PLN", "LTC-PLN"]
-N = 16#int(input('Podaj z ilu ostatnich probek liczyć średnią (max 20):'))
-START = 10#int(input('Podaj poczatek przedziału y do wiliczenia rsi (zakres 0,20):'))
-STOP = 15#int(input('Podaj koniec przedziału y do wiliczenia rsi (zakres 0,20):'))
+N = int(input('Podaj z ilu ostatnich probek liczyć średnią (max 20):'))
+START = int(input('Podaj poczatek przedziału y do wiliczenia rsi (zakres 0,20):'))
+STOP = int(input('Podaj koniec przedziału y do wiliczenia rsi (zakres 0,20):'))
 INTERVAL = 5000
 
 buys0, sells0 = [],[]
