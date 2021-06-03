@@ -151,8 +151,8 @@ def sellbuy(sells, buys):
         sa, sp = sa + s[0],sp + s[1]
     for b in buys:
         ba, bp = ba + b[0],bp + b[1]
-    sellprice = sp / sa
-    buyprice= bp / ba
+    sellprice = sp
+    buyprice= bp
     return (sellprice , buyprice)
 
 
@@ -176,7 +176,7 @@ def cryptostream_to_plot(crypto_set, currency, all_data):
     for crypto in crypto_set:
         response = requests.get(Apiurl + crypto + currency + "/orderbook.json", timeout=15)
         handle_exceptions(response)
-        v_list.append(get_volumen(crypto,currency))
+        v_list.append(get_volumen(crypto,currency) * 10)
         c_list.append([crypto,sellbuy(response.json()['asks'], response.json()['bids'])])
     Volstor.append(v_list)
     all_data.append(c_list)
