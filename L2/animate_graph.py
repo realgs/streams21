@@ -122,12 +122,15 @@ def animate(i):
     color = 'tab:pink'
 
     ax1v.set_ylim([min(vol1)-1/10*(max(vol1)-min(vol1)), (max(vol1)-min(vol1))*3 + min(vol1)])
+    ax1v.yaxis.tick_right()
     ax1v.fill_between(x, vol1, alpha=0.4)
 
     ax3v.set_ylim([min(vol2)-1/10*(max(vol2)-min(vol2)), (max(vol2)-min(vol2))*3 + min(vol2)])
+    ax3v.yaxis.tick_right()
     ax3v.fill_between(x, vol2, alpha=0.4)
 
     ax5v.set_ylim([min(vol3)-1/10*(max(vol3)-min(vol3)), (max(vol3)-min(vol3))*3 + min(vol3)])
+    ax5v.yaxis.tick_right()
     ax5v.fill_between(x, vol3, alpha=0.4)
 
 
