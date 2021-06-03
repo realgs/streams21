@@ -1,9 +1,10 @@
 import requests
-import itertools
+# import itertools
 import warnings
 import json
+import os
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime  # , timedelta
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.dates import ConciseDateFormatter, AutoDateLocator
@@ -28,10 +29,19 @@ def get_bitbay_data(category, crypto_currency, main_currency):
         print(e)
 
 
+def is_iterable(object):
+    try:
+        _ = iter(object)
+    except Exception:
+        return False
+    else:
+        return True
+
+
 def dynamic_plotting(interval):
     global MAIN_CURRENCY, CRYPTO_CURRENCIES
 
-    counter = itertools.count()
+    # counter = itertools.count()
     N = len(CRYPTO_CURRENCIES)
     DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
@@ -46,6 +56,7 @@ def dynamic_plotting(interval):
     DOWNTREND_MARK = '↘'
 
     date = []
+    buy_dates = [[] for _ in range(N)]
     bids = [[] for _ in range(N)]
     asks = [[] for _ in range(N)]
     avg_bids = [[] for _ in range(N)]
@@ -58,23 +69,31 @@ def dynamic_plotting(interval):
     curr_trend_marks = ['' for _ in range(N)]
     hot_plot_marks = ['' for _ in range(N)]
     transactions = [[] for _ in range(N)]
-    user_buy_history = [[] for _ in range(N)]
     user_buy_history_avg = [[] for _ in range(N)]
-    crypto_amount = [0 for _ in range(N)]
+    crypto_amount = [0.0 for _ in range(N)]
     buyings = [[] for _ in range(N)]
-    sells = [[] for _ in range(N)]
 
-    BALANCE = [100_000, MAIN_CURRENCY]
+    BALANCE = [1_000_000, MAIN_CURRENCY]
 
     load_wallet_data = input('\
 Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
-    if load_wallet_data.lower() == 'y':
-        file_path = input('Please enter relative file path\n>> ')
+    if 'y' in load_wallet_data.lower():
+        valid_files = ''
+        for file in os.listdir('.'):
+            if '.json' in file:
+                valid_files += f'\t-{file}\n'
+
+        file_path = input(f'''Please enter relative file path\n
+    Valid files in current directory:
+    {valid_files}
+>> ''')
 
         with open(file_path, 'r') as f:
             data = json.load(f)
             date = list(map(lambda x: datetime.strptime(x, DATE_FORMAT),
                             data['date']))
+            buy_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),
+                                  dates)) for dates in data['buy_dates']]
             BALANCE = data['BALANCE']
             bids = data['bids']
             asks = data['asks']
@@ -88,9 +107,13 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             curr_trend_marks = data['curr_trend_marks']
             hot_plot_marks = data['hot_plot_marks']
             transactions = data['transactions']
-            user_buy_history = data['user_buy_history']
             user_buy_history_avg = data['user_buy_history_avg']
             crypto_amount = data['crypto_amount']
+            buyings = data['buyings']
+
+        print(f'\nLoading data from {file_path}...')
+    else:
+        print('\nDrawing plot from scratch...')
 
     fig = plt.figure(figsize=(15, 10), num='Please hire me',
                      constrained_layout=True)
@@ -151,8 +174,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                                           label="transactions", color='green')
         RSI_line, = RSI_subaxes[i].plot_date(date, RSI_values[i], ':',
                                              label='RSI', color='lightgray')
-        avg_user_buy_line, = ax.plot_date(date, user_buy_history_avg[i], '--',
-                                          label='my buyings avg',
+        avg_user_buy_line, = ax.plot_date(buy_dates[i], user_buy_history_avg[i],  # noqa: E501
+                                          '--', label='my buyings avg',
                                           color='lime')
 
         ax_lines.append((bids_line, asks_line, avg_bid_line,
@@ -189,10 +212,9 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
         amount, price = map(float, (amount, price))
         currency_index = CRYPTO_CURRENCIES.index(currency.upper())
 
-        user_buy_history[currency_index].append(price)
         crypto_amount[currency_index] += amount
         BALANCE[0] -= amount * price
-        buyings[currency_index].append((amount, price))
+        buyings[currency_index].append([amount, price])
 
         main_axes[currency_index].text(date[-1], price, str(amount),
                                        fontsize='x-small', ha='right',
@@ -210,17 +232,40 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
         amount, price = map(float, (amount, price))
         currency_index = CRYPTO_CURRENCIES.index(currency.upper())
 
-        crypto_amount[currency_index] -= amount
-        BALANCE[0] += amount * price
-        sells[currency_index].append((amount, price))
+        price_sum = 0
+        amount_sum = 0
+        for _amount, _price in buyings[currency_index]:
+            amount_sum += _amount
+            price_sum += _price
 
-        main_axes[currency_index].text(date[-1], price, str(amount),
-                                       fontsize='x-small', ha='right',
-                                       va='baseline')
-        main_axes[currency_index].scatter(date[-1], price, color='red')
+        if amount > amount_sum:
+            print("\n\tYou're poor")
+        else:
+            operation_balance = 0
+            amount_to_sell = amount
+            while amount_to_sell > 0:
+                fb_amount, fb_price = buyings[currency_index][0]
+                if fb_amount <= amount_to_sell:
+                    amount_to_sell -= fb_amount
+                    operation_balance += fb_amount * (price-fb_price)
+                    del buyings[currency_index][0]
+                else:
+                    buyings[currency_index][0][0] -= amount_to_sell
+                    operation_balance += amount_to_sell * (price-fb_price)
+                    break
+
+            crypto_amount[currency_index] -= amount
+            # BALANCE[0] += amount * price
+            BALANCE[0] += operation_balance
+
+            main_axes[currency_index].text(date[-1], price, str(amount),
+                                           fontsize='x-small', ha='right',
+                                           va='baseline')
+            main_axes[currency_index].scatter(date[-1], price, color='red')
 
     def save_on_click(_):
         data = {'date': list(map(str, date)),
+                'buy_dates': [list(map(str, dates)) for dates in buy_dates],
                 'BALANCE': BALANCE,
                 'bids': bids,
                 'asks': asks,
@@ -234,9 +279,9 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                 'curr_trend_marks': curr_trend_marks,
                 'hot_plot_marks': hot_plot_marks,
                 'transactions': transactions,
-                'user_buy_history': user_buy_history,
                 'user_buy_history_avg': user_buy_history_avg,
-                'crypto_amount': crypto_amount}
+                'crypto_amount': crypto_amount,
+                'buyings': buyings}
 
         with open('data.json', 'w') as f:
             json.dump(data, f, indent=4)
@@ -248,10 +293,13 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
     SAVE_BUTTON.on_clicked(func=save_on_click)
 
     def _update(frame):
-        next_frame = next(counter)
+        # next_frame = next(counter)
 
-        # date.append(datetime.now() + timedelta(days=next_frame))
-        date.append(datetime.now())
+        curr_datetime = datetime.now()
+        date.append(curr_datetime)
+        for i in range(N):
+            if buyings[i]:
+                buy_dates[i].append(curr_datetime)
 
         if len(date) <= 50:
             Y_slider.valmax = len(date)
@@ -267,7 +315,7 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             _transactions = get_bitbay_data('transactions',
                                             CRYPTO_CURRENCIES[i],
                                             MAIN_CURRENCY)
-            last_transaction = float(_transactions['items'][-1]['r'])  # rate
+            last_transaction = float(_transactions['items'][-1]['r'])
             transactions[i].append(last_transaction)
 
         for i in range(N):
@@ -286,12 +334,17 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             else:
                 avg_asks[i].append(sum(asks[i])/len(asks[i]))
 
-            if user_buy_history[i]:
-                usr_bh = user_buy_history[i]
-                user_buy_avg = sum(usr_bh)/len(usr_bh)
+            if buyings[i]:
+                amount_sum = 0
+                price_sum = 0
+                for amount, price in buyings[i]:
+                    amount_sum += amount
+                    price_sum += price
+
+                user_buy_avg = price_sum / len(buyings[i])
                 user_buy_history_avg[i].append(user_buy_avg)
-            else:
-                user_buy_history_avg[i].append(np.mean(bids[i]+asks[i]))
+            # else:
+            #     user_buy_history_avg[i].append(np.mean(bids[i]+asks[i]))
 
         for i, ax in enumerate(volume_axes):
             if len(volumes[i]) < VOLUME_CHUNK_SIZE:
@@ -345,11 +398,7 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             RS = a / b
             RSI = 100 - (100 / (1+RS))
 
-            try:
-                _ = iter(RSI)
-            except Exception:
-                print('iter found')
-            else:
+            if is_iterable(RSI):
                 RSI = RSI[0]
 
             nan_msg = None
@@ -377,8 +426,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                 lines[4].set_data(date, RSI_values[i])
             if transactions[i]:
                 lines[5].set_data(date, transactions[i])
-            if user_buy_history[i]:
-                lines[6].set_data(date, user_buy_history_avg[i])
+            if buyings[i]:
+                lines[6].set_data(buy_dates[i], user_buy_history_avg[i])
 
         for i, values in enumerate(RSI_values):
             if len(values) > TREND_SCAN_LIMIT:
