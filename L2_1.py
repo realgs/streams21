@@ -3,6 +3,8 @@ from requests.exceptions import HTTPError
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import json
+from cost_functions import showSettings
 
 URL_START = 'http://bitbay.net/API/Public/'
 URL_END = 'USD/ticker.json'
@@ -20,11 +22,12 @@ S = 0.1
 X = 0.1
 Y = 3
 
+
 def volatile_asset():
     V_assert = ''
     if len(crypto_bid_BTC) > 3:
         for i in range(Y):
-            tablica =[]
+            tablica = []
             tablica.append(crypto_bid_BTC[-i])
         if max(tablica) - min(tablica) > crypto_bid_BTC[-1] * X:
             print('BTC jest volatile_asset')
@@ -54,15 +57,16 @@ def volatile_asset():
     return V_assert
     print('___________________________')
 
+
 def liquid_asset():
     L_assert = ''
-    if abs( crypto_bid_BTC[-1] - crypto_ask_BTC[-1] ) < ((crypto_bid_BTC[-1] + crypto_ask_BTC[-1])*S)/2:
+    if abs(crypto_bid_BTC[-1] - crypto_ask_BTC[-1]) < ((crypto_bid_BTC[-1] + crypto_ask_BTC[-1]) * S) / 2:
         # print('BTC jest liquid asset ')
         L_assert = 'BTC jest liquid asset '
-    if abs( crypto_bid_BAT[-1] - crypto_ask_BAT[-1] ) < ((crypto_bid_BAT[-1] + crypto_ask_BAT[-1])*S)/2:
+    if abs(crypto_bid_BAT[-1] - crypto_ask_BAT[-1]) < ((crypto_bid_BAT[-1] + crypto_ask_BAT[-1]) * S) / 2:
         # print('BAT jest liquid asset ')
         L_assert = 'BAT jest liquid asset '
-    if abs( crypto_bid_ZRX[-1] - crypto_ask_ZRX[-1] ) < ((crypto_bid_ZRX[-1] + crypto_ask_ZRX[-1])*S)/2:
+    if abs(crypto_bid_ZRX[-1] - crypto_ask_ZRX[-1]) < ((crypto_bid_ZRX[-1] + crypto_ask_ZRX[-1]) * S) / 2:
         # print('ZRX jest liquid asset ')
         L_assert = 'ZRX jest liquid asset '
     return L_assert
@@ -99,6 +103,7 @@ def choose_candidate():
     return candidate_Volume
     print('============================')
 
+
 def rsi_clasificator():
     if RSI_BTC == 0:
         print("Nastapi odwrócenie trendu na zwyżkowy dla BTC")
@@ -133,8 +138,8 @@ def rsi_clasificator():
     if RSI_ZRX[-1] == 100:
         print("Nastapi odwrócenie trendu na zniżkowy dla ZRX")
 
-
     print('============================')
+
 
 def value_rsi(bessa, hossa, buyArray, stepback):
     if len(buyArray) > stepback:
@@ -148,8 +153,9 @@ def value_rsi(bessa, hossa, buyArray, stepback):
     else:
         x = 1
         y = 1
-    RSI = 100 - (100 / (1 + (x/y)))
+    RSI = 100 - (100 / (1 + (x / y)))
     return RSI
+
 
 def volume_get(resource, currency, fromTime):
     try:
@@ -173,9 +179,10 @@ def volume_get(resource, currency, fromTime):
             volume = str(0.0)
         return volume
 
+
 def crypto_get(data, cryptovault, json):
     try:
-        response = requests.get( URL_START + data + URL_END)
+        response = requests.get(URL_START + data + URL_END)
         response.raise_for_status()
 
     except HTTPError as error_with_http:
@@ -184,6 +191,7 @@ def crypto_get(data, cryptovault, json):
     else:
         originalData = response.json()
         return originalData["bid"], originalData["ask"]
+
 
 def animate(i):
     bid_BTC, ask_BTC = crypto_get(f'BTC', 'PLN', 'ticker.json')
@@ -211,10 +219,23 @@ def animate(i):
     left = max(0, len(x_axis) - 5)
     right = (len(x_axis))
 
+    #CUSTOMER INFO
+
+    f = open("/repozytorium/database.txt", "r")
+    data = json.load(f)
+    TK_BTC_AV.append(data['average_BTC_json'])
+    TK_BAT_AV.append( data['average_BAT_json'])
+    TK_ZRX_AV.append( data['average_ZRX_json'])
+    saldo_btc = data['saldo_BTC_json']
+    saldo_bat = data['saldo_BAT_json']
+    saldo_zrx = data['saldo_ZRX_json']
+
+    f.close()
+
     with plt.style.context('seaborn'):
         plt.cla()
 
-        #Rsi section
+        # Rsi section
         RSI_BTC.append(value_rsi(bessa_BTC, hossa_BTC, crypto_bid_BTC, stepback))
         RSI_BAT.append(value_rsi(bessa_BAT, hossa_BAT, crypto_bid_BAT, stepback))
         RSI_ZRX.append(value_rsi(bessa_ZRX, hossa_ZRX, crypto_bid_ZRX, stepback))
@@ -265,8 +286,10 @@ def animate(i):
             plot1.plot(x_axis, crypto_bid_BTC, linewidth=1, label='Bids_BTC' if i == 0 else "", color='#e60000')
             plot1.plot(x_axis, avg_BTC_bid_window, linewidth=1.5, label='BTC bids AVR' if i == 0 else "",
                        color='#003300', linestyle='dotted')
+            plot1.plot(x_axis, TK_BTC_AV, color='#6600ff', linestyle='-.',
+                      linewidth=1.5, label='BTC AVR Customer' if i == 1 else "")
             plot1.set_xlim(left=left, right=right)
-            plot1.set_xlabel(f'{label1}', fontsize=15)
+            plot1.set_xlabel(f'{label1} / saldo wynosi:{saldo_btc}', fontsize=10, color='#3333ff')
             plot1.set_ylabel('PLN', fontsize=15)
             plot1.set_yscale('log')
             plot1.title.set_text('BTC bid / ask prices over time')
@@ -276,16 +299,20 @@ def animate(i):
             plot2.plot(x_axis, crypto_bid_BAT, linewidth=1, label='Bids_BAT' if i == 0 else "", color='#002e4d')
             plot2.plot(x_axis, avg_BAT_ask_window, linewidth=1.5, label='BAT asks AVR' if i == 0 else "",
                        color='#003300', linestyle='dotted')
+            plot2.plot(x_axis, TK_BAT_AV, color='#6600ff', linestyle='-.',
+                      linewidth=1.5, label='BAT AVR Customer' if i == 1 else "")
             plot2.set_xlim(left=left, right=right)
-            plot2.set_xlabel(f'{label2}', fontsize=15)
+            plot2.set_xlabel(f'{label2} / saldo wynosi:{saldo_bat}', fontsize=10, color='#3333ff')
             plot2.set_yscale('log')
             plot2.title.set_text('BAT bid / ask prices over time')
             plot2.legend()
 
             plot3.plot(x_axis, crypto_ask_ZRX, linewidth=1, label='Asks_ZRX' if i == 0 else "", color='#bfff00')
             plot3.plot(x_axis, crypto_bid_ZRX, linewidth=1, label='Bids_ZRX' if i == 0 else "", color='#00e600')
+            plot3.plot(x_axis, TK_ZRX_AV, color='#6600ff', linestyle='-.',
+                      linewidth=1.5, label='ZRX AVR Customer' if i == 1 else "")
             plot3.set_xlim(left=left, right=right)
-            plot3.set_xlabel(f'{label3}', fontsize=15)
+            plot3.set_xlabel(f'{label3} / saldo wynosi:{saldo_zrx}', fontsize=10, color='#3333ff')
             plot3.title.set_text('ZRX bid / ask prices over time')
             plot3.set_yscale('log')
             plot3.legend()
@@ -334,8 +361,10 @@ def animate(i):
             plot1.plot(x_axis, crypto_bid_BTC, linewidth=1, label='Bids_BTC' if i == 0 else "", color='#e60000')
             plot1.plot(x_axis, avg_BTC_bid_window, linewidth=1.5, label='BTC bids AVR' if i == 0 else "",
                        color='#003300', linestyle='dotted')
+            plot1.plot(x_axis, TK_BTC_AV , color='#6600ff', linestyle='-.',
+                      linewidth=1.5, label='BTC AVR Customer' if i == 1 else "")
             plot1.set_xlim(left=left, right=right)
-            plot1.set_xlabel(f'{label11}/ {label12}', fontsize=15)
+            plot1.set_xlabel(f'{label11}/ {label12}/ saldo wynosi: {saldo_btc}', fontsize=10, color='#3333ff')
             plot1.set_ylabel('PLN', fontsize=15)
             plot1.set_yscale('log')
             plot1.title.set_text('BTC bid / ask prices over time')
@@ -345,16 +374,20 @@ def animate(i):
             plot2.plot(x_axis, crypto_bid_BAT, linewidth=1, label='Bids_BAT' if i == 0 else "", color='#002e4d')
             plot2.plot(x_axis, avg_BAT_ask_window, linewidth=1.5, label='BAT asks AVR' if i == 0 else "",
                        color='#003300', linestyle='dotted')
+            plot2.plot(x_axis, TK_BAT_AV, color='#6600ff', linestyle='-.',
+                      linewidth=1.5, label='BAT AVR Customer' if i == 1 else "")
             plot2.set_xlim(left=left, right=right)
-            plot2.set_xlabel(f'{label21}/ {label22}', fontsize=15)
+            plot2.set_xlabel(f'{label21}/ {label22}/ saldo wynosi: {saldo_bat}', fontsize=10, color='#3333ff')
             plot2.set_yscale('log')
             plot2.title.set_text('BAT bid / ask prices over time')
             plot2.legend()
 
             plot3.plot(x_axis, crypto_ask_ZRX, linewidth=1, label='Asks_ZRX' if i == 0 else "", color='#bfff00')
             plot3.plot(x_axis, crypto_bid_ZRX, linewidth=1, label='Bids_ZRX' if i == 0 else "", color='#00e600')
+            plot3.plot(x_axis, TK_ZRX_AV, color='#6600ff', linestyle='-.',
+                      linewidth=1.5, label='ZRX AVR Customer' if i == 1 else "")
             plot3.set_xlim(left=left, right=right)
-            plot3.set_xlabel(f'{label31}/ {label32}', fontsize=15)
+            plot3.set_xlabel(f'{label31}/ {label32}/ saldo wynosi: {saldo_zrx}', fontsize=10, color='#3333ff')
             plot3.set_yscale('log')
             plot3.title.set_text('ZRX bid / ask prices over time')
             plot3.legend()
@@ -374,11 +407,12 @@ def animate(i):
 
             rsi_clasificator()
 
-        plt.suptitle("Best bids and asks offers / Volumen / RSI")
+        plt.suptitle("Best bids and asks offers / Volumen / RSI", fontsize=20)
         # print('==== LIQUID ASSERCION ====')
         # liquid_asset()
         # print("==== VOLATILE ASSERCION ====")
         # volatile_asset()
+
 
 if __name__ == '__main__':
     x_axis = []
@@ -405,7 +439,14 @@ if __name__ == '__main__':
     hossa_ZRX = []
     RSI_ZRX = []
 
+    TK_BTC_AV =[]
+    TK_BAT_AV = []
+    TK_ZRX_AV = []
+    saldo_btc = []
+    saldo_bat = []
+    saldo_zrx = []
+
     fig, ((plot1, plot2, plot3), (plot4, plot5, plot6)) = plt.subplots(2, 3)
 
-    ani = FuncAnimation(plt.gcf(),animate , interval=5000)
+    ani = FuncAnimation(plt.gcf(), animate, interval=5000)
     plt.show()
