@@ -57,7 +57,8 @@ def dynamic_plotting(interval):
 
     date = []
     buy_dates = [[] for _ in range(N)]
-    # operation_dates = [[] for _ in range(N)]
+    sell_mark_dates = [[] for _ in range(N)]
+    buy_mark_dates = [[] for _ in range(N)]
     volume_chunks_dates = [[] for _ in range(N)]
     bids = [[] for _ in range(N)]
     asks = [[] for _ in range(N)]
@@ -75,6 +76,8 @@ def dynamic_plotting(interval):
     user_buy_history_avg = [[] for _ in range(N)]
     crypto_amount = [0.0 for _ in range(N)]
     buyings = [[] for _ in range(N)]
+    buy_mark_data = [[] for _ in range(N)]
+    sell_mark_data = [[] for _ in range(N)]
     currency_balance = [0.0 for _ in range(N)]
 
     BALANCE = [1_000_000, MAIN_CURRENCY]
@@ -98,8 +101,10 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                             data['date']))
             buy_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),
                                   dates)) for dates in data['buy_dates']]
-            # operation_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),  # noqa: E501
-            #                    dates)) for dates in data['operation_dates']]
+            sell_mark_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),  # noqa: E501
+                               dates)) for dates in data['sell_mark_dates']]
+            buy_mark_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),  # noqa: E501
+                              dates)) for dates in data['buy_mark_dates']]
             volume_chunks_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),  # noqa: E501
                                    dates)) for dates in data['volume_chunks_dates']]  # noqa: E501
             BALANCE = data['BALANCE']
@@ -119,6 +124,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             user_buy_history_avg = data['user_buy_history_avg']
             crypto_amount = data['crypto_amount']
             buyings = data['buyings']
+            buy_mark_data = data['buy_mark_data']
+            sell_mark_data = data['sell_mark_data']
             currency_balance = data['currency_balance']
 
         print(f'\nLoading data from {file_path}...')
@@ -170,6 +177,10 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
     for ax in main_axes:
         RSI_subaxes.append(ax.twinx())
 
+    for ax in RSI_subaxes:
+        ax.axhline(y=70, color='lightgray', linestyle='-', linewidth=0.4)
+        ax.axhline(y=30, color='lightgray', linestyle='-', linewidth=0.4)
+
     ax_lines = []
     for i, ax in enumerate(main_axes):
         bids_line, = ax.plot_date(date, bids[i], '-', label='bids',
@@ -189,17 +200,16 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                                           color='lime')
         volume_line, = volume_axes[i].plot_date(volume_chunks_dates[i],
                                                 volume_chunks_history[i], '-',
-                                                color='cornflowerblue')
+                                                color='DarkTurquoise')
+        buy_marks, = ax.plot_date(buy_mark_dates[i], [price for _, price in buy_mark_data[i]], 'o',  # noqa: E501
+                                  color='limegreen')
+        sell_marks, = ax.plot_date(sell_mark_dates[i], [price for _, price in sell_mark_data[i]], 'o',  # noqa: E501
+                                   color='red')
 
         ax_lines.append((bids_line, asks_line, avg_bid_line,
                          avg_ask_line, RSI_line, transactions_line,
-                         avg_user_buy_line, volume_line))
-
-    # if 'y' in load_wallet_data.lower():
-    #     for i in range(N):
-    #         for _date, val in zip(volume_chunks_dates[i],
-    #                               volume_chunks_history[i]):
-    #             volume_axes[i].bar(_date, val)
+                         avg_user_buy_line, volume_line, buy_marks,
+                         sell_marks))
 
     axes_volatile_marks = []
     axes_liquid_marks = []
@@ -240,15 +250,17 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
         currency, amount, price = space_free_data
         amount, price = map(float, (amount, price))
         currency_index = CRYPTO_CURRENCIES.index(currency.upper())
+        buy_date = datetime.now()
 
         crypto_amount[currency_index] += amount
         BALANCE[0] -= amount * price
         buyings[currency_index].append([amount, price])
+        buy_mark_data[currency_index].append((amount, price))
+        buy_mark_dates[currency_index].append(datetime.now())
 
-        main_axes[currency_index].text(date[-1], price, str(amount),
+        main_axes[currency_index].text(buy_date, price, str(amount),
                                        fontsize='x-small', ha='right',
                                        va='baseline')
-        main_axes[currency_index].scatter(date[-1], price, color='lime')
 
     def sell_on_click(_):
         operation_data = [OPERATION_CURRENCY_TEXTBOX.text,
@@ -260,6 +272,7 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
         currency, amount, price = space_free_data
         amount, price = map(float, (amount, price))
         currency_index = CRYPTO_CURRENCIES.index(currency.upper())
+        sell_date = datetime.now()
 
         price_sum = 0
         amount_sum = 0
@@ -286,16 +299,18 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             crypto_amount[currency_index] -= amount
             BALANCE[0] += amount * price
             currency_balance[currency_index] += operation_balance
+            sell_mark_data[currency_index].append((amount, price))
+            sell_mark_dates[currency_index].append(sell_date)
 
-            main_axes[currency_index].text(date[-1], price, str(amount),
+            main_axes[currency_index].text(sell_date, price, str(amount),
                                            fontsize='x-small', ha='right',
                                            va='baseline')
-            main_axes[currency_index].scatter(date[-1], price, color='red')
 
     def save_on_click(_):
         data = {'date': list(map(str, date)),
                 'buy_dates': [list(map(str, dates)) for dates in buy_dates],
-                # 'operation_dates': [list(map(str, dates)) for dates in operation_dates],  # noqa: E501
+                'sell_mark_dates': [list(map(str, dates)) for dates in sell_mark_dates],  # noqa: E501
+                'buy_mark_dates': [list(map(str, dates)) for dates in buy_mark_dates],  # noqa: E501
                 'volume_chunks_dates': [list(map(str, dates)) for dates in volume_chunks_dates],  # noqa: E501
                 'BALANCE': BALANCE,
                 'bids': bids,
@@ -314,6 +329,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                 'user_buy_history_avg': user_buy_history_avg,
                 'crypto_amount': crypto_amount,
                 'buyings': buyings,
+                'buy_mark_data': buy_mark_data,
+                'sell_mark_data': sell_mark_data,
                 'currency_balance': currency_balance}
 
         with open('data.json', 'w') as f:
@@ -450,6 +467,12 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             if volume_chunks_history[i]:
                 lines[7].set_data(volume_chunks_dates[i],
                                   volume_chunks_history[i])
+            if buy_mark_data[i]:
+                lines[8].set_data(buy_mark_dates[i],
+                                  [price for _, price in buy_mark_data[i]])
+            if sell_mark_data[i]:
+                lines[9].set_data(sell_mark_dates[i],
+                                  [price for _, price in sell_mark_data[i]])
 
         for i, values in enumerate(RSI_values):
             if len(values) > TREND_SCAN_LIMIT:
@@ -556,8 +579,6 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             ax.autoscale_view()
 
         for ax in RSI_subaxes:
-            ax.axhline(y=70, color='lightgray', linestyle='-', linewidth=0.4)
-            ax.axhline(y=30, color='lightgray', linestyle='-', linewidth=0.4)
             ax.set(ylabel='RSI')
             ax.relim()
             ax.set_ylim(0, 100)
