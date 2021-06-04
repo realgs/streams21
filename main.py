@@ -50,19 +50,22 @@ def dynamic_plotting(interval):
     RSI_DEFAULT_LIMIT = 10
     VOLATILE_BOUND = 0.05
     LIQUID_BOUND = 0.05
-    VOLUME_CHUNK_SIZE = 10
+    VOLUME_CHUNK_SIZE = 2
     HOT_PLOT_MARK = '⚑'
     UPTREND_MARK = '↗'
     DOWNTREND_MARK = '↘'
 
     date = []
     buy_dates = [[] for _ in range(N)]
+    # operation_dates = [[] for _ in range(N)]
+    volume_chunks_dates = [[] for _ in range(N)]
     bids = [[] for _ in range(N)]
     asks = [[] for _ in range(N)]
     avg_bids = [[] for _ in range(N)]
     avg_asks = [[] for _ in range(N)]
     volumes = [[] for _ in range(N)]
     volume_chunks = [[] for _ in range(N)]
+    volume_chunks_history = [[] for _ in range(N)]
     RSI_values = [[] for _ in range(N)]
     bid_gains = [[] for _ in range(N)]
     bid_losses = [[] for _ in range(N)]
@@ -72,6 +75,7 @@ def dynamic_plotting(interval):
     user_buy_history_avg = [[] for _ in range(N)]
     crypto_amount = [0.0 for _ in range(N)]
     buyings = [[] for _ in range(N)]
+    currency_balance = [0.0 for _ in range(N)]
 
     BALANCE = [1_000_000, MAIN_CURRENCY]
 
@@ -94,6 +98,10 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                             data['date']))
             buy_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),
                                   dates)) for dates in data['buy_dates']]
+            # operation_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),  # noqa: E501
+            #                    dates)) for dates in data['operation_dates']]
+            volume_chunks_dates = [list(map(lambda x: datetime.strptime(x, DATE_FORMAT),  # noqa: E501
+                                   dates)) for dates in data['volume_chunks_dates']]  # noqa: E501
             BALANCE = data['BALANCE']
             bids = data['bids']
             asks = data['asks']
@@ -101,6 +109,7 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             avg_asks = data['avg_asks']
             volumes = data['volumes']
             volume_chunks = data['volume_chunks']
+            volume_chunks_history = data['volume_chunks_history']
             RSI_values = data['RSI_values']
             bid_gains = data['bid_gains']
             bid_losses = data['bid_losses']
@@ -110,6 +119,7 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             user_buy_history_avg = data['user_buy_history_avg']
             crypto_amount = data['crypto_amount']
             buyings = data['buyings']
+            currency_balance = data['currency_balance']
 
         print(f'\nLoading data from {file_path}...')
     else:
@@ -177,20 +187,39 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
         avg_user_buy_line, = ax.plot_date(buy_dates[i], user_buy_history_avg[i],  # noqa: E501
                                           '--', label='my buyings avg',
                                           color='lime')
+        volume_line, = volume_axes[i].plot_date(volume_chunks_dates[i],
+                                                volume_chunks_history[i], '-',
+                                                color='cornflowerblue')
 
         ax_lines.append((bids_line, asks_line, avg_bid_line,
                          avg_ask_line, RSI_line, transactions_line,
-                         avg_user_buy_line))
+                         avg_user_buy_line, volume_line))
+
+    # if 'y' in load_wallet_data.lower():
+    #     for i in range(N):
+    #         for _date, val in zip(volume_chunks_dates[i],
+    #                               volume_chunks_history[i]):
+    #             volume_axes[i].bar(_date, val)
 
     axes_volatile_marks = []
     axes_liquid_marks = []
+    curr_balance_txt = []
     for i in range(N):
         volatile_mark = main_axes[i].text(1.1, 0.1, '',
                                           transform=main_axes[i].transAxes)
         liquid_mark = main_axes[i].text(1.1, 0.0, '',
                                         transform=main_axes[i].transAxes)
+        if currency_balance[i] >= 0:
+            _balance_prefix = 'Profit'
+        else:
+            _balance_prefix = 'Loss'
+
+        _curr_balance_txt = main_axes[i].text(1.1, -0.2, f'{_balance_prefix}: {currency_balance[i]:,.2f} {MAIN_CURRENCY}',  # noqa: E501
+                                              transform=main_axes[i].transAxes)
+
         axes_volatile_marks.append(volatile_mark)
         axes_liquid_marks.append(liquid_mark)
+        curr_balance_txt.append(_curr_balance_txt)
 
     OPERATION_CURRENCY_TEXTBOX = TextBox(currency_textbox_ax, 'Currency: ')
     OPERATION_AMOUNT_TEXTBOX = TextBox(currency_amount_textbox_ax, 'Amount: ')
@@ -255,8 +284,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                     break
 
             crypto_amount[currency_index] -= amount
-            # BALANCE[0] += amount * price
-            BALANCE[0] += operation_balance
+            BALANCE[0] += amount * price
+            currency_balance[currency_index] += operation_balance
 
             main_axes[currency_index].text(date[-1], price, str(amount),
                                            fontsize='x-small', ha='right',
@@ -266,6 +295,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
     def save_on_click(_):
         data = {'date': list(map(str, date)),
                 'buy_dates': [list(map(str, dates)) for dates in buy_dates],
+                # 'operation_dates': [list(map(str, dates)) for dates in operation_dates],  # noqa: E501
+                'volume_chunks_dates': [list(map(str, dates)) for dates in volume_chunks_dates],  # noqa: E501
                 'BALANCE': BALANCE,
                 'bids': bids,
                 'asks': asks,
@@ -273,6 +304,7 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                 'avg_asks': avg_asks,
                 'volumes': volumes,
                 'volume_chunks': volume_chunks,
+                'volume_chunks_history': volume_chunks_history,
                 'RSI_values': RSI_values,
                 'bid_gains': bid_gains,
                 'bid_losses': bid_losses,
@@ -281,7 +313,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                 'transactions': transactions,
                 'user_buy_history_avg': user_buy_history_avg,
                 'crypto_amount': crypto_amount,
-                'buyings': buyings}
+                'buyings': buyings,
+                'currency_balance': currency_balance}
 
         with open('data.json', 'w') as f:
             json.dump(data, f, indent=4)
@@ -343,8 +376,6 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
 
                 user_buy_avg = price_sum / len(buyings[i])
                 user_buy_history_avg[i].append(user_buy_avg)
-            # else:
-            #     user_buy_history_avg[i].append(np.mean(bids[i]+asks[i]))
 
         for i, ax in enumerate(volume_axes):
             if len(volumes[i]) < VOLUME_CHUNK_SIZE:
@@ -353,20 +384,8 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             if len(volumes[i]) >= VOLUME_CHUNK_SIZE:
                 volume_chunk_val = sum(volumes[i])
                 volume_chunks[i].append(volume_chunk_val)
-                ax.bar(date[-1], volume_chunk_val, align='center',
-                       width=0.95*VOLUME_CHUNK_SIZE, color='powderblue')
-                ax_max_y = max(volume_chunks[i])
-                ratio = volume_chunk_val / ax_max_y
-                too_small_bar = True if ratio < 0.3 else False
-
-                if too_small_bar:
-                    ax.text(date[-1], volume_chunk_val,
-                            round(volume_chunk_val, 2), ha='center',
-                            va='baseline', fontsize='x-small')
-                else:
-                    ax.text(date[-1], volume_chunk_val/2,
-                            round(volume_chunk_val, 2), ha='center',
-                            va='center', fontsize='x-small')
+                volume_chunks_history[i].append(volume_chunk_val)
+                volume_chunks_dates[i].append(date[-1])
 
             if len(volumes[i]) == VOLUME_CHUNK_SIZE:
                 volumes[i] = []
@@ -428,6 +447,9 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
                 lines[5].set_data(date, transactions[i])
             if buyings[i]:
                 lines[6].set_data(buy_dates[i], user_buy_history_avg[i])
+            if volume_chunks_history[i]:
+                lines[7].set_data(volume_chunks_dates[i],
+                                  volume_chunks_history[i])
 
         for i, values in enumerate(RSI_values):
             if len(values) > TREND_SCAN_LIMIT:
@@ -506,6 +528,12 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
 
         for i in range(N):
             crypto_amount_txt[i].set_text(crypto_amount[i])
+            if currency_balance[i] >= 0:
+                _balance_prefix = 'Profit'
+            else:
+                _balance_prefix = 'Loss'
+
+            curr_balance_txt[i].set_text(f'{_balance_prefix}: {currency_balance[i]:,.2f} {MAIN_CURRENCY}')  # noqa: E501
 
         BALANCE_TXT.set_text(f'{BALANCE[0]:,.2f} {BALANCE[1]}')
 
@@ -541,10 +569,10 @@ Do you want to load your wallet data from JSON file? [Y/n]\n>> ')
             ylocator = plt.LinearLocator(numticks=3)
             formatter = ConciseDateFormatter(xlocator)
             ax.yaxis.set_major_locator(ylocator)
-            ax.set_yticklabels([])
             ax.xaxis.set_major_locator(xlocator)
             ax.xaxis.set_major_formatter(formatter)
             ax.xaxis.set_visible(False)
+            ax.tick_params(axis='y', which='major', labelsize=8)
             ax.relim()
             ax.autoscale_view()
 
