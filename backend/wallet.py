@@ -24,7 +24,7 @@ current_volume = {
     'BTCPLN': {'quantity': 0}
 }
 balance = {
-    'balance': 0
+    'balance': 500000
 }
 
 class Wallet:
@@ -77,6 +77,7 @@ class Wallet:
         filename = request.args.get('file')
         with open(filename, 'r') as f:
             to_dict = json.load(f)
+            f.close()
 
         buy_transactions = to_dict[0]
         sell_transactions = to_dict[1]
