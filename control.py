@@ -10,13 +10,13 @@ if Answer == 'y':
 
 else:
     name = 'database.json'
-    data = {'Rec':{},'Avr': {},'Bil': {}}
+    data = {'Rec': {}, 'Avr': {}, 'Bil': {}}
     for c in Cryptos:
         data['Rec'][c] = []
         data['Avr'][c] = None
         data['Bil'][c] = None
     with open(name, 'w') as f:
-        json.dump(data,f,indent=2)
+        json.dump(data, f, indent = 2)
 
 while True:
     with open(name) as f:
@@ -48,13 +48,13 @@ while True:
         bill = New_record[3] - bill
         if data['Bil'][New_record[0]] == None:
             data['Bil'][New_record[0]] = 0
-        data['Bil'][New_record[0]] += round(bill,2)
+        data['Bil'][New_record[0]] += round(bill, 2)
 
     if len(data['Rec'][New_record[0]]) > 0:
         am = len(data['Rec'][New_record[0]])
     else:
         am = 1
-    data['Avr'][New_record[0]] = round(sum(data['Rec'][New_record[0]]) / am,2)
+    data['Avr'][New_record[0]] = round(sum(data['Rec'][New_record[0]]) / am, 2)
     if data['Avr'][New_record[0]] == 0:
         data['Avr'][New_record[0]] = None
 
@@ -64,7 +64,4 @@ while True:
         print('Change in balance of', New_record[0], 'to', data['Bil'][New_record[0]], "zlotys.")
 
     with open(name, 'w') as f:
-        json.dump(data, f, indent=2)
-
-
-
+        json.dump(data, f, indent = 2)

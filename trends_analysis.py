@@ -22,23 +22,23 @@ S = 50
 Tranurl = "https://api.bitbay.net/rest/trading/transactions/"
 Apiurl = "https://bitbay.net/API/Public/"
 
-def spread(Y,S,All_data,C):
+def spread(Y, S, All_data, C):
     if Y > len(All_data):
         y = len(All_data)
     else:
         y = Y
     sbuy = float(0)
     ssell = float(0)
-    for i in range(-y,-1):
+    for i in range(-y, -1):
         ssell = ssell + float(All_data[i][C][1][0])
-        sbuy = sbuy +float(All_data[i][C][1][1])
-    spr = ((sbuy - ssell) / sbuy )* 100
+        sbuy = sbuy + float(All_data[i][C][1][1])
+    spr = ((sbuy - ssell) / sbuy ) * 100
     if spr < S:
         return True
     else:
         return False
 
-def transactions(Y,X,Crypto,Currency):
+def transactions(Y, X, Crypto, Currency):
     y = Y
     queryparams = {'limit': y}
     tran = requests.get(Tranurl + Crypto + '-' + Currency, params = queryparams)
@@ -76,7 +76,7 @@ def candidate():
                 v = i
     return v
 
-def get_volumen(Crypto,Currency):
+def get_volumen(Crypto, Currency):
     fromtime = datetime.now() - timedelta(minutes=0.5)
     fromtime = int(fromtime.timestamp()) * 100
     queryparams = {'fromTime': fromtime}
@@ -84,7 +84,7 @@ def get_volumen(Crypto,Currency):
     response = eval(response.text)
     return sum([float(response['items'][i]['a']) for i in range(len(response['items']))]) * 10
 
-def rsicount(All_data, store,size):
+def rsicount(All_data, store, size):
     nr = len(All_data[0])
     if len(All_data) >= size:
         shift = len(All_data) - size
@@ -112,7 +112,7 @@ def rsicount(All_data, store,size):
                 b = m / mc
                 if b == 0:
                     b = 1
-                rsi = 100 - 100/(1 + a / b)
+                rsi = 100 - 100 / (1 + a / b)
                 cry.append(rsi)
             reg.append(cry)
         store.append(reg)
@@ -133,9 +133,9 @@ def handlemean(All_data, winsize, Meanlist):
             cry = []
             for n in range(2):
                 sum = 0
-                for i in range(0 + shift,winsize + shift):
+                for i in range(0 + shift, winsize + shift):
                     sum = sum + All_data[i][c][1][n]
-                mean = sum/winsize
+                mean = sum / winsize
                 cry.append(mean)
             reg.append(cry)
         Meanlist.append(reg)
@@ -154,7 +154,7 @@ def sellbuy(sells, buys):
     for b in buys:
         ba, bp = ba + b[0],bp + b[1]
     sellprice = sp
-    buyprice= bp
+    buyprice = bp
     return (sellprice , buyprice)
 
 
@@ -190,7 +190,7 @@ def graph_gen(a):
     T.append(time.strftime("%H:%M:%S", time.localtime()))
     if len(T) > 8:
         T= T[-8:]
-    cryptostream_to_plot(Cryptos,Currency,All_data)
+    cryptostream_to_plot(Cryptos, Currency, All_data)
     handlemean(All_data, Mlwinwsize, Meanlist)
     rsicount(All_data, Rsistore, Rsisize)
     hv = candidate()
@@ -246,7 +246,7 @@ def graph_gen(a):
                         verticalalignment='bottom', horizontalalignment='right',
                         transform=ax.transAxes,
                         color='orange', size=12)
-            if transactions(Y,X,Cryptos[c],Currency):
+            if transactions(Y, X, Cryptos[c], Currency):
             #if True:
                 ax.text(0.8, 1.1, 'volatile asset',
                         verticalalignment='bottom', horizontalalignment='right',
@@ -260,8 +260,8 @@ def graph_gen(a):
         plt.xticks(rotation = 10, fontsize = 5 )
         plt.legend()
     for c in range(nr):
-        ax = plt.subplot(3,nr, c + 1 + nr)
-        plt.title("Volume",size = 6,loc = 'right')
+        ax = plt.subplot(3, nr, c + 1 + nr)
+        plt.title("Volume", size = 6, loc = 'right')
         yv = []
         for vset in Volstor:
             yv.append(vset[c])
@@ -276,7 +276,7 @@ def graph_gen(a):
                 ax.spines[side].set_linewidth(3)
     for c in range(nr):
         bil = db['Bil'][Cryptos[c]]
-        ax = plt.subplot(3,nr, c + 1 + 2 * nr)
+        ax = plt.subplot(3, nr, c + 1 + 2 * nr)
         plt.title("Rsi value",size = 6,loc = 'right')
         yrsis = []
         #yrsib = []
