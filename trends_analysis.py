@@ -3,7 +3,9 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
+import json
 
+Datafile = 'database.json'
 Interval = 5
 Cryptos = ["ETH","LTC","BTC"]
 Currency = "PLN"
@@ -182,6 +184,8 @@ def cryptostream_to_plot(crypto_set, currency, all_data):
     all_data.append(c_list)
 
 def graph_gen(a):
+    with open(Datafile) as f:
+        db = json.load(f)
     global T
     T.append(time.strftime("%H:%M:%S", time.localtime()))
     if len(T) > 8:
@@ -195,6 +199,7 @@ def graph_gen(a):
     plt.suptitle("Wykresy notowań kryptowalut")
     nr = len(All_data[0])
     for c in range(nr):
+        avr = db['Avr'][Cryptos[c]]
         ax = plt.subplot(3,nr, c+1)
         plt.title("Purchase / sale price",size = 6,loc = 'right')
         ys = []
@@ -216,8 +221,10 @@ def graph_gen(a):
             yas = yas[-8:]
         plt.plot(T,ys,"-o",label = All_data[0][c][0] + ": sell")
         plt.plot(T, yb, "-o", label=All_data[0][c][0] + ": buy")
-        plt.plot(T, yas, "o--", label=All_data[0][c][0] + ": sell avarage")
-        plt.plot(T, yab, "o--", label=All_data[0][c][0] + ": buy avarage")
+        plt.plot(T, yas, "o--", label=All_data[0][c][0] + ": sell average")
+        plt.plot(T, yab, "o--", label=All_data[0][c][0] + ": buy average")
+        if avr != None:
+            plt.axhline(y=avr, color='m', linestyle='--',label=All_data[0][c][0] + " transactions average")
         if Rsistore[-1][c][0] != None:
             if Rsistore[-1][c][0] >= 50:
                 for side in ['bottom', 'top', 'left', 'right']:
@@ -268,6 +275,7 @@ def graph_gen(a):
                 ax.spines[side].set_color('orange')
                 ax.spines[side].set_linewidth(3)
     for c in range(nr):
+        bil = db['Bil'][Cryptos[c]]
         ax = plt.subplot(3,nr, c + 1 + 2 * nr)
         plt.title("Rsi value",size = 6,loc = 'right')
         yrsis = []
@@ -289,6 +297,11 @@ def graph_gen(a):
                 for side in ['bottom', 'top', 'left', 'right']:
                     ax.spines[side].set_color('red')
                     ax.spines[side].set_linewidth(3)
+        if bil != None:
+            ax.text(0.9, -0.3, 'Balance of ' + str(All_data[0][c][0]) + 'is'+ str(bil),
+                verticalalignment='bottom', horizontalalignment='right',
+                transform=ax.transAxes,
+                color='black', size=10)
         plt.legend()
         plt.xticks(rotation = 10, fontsize = 5 )
 
