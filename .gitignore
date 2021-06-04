@@ -3,3 +3,5 @@ feedhandler.log
 __pycache__/apikey.cpython-39.pyc
 proof.png
 rsi.png
+backend/__pycache__/apikey.cpython-39.pyc
+backend/__pycache__/visualise.cpython-39.pyc
