@@ -11,7 +11,7 @@ import os
 import tkinter as tk
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pylab as pylab
-import statistics
+import json
 SLEEP_VALUE = 0.1
 
 CHECK_LEGEND = 0
@@ -102,9 +102,32 @@ def append_crypto_data_to_lists(names, asks, bids, volumes):
         y_volume_data.setdefault(names[i], []).append(volumes[i])
 
 
+def create_user_buy_list(names):
+    global user_average_buy
+    data, data2 = obtain_user_buy_data(filename)
+    for c,i in zip(names,range(len(names))):
+        user_average_buy[c].append(data[i])
+        user_average_sell[c].append(data2[i])
+
+    for c,i in zip(names,range(len(user_average_buy[c]))):
+        user_average_buy[c][i] = float(user_average_buy[c][i])
+        user_average_buy[c][i] -= float(user_average_sell[c][i])/50
+
+def set_y_ticks_logic(plot,names,i):
+    if min(y_bid_data[names[i]]) > min(user_average_buy[names[i]]):
+        plot.set_yticks(np.linspace(min(user_average_buy[names[i]]), max(y_ask_data[names[i]]), 5))
+        return 0
+    if max(y_ask_data[names[i]]) < max(user_average_buy[names[i]]):
+        plot.set_yticks(np.linspace(min(y_bid_data[names[i]]), max(user_average_buy[names[i]]), 5))
+        return 0
+    plot.set_yticks(np.linspace(min(y_bid_data[names[i]]), max(y_ask_data[names[i]]), 5))
+
+
 def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
     i = 0
     candidate_object.classificate_candidates(names)
+
+    create_user_buy_list(names)
     for plot in plots:
         for t in plot.texts:
             t.set_visible(False)
@@ -112,11 +135,12 @@ def draw_plots(x_data, y_ask_data, y_bid_data, y_volume_data, names):
                   linewidth=1, label='Buy price of ' + names[i], color='Red')
         plot.plot(x_data, y_bid_data[names[i]],
                   linewidth=1, label='Sell price of ' + names[i], color='Blue')
+        if float(max(user_average_buy[names[i]])) != float(0):
+            plot.plot(x_data, user_average_buy[names[i]], ':', linewidth=1,label='Average user buy price', color='Green')
         plot.set_xticks(x_data)
+        set_y_ticks_logic(plot,names,i)
         plot_averages(
             x_data, plot, y_ask_data[names[i]], y_bid_data[names[i]], names, i)
-        plot.set_yticks(np.linspace(
-            min(y_bid_data[names[i]]), max(y_ask_data[names[i]]), 5))
         i += 1
     candidate_object.print_candidate(names)
     plot_volume_rsi(x_data, names)
@@ -340,6 +364,40 @@ def get_change(current, previous):
         return 0
 
 
+def obtain_user_buy_data(filename):
+    with open(filename, 'r') as f:
+        to_dict = json.load(f)
+        f.close()
+
+    buy_transactions = to_dict[0]
+    sell_transactions = to_dict[1]
+    baverages = []
+    saverages = []
+    for currency in buy_transactions.keys():
+        q_sum = 0
+        sell_sum = 0
+        for q, p in zip(buy_transactions[currency]['quantity'], buy_transactions[currency]['price']):
+            sell_sum += float(q) * float(p)
+            q_sum += int(q)
+        if len(buy_transactions[currency]['quantity']) != 0:
+            sell_sum = sell_sum/q_sum
+        baverages.append(sell_sum)
+
+    for currency in sell_transactions.keys():
+        q_sum = 0
+        sell_sum = 0
+        for q, p in zip(sell_transactions[currency]['quantity'], sell_transactions[currency]['price']):
+            sell_sum += float(q) * float(p)
+            q_sum += int(q)
+        if len(sell_transactions[currency]['quantity']) != 0:
+            sell_sum = sell_sum/q_sum
+        saverages.append(sell_sum)
+
+    return baverages, saverages
+
+
+
+
 class Choose_candidate(object):
     def __init__(self):
         self.plot1 = 'horizontal'
@@ -419,7 +477,7 @@ class Choose_candidate(object):
         if change == 100 or change == 0:
             self.is_liquid(name, plot, name_str)
             return 0
-        print(name, ' change value for Volatile: ',change)
+        print(name, ' change value for Volatile: ', change)
         name_str = name
         if change > x:
             name_str = name+'[V]'
@@ -432,7 +490,7 @@ class Choose_candidate(object):
         ask_data = y_ask_data[name][-1]
         bid_data = y_bid_data[name][-1]
         change = get_change(bid_data, ask_data)
-        print(name, ' change value for Spread: ',change)
+        print(name, ' change value for Spread: ', change)
         if change < s:
             plot.set_title(name_str+'[L]')
 
@@ -471,6 +529,21 @@ if __name__ == "__main__":
     y_rsi_data = {}
 
     fig, plots, plots_twinx = set_plots()
+
+    user_average_buy = {
+        'LSKPLN': list(),
+        'LTCPLN': list(),
+        'BTCPLN': list(),
+    }
+    
+    user_average_sell = {
+        'LSKPLN': list(),
+        'LTCPLN': list(),
+        'BTCPLN': list(),
+    }
+
+    print('Type the wallet filename that you are working on example "wallet.json" without quotes: ', end='')
+    filename = input()
 
     candidate_object = Choose_candidate()
     animate_plots()
