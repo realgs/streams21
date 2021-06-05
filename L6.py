@@ -7,11 +7,23 @@ import json
 
 base_currency = 'PLN'
 url = 'https://api.bitbay.net/rest/trading/transactions/'
+url1 = 'https://bitbay.net/API/Public/'
+post2 = '/orderbook.json'
 time_interval = 3
 
 w_volume = 2
 w_mean = 2
 w_rsi = 2
+
+
+def get_data(url, currency_list, pos):
+    try:
+        req = requests.get(url + currency_list + base_currency + pos)
+        req.raise_for_status()
+        return req.json()
+
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
 
 
 def get_data1(url, curr, base, end=None):
@@ -139,8 +151,9 @@ def read_json(file):
     times_ = data['times']
     t_ = data['t']
     labels_ = data['labels']
+    difference_ = data['difference']
 
-    return price_, volume_, amount_, mean_, rsi_, buy_rate_, buy_volume_, sell_rate_, sell_volume_, balances_, times_, t_, labels_
+    return price_, volume_, amount_, mean_, rsi_, buy_rate_, buy_volume_, sell_rate_, sell_volume_, balances_, times_, t_, labels_, difference_
 
 
 def save_data():
@@ -156,10 +169,11 @@ def save_data():
             'balances': balances,
             'times': times,
             't': t,
-            'labels': labels}
+            'labels': labels,
+            'difference': difference}
 
     with open('data.json', 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
 
 def create_plot(currency_list):
@@ -175,8 +189,8 @@ def create_plot(currency_list):
         line.append(axis[i].plot(times, rsi[currency_list[i]], label="rsi")[0])
         line.append(axis[i].plot(times, buy_rate[currency_list[i]], '--', label="buy mean")[0])
 
-        axis[i].legend(bbox_to_anchor=(1.33, -0.04), loc='lower right')
-
+        # axis[i].legend(bbox_to_anchor=(1.33, -0.04), loc='lower right')
+        axis[i].legend()
         axis[i].set_title(f'{currency_list[i] + base_currency}')
 
     return figure, axis, line
@@ -185,6 +199,9 @@ def create_plot(currency_list):
 if __name__ == '__main__':
     currencies = ['DASH', 'OMG', 'BTC']
     n = len(currencies)
+    Y = 3
+    X = 0.5
+    S = 0.1
 
     price = {}
     volume = {}
@@ -196,6 +213,7 @@ if __name__ == '__main__':
     sell_rate = {}
     sell_volume = {}
     balances = {}
+    difference = {}
 
     for currency in currencies:
         price[currency] = []
@@ -208,6 +226,7 @@ if __name__ == '__main__':
         sell_rate[currency] = []
         sell_volume[currency] = []
         balances[currency] = 0
+        difference[currency] = []
 
     times = []
     t = 0
@@ -218,7 +237,7 @@ if __name__ == '__main__':
 
     info = input('Czy chcesz wczytać dane z pliku? [t/n]: ')
     if info == 't':
-        price, volume, amount, mean, rsi, buy_rate, buy_volume, sell_rate, sell_volume, balances, times, t, labels = read_json('data.json')
+        price, volume, amount, mean, rsi, buy_rate, buy_volume, sell_rate, sell_volume, balances, times, t, labels, difference = read_json('data.json')
         # times = times1
         # t = t1
         # labels = labels1
@@ -240,6 +259,11 @@ if __name__ == '__main__':
                 r3 = get_data1(url, currency, base_currency, '?limit=100')['items'][i]
                 price[currency].append(float(r3['r']))
                 amount[currency].append(float(r3['a']))
+
+                r2 = get_data(url1, currency, post2)
+
+                result = (r2['asks'][0][0] - r2['bids'][0][0]) / r2['bids'][0][0]
+                difference[currency].append(round(result, 2))
 
                 if len(price[currency]) >= w_volume:
                     volume[currency].append(calculate_volume(amount[currency], w_volume))
@@ -286,6 +310,69 @@ if __name__ == '__main__':
                     ax[j].text(1.03, .85, f'strata: {abs(balances[currencies[j]])}', fontsize=10, transform=ax[j].transAxes)
                 elif balances[currencies[j]] > 0:
                     ax[j].text(1.03, .85, f'zysk: {abs(balances[currencies[j]])}', fontsize=10, transform=ax[j].transAxes)
+
+                ax[j].text(1.03, .65, '                                       ', fontsize=10, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
+                ax[j].text(1.03, .45, '                                       ', fontsize=10, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
+                ax[j].text(1.03, .25, '                                       ', fontsize=10, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
+                ax[j].text(1.03, .05, '                                       ', fontsize=10, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
+                ax[j].text(1.03, .65, 'typ trendu: ', fontsize=10, transform=ax[j].transAxes)
+
+                ax[j].text(1.03, .45, 'kandydat:', fontsize=10, transform=ax[j].transAxes)
+
+                if len(rsi[currencies[j]]) >= 2:
+                    ax[j].text(1.3, .45, 'nie', c='red', fontsize=10, transform=ax[j].transAxes)
+
+                    if rsi[currencies[j]][-1] > 70 or rsi[currencies[j]][-2] > 50 and rsi[currencies[j]][-1] > 50:
+                        ax[j].text(1.3, .65, 'spadek', fontsize=10, c='red', transform=ax[j].transAxes)
+
+                    elif rsi[currencies[j]][-1] < 30 or rsi[currencies[j]][-2] < 50 and rsi[currencies[j]][-1] > 50:
+                        ax[j].text(1.3, .65, 'wzrost', fontsize=10, c='green', transform=ax[j].transAxes)
+
+                    else:
+                        ax[j].text(1.3, .65, 'boczny', fontsize=10, c='blue', transform=ax[j].transAxes)
+
+            temp_volume = []
+            for j in range(n):
+                if len(volume[currencies[j]]) >= 2 and not (
+                        rsi[currencies[j]][-1] > 70 or rsi[currencies[j]][-2] > 50 and rsi[currencies[j]][-1] > 50):
+                    temp_volume.append((volume[currencies[j]][-1], j))
+
+            if len(volume[currencies[0]]) >= 2 and len(temp_volume) >= 1:
+                temp_volume.sort(key=lambda tup: tup[0])
+                max_volume = temp_volume[-1]
+                j = max_volume[1]
+
+                ax[j].text(1.3, .45, '    ', fontsize=10, transform=ax[j].transAxes,
+                           bbox=dict(facecolor='white', edgecolor="none", alpha=1))
+
+                ax[j].text(1.3, .45, 'tak', fontsize=10, c='green', transform=ax[j].transAxes)
+
+                ax[j].text(1.03, .25, 'volatile asset:', fontsize=10, transform=ax[j].transAxes)
+
+                ax[j].text(1.03, .05, 'liquid asset:', fontsize=10, transform=ax[j].transAxes)
+
+                if len(price[currencies[j]]) >= Y:
+                    minimum = min(price[currencies[j]][-Y:])
+                    maximum = max(price[currencies[j]][-Y:])
+                    volatile = (maximum - minimum) / maximum
+
+                    if volatile >= X:
+                        ax[j].text(1.3, .05, 'tak', c='green', fontsize=10, transform=ax[j].transAxes)
+                    else:
+                        ax[j].text(1.3, .05, 'nie', c='red', fontsize=10, transform=ax[j].transAxes)
+
+                    if difference[currencies[j]][-1] <= S:
+                        ax[j].text(1.3, .25, 'tak', c='green', fontsize=10, transform=ax[j].transAxes)
+                    else:
+                        ax[j].text(1.3, .25, 'nie', c='red', fontsize=10, transform=ax[j].transAxes)
 
             fig.canvas.draw()
             fig.canvas.flush_events()
