@@ -1,0 +1,3 @@
+This command outputs currently owned currencies.
+If you want to get information about just one specified currency type:
+property <currency name>

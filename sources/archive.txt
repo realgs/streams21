@@ -1,0 +1,5 @@
+This command outputs once owned currencies, according the pattern:
+[quantity, price]
+
+If you want to get information about just one specified currency type:
+archive <currency name>

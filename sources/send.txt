@@ -1,0 +1,2 @@
+This command sends json information to a default or specified email address. Usage:
+send <currency name> <data type (buy/archives)> <recipient email address (optional)>

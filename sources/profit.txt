@@ -1,0 +1,2 @@
+This command shows profit of specified currency. Usage:
+profit <currency>

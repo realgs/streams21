@@ -3,6 +3,10 @@ import os
 import time
 import pprint
 
+import sender
+import helper
+import archives
+
 
 def reset():
     confirmation = input("Are you sure? [y/N]: ")
@@ -18,22 +22,6 @@ def reset():
         print("Done")
     else:
         print("Not removed")
-
-
-def archive(currency, transactions):
-    archive_file = open("data/archives.json", "r")
-    archive_data = json.load(archive_file)
-    archive_file.close()
-
-    if currency not in archive_data.keys():
-        archive_data[currency] = list()
-
-    for transaction in transactions:
-        archive_data[currency].append(transaction)
-
-    archive_file = open("data/archives.json", "w")
-    json.dump(archive_data, archive_file)
-    archive_file.close()
 
 
 def current_profit_price(currency, to_return, printing=False):
@@ -91,20 +79,6 @@ def average_price(currency):
     profit_file.close()
 
 
-def get_archive(currency=None):
-    archive_file = open("data/archives.json", "r")
-    archive_data = json.load(archive_file)
-    archive_file.close()
-
-    if currency is None:
-        return archive_data
-    elif currency in archive_data.keys():
-        return archive_data[currency]
-    else:
-        print("There is nothing to show")
-        return {}
-
-
 def get_property(currency=None):
     buy_file = open("data/buy.json", "r")
     buy_data = json.load(buy_file)
@@ -128,8 +102,8 @@ def buy(currency, quantity, price):
         archive_data = json.load(archive_file)
         archive_file.close()
         if currency not in archive_data.keys():
-            confirmation = input("This is the new currency in your wallet. \nAre you sure that it is correctly "
-                                 "written? [y/N]: ")
+            confirmation = input("This is the new currency in your wallet. \nAre you sure that it is typed correctly? "
+                                 "[y/N]: ")
         else:
             confirmation = "y"
 
@@ -192,7 +166,7 @@ def sell(currency, quantity, price):
     json.dump(profit_data, profit_file)
     profit_file.close()
     average_price(currency)
-    archive(currency, to_archive)
+    archives.archive(currency, to_archive)
 
 
 def check_if_files_exist():
@@ -228,7 +202,12 @@ def main():
         if len(user_command) == 1 and user_command[0] == "help":
             print("Enter the command according to the template:")
             print("<buy/sell> <currency pair> <quantity> <price>")
-            print("Additionally: exit, reset, profit, price, archive, property")
+            print("\nAdditionally: exit, reset, profit, price, archive, property, send")
+            print("Type 'help <command name>' to get more information about specific command")
+            continue
+
+        elif len(user_command) == 2 and user_command[0] == "help":
+            helper.helps(user_command[1])
             continue
 
         elif len(user_command) == 1 and user_command[0] == "exit":
@@ -258,9 +237,9 @@ def main():
 
         elif len(user_command) in list(range(1, 3)) and user_command[0] == "archive":
             if len(user_command) == 1:
-                pprint.pprint(get_archive())
+                pprint.pprint(archives.get_archive())
             else:
-                pprint.pprint(get_archive(user_command[1].upper()))
+                pprint.pprint(archives.get_archive(user_command[1].upper()))
             continue
 
         elif len(user_command) in list(range(1, 3)) and user_command[0] == "property":
@@ -270,9 +249,16 @@ def main():
                 pprint.pprint(get_property(user_command[1].upper()))
             continue
 
+        elif len(user_command) in list(range(3, 5)) and user_command[0] == "send":
+            if len(user_command) == 3:
+                sender.send(user_command[1], user_command[2])
+            else:
+                sender.send(user_command[1], user_command[2], user_command[3])
+            continue
+
         """buy/sell commands"""
         if len(user_command) != 4:
-            print("Wrong command structure! Try again...")
+            print("Wrong command! Type 'help' for more information.")
             continue
 
         try:
