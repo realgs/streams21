@@ -72,6 +72,57 @@ def user_info():
     return curr, int(ask), int(vol)
 
 
+def get_all_info():
+    czy = ''
+    while czy != 'n':
+        czy = input('Czy chcesz dodać tranzakcję?[t/n]: ')
+        if czy == 't':
+            czy2 = input('Kupno czy sprzedaż?[k/s]: ')
+            if czy2 == 'k':
+                curre, asks, volu = user_info()
+                buy_rate[curre].append(asks)
+                buy_volume[curre].append(volu)
+
+            elif czy2 == 's':
+                curre, asks, volu = user_info()
+
+                available_volume = 0
+                for voulm in buy_volume[curre]:
+                    available_volume += voulm
+
+                if volu > available_volume:
+                    print('Nie masz wystarczająco dużo waluty!')
+
+                else:
+                    balance = 0
+                    temp_volume = volu
+                    while temp_volume > 0:
+
+                        if buy_volume[curre][0] < temp_volume:
+                            temp_volume -= buy_volume[curre][0]
+
+                            balance += buy_volume[curre][0] * buy_rate[curre][0]
+
+                            del buy_volume[curre][0]
+                            del buy_rate[curre][0]
+
+                        else:
+                            buy_volume[curre][0] -= temp_volume
+
+                            balance += temp_volume * buy_rate[curre][0]
+
+                            if buy_volume[curre][0] == 0:
+                                del buy_volume[curre][0]
+                                del buy_rate[curre][0]
+
+                            sell_rate[curre].append(asks)
+                            sell_volume[curre].append(volu)
+                            break
+
+                    final_balance = sell_rate[curre][-1] * sell_volume[curre][-1] - balance
+                    balances[curre] = final_balance
+
+
 def read_json(file):
     f = open(file)
     data = json.load(f)
@@ -108,7 +159,7 @@ def save_data():
             'labels': labels}
 
     with open('data.json', 'w') as f:
-        json.dump(data, f, indent=4)
+        json.dump(data, f)
 
 
 def create_plot(currency_list):
@@ -165,68 +216,21 @@ if __name__ == '__main__':
     plt.ion()
     fig, ax, lines = create_plot(currencies)
 
-    # price, volume, amount, mean, rsi, buy_rate, buy_volume, sell_rate, sell_volume, balances, times, t, labels = read_json('data.json')
-    # print(price, volume, amount, mean, rsi, buy_rate, buy_volume, sell_rate, sell_volume, balances, times, t, labels)
+    info = input('Czy chcesz wczytać dane z pliku? [t/n]: ')
+    if info == 't':
+        price, volume, amount, mean, rsi, buy_rate, buy_volume, sell_rate, sell_volume, balances, times, t, labels = read_json('data.json')
+        # times = times1
+        # t = t1
+        # labels = labels1
 
     while True:
         for i in range(50):
-            # times.append(t)
-            # t += 1
-            # labels.append(time.strftime("%H:%M:%S", time.localtime()))
-
             if t % 5 == 0:
-                czy = ''
+                get_all_info()
+
                 data_write = input('Czy chcesz zapisać dane do pliku?')
                 if data_write == 't':
                     save_data()
-
-                while czy != 'n':
-                    czy = input('Czy chcesz dodać tranzakcję?[t/n]: ')
-                    if czy == 't':
-                        czy2 = input('Kupno czy sprzedaż?[k/s]: ')
-                        if czy2 == 'k':
-                            curre, asks, volu = user_info()
-                            buy_rate[curre].append(asks)
-                            buy_volume[curre].append(volu)
-
-                        elif czy2 == 's':
-                            curre, asks, volu = user_info()
-
-                            available_volume = 0
-                            for voulm in buy_volume[curre]:
-                                available_volume += voulm
-
-                            if volu > available_volume:
-                                print('Nie masz wystarczająco dużo waluty!')
-
-                            else:
-                                balance = 0
-                                temp_volume = volu
-                                while temp_volume > 0:
-
-                                    if buy_volume[curre][0] < temp_volume:
-                                        temp_volume -= buy_volume[curre][0]
-
-                                        balance += buy_volume[curre][0] * buy_rate[curre][0]
-
-                                        del buy_volume[curre][0]
-                                        del buy_rate[curre][0]
-
-                                    else:
-                                        buy_volume[curre][0] -= temp_volume
-
-                                        balance += temp_volume * buy_rate[curre][0]
-
-                                        if buy_volume[curre][0] == 0:
-                                            del buy_volume[curre][0]
-                                            del buy_rate[curre][0]
-
-                                        sell_rate[curre].append(asks)
-                                        sell_volume[curre].append(volu)
-                                        break
-
-                                final_balance = sell_rate[curre][-1] * sell_volume[curre][-1] - balance
-                                balances[curre] = final_balance
 
             times.append(t)
             t += 1
