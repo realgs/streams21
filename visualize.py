@@ -99,14 +99,14 @@ def is_volatile(pair):
     if difference > VOLATILE_EDGE:
         return ""
     else:
-        return ",volatile asset"
+        return "volatile asset    "
 
 
 def is_liquid(pair):
     global LIQUID_EDGE, dict_of_ask_bid_lists
     if (dict_of_ask_bid_lists[pair][3][-1] - dict_of_ask_bid_lists[pair][4][-1]) / dict_of_ask_bid_lists[pair][3][-1] \
             < LIQUID_EDGE:
-        return ",liquid"
+        return "liquid"
     else:
         return ""
 
@@ -221,7 +221,7 @@ def show_multiple_pairs():
                                                   [currency_profit_price[1]] * len(dict_of_ask_bid_lists[PAIRS[i]][0]))
 
             axs[0][i].set_title(TITLE_TEMPLATE.format(PAIRS[i], current_trend[0], current_trend[1], current_trend[2],
-                                                      current_trend[3], f",profit: {currency_profit_price[0]}"))
+                                                      current_trend[3], f"profit: {currency_profit_price[0]}"))
 
             rsi = calculate_rsi(PAIRS[i])
             dict_of_ask_bid_lists[PAIRS[i]][6].append(rsi)
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     USER_PARAMETER = 4
 
     AVG_LENGTH = 10  # how many periods we want to analyse
-    TITLE_TEMPLATE = "{}, TREND: {}, CANDIDATE: {} {} \n{} {}"
+    TITLE_TEMPLATE = "{}, TREND: {}, CANDIDATE: {}\n {} {} \n{}"
     VOLATILE_NUMBER = 4  # number of probes we go back
     VOLATILE_EDGE = 0.1  # %
     LIQUID_EDGE = 0.1  # %

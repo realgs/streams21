@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import pprint
 
 
 def reset():
@@ -10,6 +11,8 @@ def reset():
             os.remove("data/buy.json")
         if os.path.exists("data/profits_and_prices.json"):
             os.remove("data/profits_and_prices.json")
+            if os.path.exists("data/archives.json"):
+                os.remove("data/archives.json")
         # generate empty files
         check_if_files_exist()
         print("Done")
@@ -17,20 +20,43 @@ def reset():
         print("Not removed")
 
 
+def archive(currency, transactions):
+    archive_file = open("data/archives.json", "r")
+    archive_data = json.load(archive_file)
+    archive_file.close()
+
+    if currency not in archive_data.keys():
+        archive_data[currency] = list()
+
+    for transaction in transactions:
+        archive_data[currency].append(transaction)
+
+    archive_file = open("data/archives.json", "w")
+    json.dump(archive_data, archive_file)
+    archive_file.close()
+
+
 def current_profit_price(currency, to_return, printing=False):
     profit_file = open("data/profits_and_prices.json", "r")
     profit_data = json.load(profit_file)
     profit_file.close()
+    # get profit
     if to_return == 0:
+        if currency not in profit_data.keys():
+            return False
         if printing:
             print(f"Your current profit: {profit_data[currency][0]}")
         else:
             return profit_data[currency][0]
+    # get price
     if to_return == 1:
+        if currency not in profit_data.keys():
+            return False
         if printing:
             print(f"Your current buy price: {profit_data[currency][1]}")
         else:
             return profit_data[currency][1]
+    # get both
     if to_return == 2:
         try:
             return profit_data[currency]
@@ -65,13 +91,54 @@ def average_price(currency):
     profit_file.close()
 
 
+def get_archive(currency=None):
+    archive_file = open("data/archives.json", "r")
+    archive_data = json.load(archive_file)
+    archive_file.close()
+
+    if currency is None:
+        return archive_data
+    elif currency in archive_data.keys():
+        return archive_data[currency]
+    else:
+        print("There is nothing to show")
+        return {}
+
+
+def get_property(currency=None):
+    buy_file = open("data/buy.json", "r")
+    buy_data = json.load(buy_file)
+    buy_file.close()
+
+    if currency is None:
+        return buy_data
+    elif currency in buy_data.keys():
+        return buy_data[currency]
+    else:
+        print("There is nothing to show")
+        return {}
+
+
 def buy(currency, quantity, price):
     buy_file = open("data/buy.json", "r")
     buy_data = json.load(buy_file)
     buy_file.close()
     if currency not in buy_data.keys():
-        buy_data[currency] = list()
-        buy_data[currency].append([quantity, price])
+        archive_file = open("data/archives.json", "r")
+        archive_data = json.load(archive_file)
+        archive_file.close()
+        if currency not in archive_data.keys():
+            confirmation = input("This is the new currency in your wallet. \nAre you sure that it is correctly "
+                                 "written? [y/N]: ")
+        else:
+            confirmation = "y"
+
+        if confirmation == "y":
+            buy_data[currency] = list()
+            buy_data[currency].append([quantity, price])
+        else:
+            print("Not added")
+            return
     else:
         buy_data[currency].append([quantity, price])
     buy_file = open("data/buy.json", "w")
@@ -85,23 +152,30 @@ def sell(currency, quantity, price):
     buy_data = json.load(buy_file)
     buy_file.close()
     profit = quantity * price
+    to_archive = list()
     while quantity:
         try:
             temp = buy_data[currency].pop(0)
         except IndexError:
             print("You cannot sell more currency than you own! Try again...")
             return
+        except KeyError:
+            print(f"You do not have currency: {currency}")
+            return
 
         if quantity < temp[0]:
             buy_data[currency].insert(0, [temp[0]-quantity, temp[1]])
             profit -= (quantity * temp[1])
+            to_archive.append([quantity, temp[1]])
             break
         elif quantity == temp[0]:
             profit -= (quantity * temp[1])
+            to_archive.append(temp)
             break
         else:
             profit -= (temp[0] * temp[1])
             quantity -= temp[0]
+            to_archive.append(temp)
 
     buy_file = open("data/buy.json", "w")
     json.dump(buy_data, buy_file)
@@ -118,13 +192,14 @@ def sell(currency, quantity, price):
     json.dump(profit_data, profit_file)
     profit_file.close()
     average_price(currency)
+    archive(currency, to_archive)
 
 
 def check_if_files_exist():
+    to_write = dict()
     try:
         buy_file = open("data/buy.json", "r")
     except FileNotFoundError:
-        to_write = dict()
         buy_file = open("data/buy.json", "a+")
         json.dump(to_write, buy_file)
     buy_file.close()
@@ -132,8 +207,14 @@ def check_if_files_exist():
     try:
         profit_file = open("data/profits_and_prices.json", "r")
     except FileNotFoundError:
-        to_write = dict()
         profit_file = open("data/profits_and_prices.json", "a+")
+        json.dump(to_write, profit_file)
+    profit_file.close()
+
+    try:
+        profit_file = open("data/archives.json", "r")
+    except FileNotFoundError:
+        profit_file = open("data/archives.json", "a+")
         json.dump(to_write, profit_file)
     profit_file.close()
 
@@ -142,9 +223,12 @@ def main():
     check_if_files_exist()
     while True:
         user_command = input(">> ").split()
+
+        """additional commands"""
         if len(user_command) == 1 and user_command[0] == "help":
             print("Enter the command according to the template:")
             print("<buy/sell> <currency pair> <quantity> <price>")
+            print("Additionally: exit, reset, profit, price, archive, property")
             continue
 
         elif len(user_command) == 1 and user_command[0] == "exit":
@@ -156,6 +240,37 @@ def main():
             reset()
             continue
 
+        elif len(user_command) == 2 and user_command[0] == "profit":
+            res = current_profit_price(user_command[1].upper(), 0)
+            if res:
+                print(f"Your current profit from {user_command[1].upper()}: {res}")
+            else:
+                print(f"There is no information about '{user_command[1]}'")
+            continue
+
+        elif len(user_command) == 2 and user_command[0] == "price":
+            res = current_profit_price(user_command[1].upper(), 1)
+            if res:
+                print(f"Your current buy price of {user_command[1].upper()}: {res}")
+            else:
+                print(f"There is no information about '{user_command[1]}'")
+            continue
+
+        elif len(user_command) in list(range(1, 3)) and user_command[0] == "archive":
+            if len(user_command) == 1:
+                pprint.pprint(get_archive())
+            else:
+                pprint.pprint(get_archive(user_command[1].upper()))
+            continue
+
+        elif len(user_command) in list(range(1, 3)) and user_command[0] == "property":
+            if len(user_command) == 1:
+                pprint.pprint(get_property())
+            else:
+                pprint.pprint(get_property(user_command[1].upper()))
+            continue
+
+        """buy/sell commands"""
         if len(user_command) != 4:
             print("Wrong command structure! Try again...")
             continue
