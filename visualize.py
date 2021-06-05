@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import currency
 import datetime
 import requests
+from user import current_profit_price
 from matplotlib import style
 from matplotlib.dates import DateFormatter
 from matplotlib.animation import FuncAnimation
@@ -180,46 +181,53 @@ def show_multiple_pairs():
             dict_of_ask_bid_lists[PAIRS[i]][5].append(res['volume'])
 
             # ask
-            list_of_lines[i * 6 + 0].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][1])
+            list_of_lines[i * 7 + 0].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][1])
             # bid
-            list_of_lines[i * 6 + 1].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][2])
+            list_of_lines[i * 7 + 1].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][2])
 
             #moving averages
             if len(dict_of_ask_bid_lists[PAIRS[i]][7]) < MOVING_AVERAGE_LENGTH:
                 moving_average_ask = (sum(dict_of_ask_bid_lists[PAIRS[i]][7])+dict_of_ask_bid_lists[PAIRS[i]][3][-1]) \
                                      / (len(dict_of_ask_bid_lists[PAIRS[i]][7])+1)
                 dict_of_ask_bid_lists[PAIRS[i]][7].append(moving_average_ask)
-                list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                list_of_lines[i * 7 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
                                                   dict_of_ask_bid_lists[PAIRS[i]][7])
 
                 moving_average_bid = (sum(dict_of_ask_bid_lists[PAIRS[i]][8]) + dict_of_ask_bid_lists[PAIRS[i]][4][-1])\
                                      / (len(dict_of_ask_bid_lists[PAIRS[i]][8]) + 1)
                 dict_of_ask_bid_lists[PAIRS[i]][8].append(moving_average_bid)
-                list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                list_of_lines[i * 7 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
                                                   dict_of_ask_bid_lists[PAIRS[i]][8])
 
             else:
                 moving_average_ask = (sum(dict_of_ask_bid_lists[PAIRS[i]][7][-MOVING_AVERAGE_LENGTH:]) +
                                       dict_of_ask_bid_lists[PAIRS[i]][3][-1]) / (MOVING_AVERAGE_LENGTH+1)
                 dict_of_ask_bid_lists[PAIRS[i]][7].append(moving_average_ask)
-                list_of_lines[i * 6 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                list_of_lines[i * 7 + 2].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
                                                   dict_of_ask_bid_lists[PAIRS[i]][7])
 
                 moving_average_bid = (sum(dict_of_ask_bid_lists[PAIRS[i]][8][-MOVING_AVERAGE_LENGTH:]) +
                                       dict_of_ask_bid_lists[PAIRS[i]][4][-1]) / (MOVING_AVERAGE_LENGTH+1)
                 dict_of_ask_bid_lists[PAIRS[i]][8].append(moving_average_bid)
-                list_of_lines[i * 6 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                list_of_lines[i * 7 + 3].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
                                                   dict_of_ask_bid_lists[PAIRS[i]][8])
 
             current_trend = check_trend(PAIRS[i], number)
+            currency_profit_price = current_profit_price(PAIRS[i], 2)
+            if currency_profit_price[1] == 0:
+                list_of_lines[i * 7 + 4].set_data(list(), list())
+            else:
+                list_of_lines[i * 7 + 4].set_data(dict_of_ask_bid_lists[PAIRS[i]][0],
+                                                  [currency_profit_price[1]] * len(dict_of_ask_bid_lists[PAIRS[i]][0]))
+
             axs[0][i].set_title(TITLE_TEMPLATE.format(PAIRS[i], current_trend[0], current_trend[1], current_trend[2],
-                                                      current_trend[3]))
+                                                      current_trend[3], f",profit: {currency_profit_price[0]}"))
 
             rsi = calculate_rsi(PAIRS[i])
             dict_of_ask_bid_lists[PAIRS[i]][6].append(rsi)
-            list_of_lines[i * 6 + 4].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][6])
+            list_of_lines[i * 7 + 5].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][6])
 
-            list_of_lines[i * 6 + 5].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][5])
+            list_of_lines[i * 7 + 6].set_data(dict_of_ask_bid_lists[PAIRS[i]][0], dict_of_ask_bid_lists[PAIRS[i]][5])
 
             axs[0][i].relim()
             axs[0][i].autoscale_view()
@@ -242,13 +250,15 @@ def show_multiple_pairs():
                                         label='ask avg', color='blue')
         avg_bid_chart, = axs[0][j].plot(dict_of_ask_bid_lists[PAIRS[j]][0], dict_of_ask_bid_lists[PAIRS[j]][4],
                                         label='bid avg', color='yellow')
+        current_price_chart, = axs[0][j].plot(list(), list(), '--', label='your price', color='orange')
 
         list_of_lines.append(ask_chart)
         list_of_lines.append(bid_chart)
         list_of_lines.append(avg_ask_chart)
         list_of_lines.append(avg_bid_chart)
+        list_of_lines.append(current_price_chart)
 
-        axs[0][j].set_title(TITLE_TEMPLATE.format(PAIRS[j], "None", "No", "", ""))
+        axs[0][j].set_title(TITLE_TEMPLATE.format(PAIRS[j], "None", "No", "", "", ""))
         axs[0][j].grid()
         axs[0][j].legend(loc=2)
         # axs[0][j].xaxis.set_major_formatter(DateFormatter('%d-%m-%y %H:%M:%S'))
@@ -286,7 +296,7 @@ if __name__ == "__main__":
     USER_PARAMETER = 4
 
     AVG_LENGTH = 10  # how many periods we want to analyse
-    TITLE_TEMPLATE = "{}, TREND: {}, CANDIDATE: {} {} {}"
+    TITLE_TEMPLATE = "{}, TREND: {}, CANDIDATE: {} {} \n{} {}"
     VOLATILE_NUMBER = 4  # number of probes we go back
     VOLATILE_EDGE = 0.1  # %
     LIQUID_EDGE = 0.1  # %

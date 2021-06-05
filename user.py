@@ -17,6 +17,28 @@ def reset():
         print("Not removed")
 
 
+def current_profit_price(currency, to_return, printing=False):
+    profit_file = open("data/profits_and_prices.json", "r")
+    profit_data = json.load(profit_file)
+    profit_file.close()
+    if to_return == 0:
+        if printing:
+            print(f"Your current profit: {profit_data[currency][0]}")
+        else:
+            return profit_data[currency][0]
+    if to_return == 1:
+        if printing:
+            print(f"Your current buy price: {profit_data[currency][1]}")
+        else:
+            return profit_data[currency][1]
+    if to_return == 2:
+        try:
+            return profit_data[currency]
+        except KeyError:
+            # if there is no information about this currency
+            return [0, 0]
+
+
 def average_price(currency):
     buy_file = open("data/buy.json", "r")
     buy_data = json.load(buy_file)
@@ -26,7 +48,10 @@ def average_price(currency):
     for transaction in buy_data[currency]:
         quantity += transaction[0]
         price += transaction[0] * transaction[1]
-    average = price / quantity
+    try:
+        average = price / quantity
+    except ZeroDivisionError:
+        average = 0
 
     profit_file = open("data/profits_and_prices.json", "r")
     profit_data = json.load(profit_file)
@@ -61,10 +86,17 @@ def sell(currency, quantity, price):
     buy_file.close()
     profit = quantity * price
     while quantity:
-        # tu będzie błąd jak będzie pusta lista
-        temp = buy_data[currency].pop(0)
-        if quantity <= temp[0]:
+        try:
+            temp = buy_data[currency].pop(0)
+        except IndexError:
+            print("You cannot sell more currency than you own! Try again...")
+            return
+
+        if quantity < temp[0]:
             buy_data[currency].insert(0, [temp[0]-quantity, temp[1]])
+            profit -= (quantity * temp[1])
+            break
+        elif quantity == temp[0]:
             profit -= (quantity * temp[1])
             break
         else:
@@ -112,7 +144,7 @@ def main():
         user_command = input(">> ").split()
         if len(user_command) == 1 and user_command[0] == "help":
             print("Enter the command according to the template:")
-            print("<buy/sell> <currency> <quantity> <price>")
+            print("<buy/sell> <currency pair> <quantity> <price>")
             continue
 
         elif len(user_command) == 1 and user_command[0] == "exit":
