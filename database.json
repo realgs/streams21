@@ -1,0 +1,17 @@
+{
+  "Rec": {
+    "ETH": [],
+    "LTC": [],
+    "BTC": []
+  },
+  "Avr": {
+    "ETH": null,
+    "LTC": null,
+    "BTC": null
+  },
+  "Bil": {
+    "ETH": null,
+    "LTC": null,
+    "BTC": null
+  }
+}
