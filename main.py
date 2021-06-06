@@ -5,6 +5,23 @@ from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
 import json
 
+
+def get_user_avg(crypt, path = "database.txt"):
+    f = open(path, 'r')
+    data = json.load(f)
+    crypt = crypt[0:3]
+    avg = data[f'average_{crypt}_json']
+    f.close()
+    return avg
+
+def get_saldo(crypt, path = "database.txt"):
+    f = open(path, 'r')
+    data = json.load(f)
+    crypt = crypt[0:3]
+    saldo = data[f'saldo_{crypt}_json']
+    f.close()
+    return saldo
+
 def get_data(crypt):
     url = "https://bitbay.net/API/Public/{Currency}/{Category}.json".format(Currency=crypt,
                                                                                             Category= 'ticker')
@@ -62,7 +79,7 @@ def count_rsi(data_list, start, stop):
     return rsi
 
 
-def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t):
+def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t, user_avg):
     buy, sell = get_data(crypt)
     buy_list.append(buy)
     sell_list.append(sell)
@@ -76,18 +93,15 @@ def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_
     rsi_buy_list.append(count_rsi(buy_list, START, STOP))
     rsi_sell_list.append(count_rsi(sell_list, START, STOP))
 
+    user_avg.append(get_user_avg(crypt))
+
     current_time = time.strftime("%H:%M:%S", time.localtime())
     t.append(current_time)
-    f = open('trades/{crypt}.json'.format(crypt= crypt), 'a')
-    data = {current_time: (buy, sell)}
-    data = json.dumps(data)
-    f.write(data)
-    f.close
 
-    return buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t
+    return buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t, user_avg
 
 
-def update_trades_line(currency:list):
+#def update_trades_line(currency:list):
     
 
 def trend(rsi_list):
@@ -146,12 +160,12 @@ def set_title(candidate, buy_list, sell_list, X, Y, S):
 
 
 def animate(i):
-    global X, Y, S, t1, t2, t3
-    y1, y2, avg1, avg2, v, rsi1, rsi2,  t1 = data_stream(CURRENCY[0], buys0, sells0, avg_buy0, avg_sell0, volume0, rsi_buy_values0, rsi_sell_values0, t1)
-    y3, y4, avg3, avg4, v1, rsi3, rsi4, t2 = data_stream(CURRENCY[1], buys1, sells1, avg_buy1, avg_sell1, volume1, rsi_buy_values1, rsi_sell_values1, t2)
-    y5, y6, avg5, avg6, v2, rsi5, rsi6, t3 = data_stream(CURRENCY[2], buys2, sells2, avg_buy2, avg_sell2, volume2, rsi_buy_values2, rsi_sell_values2, t3)
+    global X, Y, S, t1, t2, t3, user_avg0, user_avg1, user_avg2
+    y1, y2, avg1, avg2, v, rsi1, rsi2,  t1, user_avg0 = data_stream(CURRENCY[0], buys0, sells0, avg_buy0, avg_sell0, volume0, rsi_buy_values0, rsi_sell_values0, t1, user_avg0)
+    y3, y4, avg3, avg4, v1, rsi3, rsi4, t2, user_avg1 = data_stream(CURRENCY[1], buys1, sells1, avg_buy1, avg_sell1, volume1, rsi_buy_values1, rsi_sell_values1, t2, user_avg1)
+    y5, y6, avg5, avg6, v2, rsi5, rsi6, t3, user_avg2 = data_stream(CURRENCY[2], buys2, sells2, avg_buy2, avg_sell2, volume2, rsi_buy_values2, rsi_sell_values2, t3, user_avg2)
 
-    for L in [y1, y2, avg1, avg2, v, rsi1, rsi2, t1, t2, t3, y3, y4, avg3, avg4, v1, rsi3, rsi4, y5, y6, avg5, avg6, v2, rsi5, rsi6]:
+    for L in [y1, y2, avg1, avg2, v, rsi1, rsi2, t1, t2, t3, y3, y4, avg3, avg4, v1, rsi3, rsi4, y5, y6, avg5, avg6, v2, rsi5, rsi6, user_avg0, user_avg1, user_avg2]:
         if len(L) > 10:
             L.pop(0)
 
@@ -164,6 +178,10 @@ def animate(i):
     plt.suptitle(subtitle, fontsize=18)
     plt.tight_layout()
 
+
+    saldo1 = get_saldo(CURRENCY[0])
+    saldo2 = get_saldo(CURRENCY[1])
+    saldo3 = get_saldo((CURRENCY[2]))
 # -----------------------------------------------------------------------
     plt.subplot(331)
     plt.title(f'{CURRENCY[0]} chart {l_title1} \n {v_title1}')
@@ -171,6 +189,11 @@ def animate(i):
     plt.plot(t1, y2, label="sells", color="yellow")
     plt.plot(t1, avg1, '--', label='buy avg', color='green')
     plt.plot(t1, avg2, '--', label='sell avg', color='red')
+    plt.plot(t1, user_avg0, '--', label= 'user avg', color= 'blue')
+    if saldo1 < 0:
+        plt.xlabel(f"Saldo: {saldo1}", color = 'red')
+    else:
+        plt.xlabel(f"Saldo: {saldo1}", color='green')
     plt.ylabel("Currency rate")
 
     plt.xticks([])
@@ -196,7 +219,11 @@ def animate(i):
     plt.plot(t2, y4, label="sells", color="yellow")
     plt.plot(t2, avg3, '--', label='buy avg', color='green')
     plt.plot(t2, avg4, '--', label='sell avg', color='red')
-
+    plt.plot(t2, user_avg1, '--', label='user avg', color='blue')
+    if saldo2 < 0:
+        plt.xlabel(f"Saldo: {saldo2}", color='red')
+    else:
+        plt.xlabel(f"Saldo: {saldo2}", color='green')
     plt.xticks([])
     plt.subplot(335)
     plt.title('Volume chart')
@@ -218,6 +245,11 @@ def animate(i):
     plt.plot(t3, y6, label="sells", color="yellow")
     plt.plot(t3, avg5, '--', label='buy avg', color='green')
     plt.plot(t3, avg6, '--', label='sell avg', color='red')
+    plt.plot(t3, user_avg2, '--', label='user avg', color='blue')
+    if saldo3 < 0:
+        plt.xlabel(f"Saldo: {saldo3}", color='red')
+    else:
+        plt.xlabel(f"Saldo: {saldo3}", color='green')
 
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.xticks([])
@@ -258,7 +290,7 @@ if __name__ == "__main__":
     volume0 = []
     rsi_buy_values0 = []
     rsi_sell_values0 = []
-
+    user_avg0 = []
 
     buys1 = []
     sells1 = []
@@ -267,6 +299,7 @@ if __name__ == "__main__":
     volume1 = []
     rsi_buy_values1 = []
     rsi_sell_values1 = []
+    user_avg1 = []
 
     buys2 = []
     sells2 = []
@@ -275,6 +308,7 @@ if __name__ == "__main__":
     volume2 = []
     rsi_buy_values2 = []
     rsi_sell_values2 = []
+    user_avg2 = []
 
     plot_data()
 

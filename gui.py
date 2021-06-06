@@ -2,12 +2,16 @@
 from tkinter import *
 from datetime import datetime
 import json
+import os
+
 
 window = Tk()
-window.geometry("400x500")
+window.geometry("400x600")
 action = IntVar()
 crypt = IntVar()
 
+def start_chart():
+    os.system('python main.py')
 
 def erase_data():
     f = open("database.txt", 'r+')
@@ -102,7 +106,8 @@ rad5 = Radiobutton(window, text="SELL", value = 2, variable=action)
 
 button1 = Button(window, text="Accept", command= update_average, bg="white", fg= 'green', font=("arial bold", 14), activebackground= 'green')
 button2 = Button(window, text="Exit", command= exit, bg="white", fg="red", font=("arial bold", 14), activebackground= 'red')
-button3 = Button(window, text= "Erase", command= erase_data(), bg= "white", fg= "blue", font=("arial bold", 14), activebackground= 'blue')
+button3 = Button(window, text= "Erase", command= erase_data, bg= "white", fg= "blue", font=("arial bold", 14), activebackground= 'blue')
+#button4 = Button(window, text= "Start chart", command= start_chart, bg= 'white', font= ("arial bold", 14))
 listbox = Listbox(window)
 
 start_label.pack()
@@ -122,6 +127,7 @@ entry2.pack()
 button1.pack(fill=X)
 button2.pack(fill=X)
 button3.pack(fill=X)
+#button4.pack(fill=X)
 listbox.pack(fill=X)
 
 window.mainloop()
