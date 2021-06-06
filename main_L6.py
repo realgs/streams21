@@ -10,7 +10,7 @@ import json
 N = 20
 upper = 20
 lower = 1
-T=5
+T = 5
 
 
 def connect(currency1, currency2):
@@ -22,7 +22,7 @@ def read_file_buy():
         with open ( "buy.json", 'r' ) as handle:
             json_buy = [json.loads ( line ) for line in handle]
             return json_buy
-            time.sleep (T)
+            time.sleep ( T )
 
 
 def read_file_sell():
@@ -30,7 +30,7 @@ def read_file_sell():
         with open ( "sell.json", 'r' ) as handle:
             json_sell = [json.loads ( line ) for line in handle]
             return json_sell
-            time.sleep (T)
+            time.sleep ( T )
 
 
 def file_values_buy():
@@ -121,20 +121,28 @@ def after_sell(sell_list, amt_sell_list, buy_list, amt_buy_list):
 
             latest_sell = sell_list[-1]
             latest_amt = amt_sell_list[-1]
-
             for num1, num2 in zip ( buy_list, amt_buy_list ):
                 fifo.append ( [num1] * num2 )
 
-            cut_fifo = fifo[latest_amt::]
+            flat_list = [item for sublist in fifo for item in sublist]
 
-            suma = []
-            for i in cut_fifo:
-                for j in cut_fifo:
-                    for k in j:
-                        suma.append ( k )
+            print(latest_amt)
 
-            current.append ( (latest_sell * latest_amt) - (sum ( suma )) )
-            avg.append ( new_average ( buy_list ) )
+            cut_fifo = flat_list[latest_amt:]
+            ann_cut = flat_list[:latest_amt]
+            print(ann_cut)
+
+            products = []
+
+            for num1, num2 in zip ( sell_list, amt_sell_list ):
+                products.append ( num1 * num2 )
+
+            print(sum ( ann_cut ))
+
+            current.append ( sum ( products ) - (sum ( ann_cut )) )
+            print(sum ( products ) - (sum ( ann_cut )))
+            print(new_average ( cut_fifo ))
+            avg.append ( new_average ( cut_fifo ) )
 
 
     else:
@@ -350,7 +358,7 @@ def create_graph():
     amt_BTC, amt_LTC, amt_ETH, price_BTC, price_LTC, price_ETH, time_BTC, time_LTC, time_ETH = file_values_buy ()
     new_BTC, new_ETH, new_LTC, label_BTC, label_ETH, label_LTC = calc_new_avg ( new_avg_BTC, new_avg_LTC, new_avg_ETH,
                                                                                 label_btc, label_eth, label_ltc )
-    amt_BTC_sell, amt_LTC_sell, amt_ETH_sell, price_BTC_sell, price_LTC_sell, price_ETH_sell, time_BTC_sell, time_LTC_sell, time_ETH_sell = file_values_sell ()
+    # amt_BTC_sell, amt_LTC_sell, amt_ETH_sell, price_BTC_sell, price_LTC_sell, price_ETH_sell, time_BTC_sell, time_LTC_sell, time_ETH_sell= file_values_sell()
 
     t.append ( time.strftime ( "%H:%M:%S", time.localtime () ) )
 
