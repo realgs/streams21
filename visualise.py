@@ -62,4 +62,3 @@ if __name__ == '__main__':
     # a = []
     # read_new_lines_from_json(a)
     window.mainloop()
-
