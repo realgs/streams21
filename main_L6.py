@@ -119,29 +119,21 @@ def after_sell(sell_list, amt_sell_list, buy_list, amt_buy_list):
 
         if sum ( amt_buy_list ) >= sum ( amt_sell_list ):
 
-            latest_sell = sell_list[-1]
             latest_amt = amt_sell_list[-1]
             for num1, num2 in zip ( buy_list, amt_buy_list ):
                 fifo.append ( [num1] * num2 )
 
             flat_list = [item for sublist in fifo for item in sublist]
 
-            print(latest_amt)
-
             cut_fifo = flat_list[latest_amt:]
             ann_cut = flat_list[:latest_amt]
-            print(ann_cut)
 
             products = []
 
             for num1, num2 in zip ( sell_list, amt_sell_list ):
                 products.append ( num1 * num2 )
 
-            print(sum ( ann_cut ))
-
             current.append ( sum ( products ) - (sum ( ann_cut )) )
-            print(sum ( products ) - (sum ( ann_cut )))
-            print(new_average ( cut_fifo ))
             avg.append ( new_average ( cut_fifo ) )
 
 
