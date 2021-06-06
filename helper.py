@@ -1,5 +1,5 @@
 def helps(command):
-    command_list = ["exit", "reset", "profit", "price", "archive", "property", "send"]
+    command_list = ["exit", "reset", "profit", "price", "archive", "property", "send", "run", "stop"]
     if command not in command_list:
         print("There is no such command. Try again...")
         return

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import currency
 import datetime
 import requests
+import sys
 from user import current_profit_price
 from matplotlib import style
 from matplotlib.dates import DateFormatter
@@ -169,7 +170,10 @@ def show_multiple_pairs():
     global URLS, PAIRS, FREQUENCY, dict_of_ask_bid_lists, TITLE_TEMPLATE, MOVING_AVERAGE_LENGTH
 
     def update_data(number):
-        print(number)
+        with open("data/run.txt", "r") as f:
+            if f.read() == "False":
+                sys.exit()
+        # print(number)
         for i in range(len(PAIRS)):
             res = get_bid_ask(URLS[i], PAIRS[i], i)
 

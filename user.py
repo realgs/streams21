@@ -1,11 +1,28 @@
 import json
 import os
-import time
 import pprint
+import subprocess
+import time
 
 import sender
 import helper
 import archives
+
+
+def run():
+    check_if_files_exist()
+    run_file = open("data/run.txt", "w")
+    run_file.write("True")
+    run_file.close()
+    subprocess.Popen(["python", "visualize.py"])
+    time.sleep(3)
+
+
+def stop():
+    check_if_files_exist()
+    run_file = open("data/run.txt", "w")
+    run_file.write("False")
+    run_file.close()
 
 
 def reset():
@@ -15,8 +32,8 @@ def reset():
             os.remove("data/buy.json")
         if os.path.exists("data/profits_and_prices.json"):
             os.remove("data/profits_and_prices.json")
-            if os.path.exists("data/archives.json"):
-                os.remove("data/archives.json")
+        if os.path.exists("data/archives.json"):
+            os.remove("data/archives.json")
         # generate empty files
         check_if_files_exist()
         print("Done")
@@ -102,7 +119,7 @@ def buy(currency, quantity, price):
         archive_data = json.load(archive_file)
         archive_file.close()
         if currency not in archive_data.keys():
-            confirmation = input("This is the new currency in your wallet. \nAre you sure that it is typed correctly? "
+            confirmation = input("This is new currency in your wallet. \nAre you sure that it is typed correctly? "
                                  "[y/N]: ")
         else:
             confirmation = "y"
@@ -186,23 +203,32 @@ def check_if_files_exist():
     profit_file.close()
 
     try:
-        profit_file = open("data/archives.json", "r")
+        archive_file = open("data/archives.json", "r")
     except FileNotFoundError:
-        profit_file = open("data/archives.json", "a+")
-        json.dump(to_write, profit_file)
-    profit_file.close()
+        archive_file = open("data/archives.json", "a+")
+        json.dump(to_write, archive_file)
+    archive_file.close()
+
+    try:
+        run_file = open("data/run.txt", "r")
+    except FileNotFoundError:
+        run_file = open("data/run.txt", "a+")
+        run_file.write("True")
+    run_file.close()
 
 
 def main():
     check_if_files_exist()
     while True:
         user_command = input(">> ").split()
+        if not user_command:
+            continue
 
         """additional commands"""
         if len(user_command) == 1 and user_command[0] == "help":
             print("Enter the command according to the template:")
             print("<buy/sell> <currency pair> <quantity> <price>")
-            print("\nAdditionally: exit, reset, profit, price, archive, property, send")
+            print("\nAdditionally: exit, reset, profit, price, archive, property, send, run, stop")
             print("Type 'help <command name>' to get more information about specific command")
             continue
 
@@ -212,11 +238,19 @@ def main():
 
         elif len(user_command) == 1 and user_command[0] == "exit":
             print("Bye!")
-            time.sleep(2)
+            stop()
             break
 
         elif len(user_command) == 1 and user_command[0] == "reset":
             reset()
+            continue
+
+        elif len(user_command) == 1 and user_command[0] == "run":
+            run()
+            continue
+
+        elif len(user_command) == 1 and user_command[0] == "stop":
+            stop()
             continue
 
         elif len(user_command) == 2 and user_command[0] == "profit":
