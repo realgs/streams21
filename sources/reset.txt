@@ -1,0 +1,1 @@
+This command deletes all collected data
