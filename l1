@@ -1,8 +1,0 @@
-1) Sforkować repozytorium na Wasze konto
-2) Przejść na Waszego forka
-3) Ściągnąć wasze repo na dysk i powiązać z repozytorium zdalnym (remote)
-4) Napisać sortowanie liczb w dwoma znanymi Wam metodami w Python. Starajcie się napisać funkcje w sposób zwarty, bez żadnych komentarzy czy śmieci w kodzie, w sposób optymalny, z użyciem najlepszych, znanych Wam struktur danych i metod przeglądania ich. Tworząc rozwiązania pracujcie z gitem- dodawajcie na stage, twórzcie commity. Pracujcie na branchu, stwórzcie na potrzeby zadania brancha i nazwijcie go np SortingMethods
-5) wypchnijcie zmiany lokalne na repo zdalne
-6) utwórzcie pull requesta z brancha SortingMethods do brancha master mojego repo (oryginalnego repo, z którego powstał fork) i nazwijcie go L1.
-
-(5pkt)
