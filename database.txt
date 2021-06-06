@@ -1,0 +1,1 @@
+{"average_OMG_json": 21.5, "average_BTC_json": 132500.0, "average_ETH_json": 9916.666666666666, "saldo_OMG_json": -122, "saldo_BTC_json": -34500, "saldo_ETH_json": 3450, "list_OMG_json": [21.0, 19.0, 22.0, 22.0, 22.0, 23.0], "list_BTC_json": [132500.0], "list_ETH_json": [9850.0, 9950.0, 9950.0]}
