@@ -1,0 +1,1 @@
+{"average_OMG_json": 0, "average_BTC_json": 5.0, "average_ETH_json": 5.0, "saldo_OMG_json": 10, "saldo_BTC_json": -5, "saldo_ETH_json": -5, "list_OMG_json": [], "list_BTC_json": [5.0], "list_ETH_json": [5.0]}

@@ -3,6 +3,7 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
+import json
 
 def get_data(crypt):
     url = "https://bitbay.net/API/Public/{Currency}/{Category}.json".format(Currency=crypt,
@@ -75,13 +76,19 @@ def data_stream(crypt, buy_list, sell_list, avg_buy_list, avg_sell_list, volume_
     rsi_buy_list.append(count_rsi(buy_list, START, STOP))
     rsi_sell_list.append(count_rsi(sell_list, START, STOP))
 
-    t.append(time.strftime("%H:%M:%S", time.localtime()))
+    current_time = time.strftime("%H:%M:%S", time.localtime())
+    t.append(current_time)
     f = open('trades/{crypt}.json'.format(crypt= crypt), 'a')
-    f.write(str(buy) + ' ' + str(sell) + '\n')
+    data = {current_time: (buy, sell)}
+    data = json.dumps(data)
+    f.write(data)
     f.close
 
     return buy_list, sell_list, avg_buy_list, avg_sell_list, volume_list, rsi_buy_list, rsi_sell_list, t
 
+
+def update_trades_line(currency:list):
+    
 
 def trend(rsi_list):
     rsi = rsi_list[-1]
