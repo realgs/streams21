@@ -112,7 +112,7 @@ def user_amount_and_profit(dict_, curr):
     buy, sell = [], []
 
     if dict_[curr]['buy'] == [] and dict_[curr]['sell'] == []:
-        return 0,0
+        return 0,0,0
 
     for i in range(len(dict_[curr]['buy'])):
         buy.append(dict_[curr]['buy'][i])
@@ -145,7 +145,7 @@ def user_amount_and_profit(dict_, curr):
                     buy_amount = 0
         return -1 * separate_tuples(sell)[0], -1 * separate_tuples(sell)[1], 0 #amount + loss +info
     
-    return 0, 0
+    return 0, 0, 0
     _
 def avg_list_of_tuples(list):
     if len(list) == 0:
@@ -161,7 +161,6 @@ def draw_plot(time_interval):
     fig, axs = draw_axes()
     buy, sell, buy_list, sell_list, avg_buy_list, avg_sell_list, rsi_buy_list, rsi_sell_list, user_average_list = [], [], [], [], [], [], [], [], []
     i = 0
-    # current_time = []
     user_data = []
     datas = {}
     while True:
@@ -182,12 +181,12 @@ def draw_plot(time_interval):
 
 
             amount, profit, info = user_amount_and_profit(datas, currency_type)
-            user_avg = profit / amount
-            # print(user_avg)
+            if amount != 0:
+                user_avg = profit / amount
+            else:
+                user_avg = 0
             user_average_list.append(user_avg)
-            # user_sell_avg = avg_list_of_tuples(datas[currency_type]['buy'])
-            # print(user_sell_avg)
-
+         
             data = get_data(currency_type)
             buy.append(data[0])
             sell.append(data[1])
@@ -219,16 +218,12 @@ def draw_plot(time_interval):
                 RSI_buy_value = [rsi_buy_list[-4], rsi_buy_list[-1]]
                 RSI_sell_value = [rsi_sell_list[-4], rsi_sell_list[-1]]
                 avg_user_sell_value = [user_average_list[-4], user_average_list[-1]]
-                # print(currency_type, user_average_list[-1], sell[-1])
-
+         
                 axs[0][a].plot(x, selling_cost, label="Selling cost", color='red')
                 axs[0][a].plot(x, purchase_cost, label="Purchase cost", color='yellow')
                 axs[0][a].plot(x, avg_buy_value, '--', label='Average Buy Cost', color='darkred')
                 axs[0][a].plot(x, avg_sell_value, '--', label='Average Sell Cost', color='#9B870C')
                 axs[0][a].plot(x, avg_user_sell_value, label = 'Average User Sell Cost', color = 'limegreen')
-                # axs[0][a].axhline()[-1].remove()
-                # axs[0][a].axhline(user_avg,color ='limegreen')
-
 
 
                 axs[1][a].plot(x, RSI_buy_value, label='RSI buy', color='lightgreen' )
@@ -239,7 +234,7 @@ def draw_plot(time_interval):
                     amount =0
                 else:
                     text = 'profit'
-                at2 = AnchoredText('User actual ' + text +' : ' + str(round(profit,2) ), loc='lower left', prop=dict(size=8), frameon=True, bbox_to_anchor=(0., 1.30), bbox_transform=axs[1][a].transAxes)
+                at2 = AnchoredText('User actual ' + text +' : ' + str(round(abs(profit),2) ), loc='lower left', prop=dict(size=8), frameon=True, bbox_to_anchor=(0., 1.30), bbox_transform=axs[1][a].transAxes)
                 at2.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
                 axs[1][a].add_artist(at2)
 
