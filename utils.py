@@ -13,9 +13,9 @@ def calculate_percent_diff(maxi, mini):
         return 0
 
 
-def clear_older_data(*lists_to_clear, trigger_list, treshold):
+def clear_older_data(*lists_to_clear, trigger_list, threshold):
 
-    if len(trigger_list) >= treshold:
+    if len(trigger_list) >= threshold:
 
         del trigger_list[0]
         for list_to_clear in lists_to_clear:
