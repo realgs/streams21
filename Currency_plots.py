@@ -28,6 +28,8 @@ S=1
 X=10
 Y=12
 
+plik={0:'domyślny_plik.json'}
+
 def download_data(currency,curr_category,url_beg,url_end): #c_currencies is a list
     url=url_beg+currency+curr_category+url_end
     status=requests.get(url).status_code
@@ -119,17 +121,17 @@ def x_data(data):
     data=x_range_plot(data)
     return data
 
-def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,średnia_kupna_ETH,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH):
+def buy_sell(Currencies,Currency_category,srednia_kupna_BTC,srednia_kupna_LTC,srednia_kupna_ETH,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH):
     # Currencies = ['BCC', 'LTC', 'ETH']
     # Currency_category = 'PLN'
     kupno = []
-    sprzedaż = []
+    sprzedaz = []
     kupno_BTC = []
     kupno_LTC = []
     kupno_ETH = []
-    sprzedaż_BTC = []
-    sprzedaż_LTC = []
-    sprzedaż_ETH = []
+    sprzedaz_BTC = []
+    sprzedaz_LTC = []
+    sprzedaz_ETH = []
     suma_BTC = {0: 0}
     suma_LTC = {0: 0}
     suma_ETH = {0: 0}
@@ -143,7 +145,7 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
     sprzedane=['-']
 
     master = Tk()
-    master.title("Kupno/sprzedaż")
+    master.title("Kupno i sprzedaż")
     w = 900
     h = 200
     my_w = 1366
@@ -198,20 +200,22 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
     W_sell = OptionMenu(master, variable_sell, *choices_sell).grid(row=6, column=1)
 
     def pobierz_dane(plik,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,W_buy,W_sell):
-        średnia_kupna_BTC[0]=0
-        średnia_kupna_LTC[0]=0
-        średnia_kupna_ETH[0]=0
+        if E.get()!='':
+            plik=E.get()
+        srednia_kupna_BTC[0]=0
+        srednia_kupna_LTC[0]=0
+        srednia_kupna_ETH[0]=0
         zysk_strata_BTC[0]=0
         zysk_strata_LTC[0]=0
         zysk_strata_ETH[0]=0
         kupno = []
-        sprzedaż = []
+        sprzedaz = []
         kupno_BTC = []
         kupno_LTC = []
         kupno_ETH = []
-        sprzedaż_BTC = []
-        sprzedaż_LTC = []
-        sprzedaż_ETH = []
+        sprzedaz_BTC = []
+        sprzedaz_LTC = []
+        sprzedaz_ETH = []
         suma_BTC = {0: 0}
         suma_LTC = {0: 0}
         suma_ETH = {0: 0}
@@ -246,23 +250,23 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
                             suma_ETH[0] += float(data[p - 3])
                             kupno_ETH.append([data[p - 3], data[p - 2]])
                     if data[p] == 'S':
-                        sprzedaż.append(data[p - 3])
-                        sprzedaż.append(data[p - 2])
-                        sprzedaż.append(data[p - 1])
-                        sprzedaż.append(data[p])
+                        sprzedaz.append(data[p - 3])
+                        sprzedaz.append(data[p - 2])
+                        sprzedaz.append(data[p - 1])
+                        sprzedaz.append(data[p])
                         sprzedane.append(f'Sprzedano {data[p - 3]} {data[p - 1]} po {data[p - 2]} za jednostkę')
                         if data[p - 1] == Currencies[0]:
-                            sprzedaż_BTC.append([data[p - 3], data[p - 2]])
+                            sprzedaz_BTC.append([data[p - 3], data[p - 2]])
                         if data[p - 1] == Currencies[1]:
-                            sprzedaż_LTC.append([data[p - 3], data[p - 2]])
+                            sprzedaz_LTC.append([data[p - 3], data[p - 2]])
                         if data[p - 1] == Currencies[2]:
-                            sprzedaż_ETH.append([data[p - 3], data[p - 2]])
+                            sprzedaz_ETH.append([data[p - 3], data[p - 2]])
 
-        if len(sprzedaż_BTC)>=1:
-            for i in range(len(sprzedaż_BTC)):
-                zysk_strata_BTC[0]+=(float(sprzedaż_BTC[i][0])*float(sprzedaż_BTC[i][1]))
-                suma_BTC[0]-=float(sprzedaż_BTC[i][0])
-                suma_sell_BTC+=float(sprzedaż_BTC[i][0])
+        if len(sprzedaz_BTC)>=1:
+            for i in range(len(sprzedaz_BTC)):
+                zysk_strata_BTC[0]+=(float(sprzedaz_BTC[i][0])*float(sprzedaz_BTC[i][1]))
+                suma_BTC[0]-=float(sprzedaz_BTC[i][0])
+                suma_sell_BTC+=float(sprzedaz_BTC[i][0])
             id_BTC=[]
             for i in range(len(kupno_BTC)):
                 if float(kupno_BTC[i][0])<=suma_sell_BTC:
@@ -280,19 +284,19 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
                 kupno_BTC.pop(d)
 
         if len(kupno_BTC) == 0:
-            średnia_kupna_BTC[0] = 0
+            srednia_kupna_BTC[0] = 0
             s_BTC = {0: 0}
         else:
             for i in range(len(kupno_BTC)):
-                średnia_kupna_BTC[0] += (float(kupno_BTC[i][0]) * float(kupno_BTC[i][1]))
-            s_BTC = {0: średnia_kupna_BTC[0]}
-            średnia_kupna_BTC[0] = średnia_kupna_BTC[0] / suma_BTC[0]
+                srednia_kupna_BTC[0] += (float(kupno_BTC[i][0]) * float(kupno_BTC[i][1]))
+            s_BTC = {0: srednia_kupna_BTC[0]}
+            srednia_kupna_BTC[0] = srednia_kupna_BTC[0] / suma_BTC[0]
 
-        if len(sprzedaż_LTC)>=1:
-            for i in range(len(sprzedaż_LTC)):
-                zysk_strata_LTC[0]+=(float(sprzedaż_LTC[i][0])*float(sprzedaż_LTC[i][1]))
-                suma_LTC[0] -= float(sprzedaż_LTC[i][0])
-                suma_sell_LTC+=float(sprzedaż_LTC[i][0])
+        if len(sprzedaz_LTC)>=1:
+            for i in range(len(sprzedaz_LTC)):
+                zysk_strata_LTC[0]+=(float(sprzedaz_LTC[i][0])*float(sprzedaz_LTC[i][1]))
+                suma_LTC[0] -= float(sprzedaz_LTC[i][0])
+                suma_sell_LTC+=float(sprzedaz_LTC[i][0])
             id_LTC=[]
             for i in range(len(kupno_LTC)):
                 if float(kupno_LTC[i][0])<=suma_sell_LTC:
@@ -311,18 +315,18 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
 
         if len(kupno_LTC) == 0:
             s_LTC = {0: 0}
-            średnia_kupna_LTC[0] = 0
+            srednia_kupna_LTC[0] = 0
         else:
             for j in range(len(kupno_LTC)):
-                średnia_kupna_LTC[0] += (float(kupno_LTC[j][0]) * float(kupno_LTC[j][1]))
-            s_LTC = {0: średnia_kupna_LTC[0]}
-            średnia_kupna_LTC[0] = średnia_kupna_LTC[0] / suma_LTC[0]
+                srednia_kupna_LTC[0] += (float(kupno_LTC[j][0]) * float(kupno_LTC[j][1]))
+            s_LTC = {0: srednia_kupna_LTC[0]}
+            srednia_kupna_LTC[0] = srednia_kupna_LTC[0] / suma_LTC[0]
 
-        if len(sprzedaż_ETH)>=1:
-            for i in range(len(sprzedaż_ETH)):
-                zysk_strata_ETH[0]+=(float(sprzedaż_ETH[i][0])*float(sprzedaż_ETH[i][1]))
-                suma_ETH[0] -= float(sprzedaż_ETH[i][0])
-                suma_sell_ETH+=float(sprzedaż_ETH[i][0])
+        if len(sprzedaz_ETH)>=1:
+            for i in range(len(sprzedaz_ETH)):
+                zysk_strata_ETH[0]+=(float(sprzedaz_ETH[i][0])*float(sprzedaz_ETH[i][1]))
+                suma_ETH[0] -= float(sprzedaz_ETH[i][0])
+                suma_sell_ETH+=float(sprzedaz_ETH[i][0])
             id_ETH=[]
             for i in range(len(kupno_ETH)):
                 if float(kupno_ETH[i][0])<=suma_sell_ETH:
@@ -341,16 +345,18 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
 
         if len(kupno_ETH) == 0:
             s_ETH = {0: 0}
-            średnia_kupna_ETH[0] = 0
+            srednia_kupna_ETH[0] = 0
         else:
             for g in range(len(kupno_ETH)):
-                średnia_kupna_ETH[0] += (float(kupno_ETH[g][0]) * float(kupno_ETH[g][1]))
-            s_ETH = {0: średnia_kupna_ETH[0]}
-            średnia_kupna_ETH[0] = średnia_kupna_ETH[0] / suma_ETH[0]
+                srednia_kupna_ETH[0] += (float(kupno_ETH[g][0]) * float(kupno_ETH[g][1]))
+            s_ETH = {0: srednia_kupna_ETH[0]}
+            srednia_kupna_ETH[0] = srednia_kupna_ETH[0] / suma_ETH[0]
         W_buy = OptionMenu(master, variable_buy, *kupione).grid(row=5, column=1)
         W_sell = OptionMenu(master, variable_sell, *sprzedane).grid(row=6, column=1)
 
-    def kup(średnia_kupna_BTC, średnia_kupna_LTC, średnia_kupna_ETH, s_BTC, s_LTC, s_ETH, suma_BTC, suma_LTC, suma_ETH,plik,W_buy):
+    def kup(srednia_kupna_BTC, srednia_kupna_LTC, srednia_kupna_ETH, s_BTC, s_LTC, s_ETH, suma_BTC, suma_LTC, suma_ETH,plik,W_buy):
+        if E.get() != '':
+            plik = E.get()
         with open(plik) as json_file:
             d = json.load(json_file)
             list = []
@@ -375,25 +381,27 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
                 kupno_BTC.append([q, p])
                 suma_BTC[0] += float(q)
                 s_BTC[0] += (float(q) * float(p))
-                średnia_kupna_BTC[0] = s_BTC[0]
-                średnia_kupna_BTC[0] /= suma_BTC[0]
+                srednia_kupna_BTC[0] = s_BTC[0]
+                srednia_kupna_BTC[0] /= suma_BTC[0]
             if v == choices[1]:
                 kupno_LTC.append([q, p])
                 suma_LTC[0] += float(q)
                 s_LTC[0] += (float(q) * float(p))
-                średnia_kupna_LTC[0] = s_LTC[0]
-                średnia_kupna_LTC[0] /= suma_LTC[0]
+                srednia_kupna_LTC[0] = s_LTC[0]
+                srednia_kupna_LTC[0] /= suma_LTC[0]
             if v == choices[2]:
                 kupno_ETH.append([q, p])
                 suma_ETH[0] += float(q)
                 s_ETH[0] += (float(q) * float(p))
-                średnia_kupna_ETH[0] = s_ETH[0]
-                średnia_kupna_ETH[0] /= suma_ETH[0]
+                srednia_kupna_ETH[0] = s_ETH[0]
+                srednia_kupna_ETH[0] /= suma_ETH[0]
         W_buy = OptionMenu(master, variable_buy, *choices_buy).grid(row=5, column=1)
 
 
 
-    def sprzedaj(plik,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,średnia_kupna_BTC, średnia_kupna_LTC, średnia_kupna_ETH, s_BTC, s_LTC, s_ETH, suma_BTC, suma_LTC, suma_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,kupno_BTC,kupno_LTC,kupno_ETH,W_sell):
+    def sprzedaj(plik,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,srednia_kupna_BTC, srednia_kupna_LTC, srednia_kupna_ETH, s_BTC, s_LTC, s_ETH, suma_BTC, suma_LTC, suma_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,kupno_BTC,kupno_LTC,kupno_ETH,W_sell):
+        if E.get() != '':
+            plik = E.get()
         with open(plik) as json_file:
             d = json.load(json_file)
             list = []
@@ -406,10 +414,10 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
             list.append(p)
             list.append(v)
             list.append('S')
-            sprzedaż.append(q)
-            sprzedaż.append(p)
-            sprzedaż.append(v)
-            sprzedaż.append('S')
+            sprzedaz.append(q)
+            sprzedaz.append(p)
+            sprzedaz.append(v)
+            sprzedaz.append('S')
             sprzedane.append(f'Sprzedano {q} {v} po {p} za jednostkę')
             if v == choices[0]:
                 if int(q)>suma_BTC[0]:
@@ -434,13 +442,13 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
                     kupno_BTC.pop(d)
                 if len(kupno_BTC) == 0:
                     s_BTC[0] =0
-                    średnia_kupna_BTC[0] = 0
+                    srednia_kupna_BTC[0] = 0
                 else:
-                    średnia_kupna_BTC[0] = 0
+                    srednia_kupna_BTC[0] = 0
                     for i in range(len(kupno_BTC)):
-                        średnia_kupna_BTC[0] += (float(kupno_BTC[i][0]) * float(kupno_BTC[i][1]))
-                    s_BTC[0]=średnia_kupna_BTC[0]
-                    średnia_kupna_BTC[0] = średnia_kupna_BTC[0] / suma_BTC[0]
+                        srednia_kupna_BTC[0] += (float(kupno_BTC[i][0]) * float(kupno_BTC[i][1]))
+                    s_BTC[0]=srednia_kupna_BTC[0]
+                    srednia_kupna_BTC[0] = srednia_kupna_BTC[0] / suma_BTC[0]
 
             if v == choices[1]:
                 if int(q)>suma_LTC[0]:
@@ -468,14 +476,13 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
 
             if len(kupno_LTC) == 0:
                 s_LTC[0]=0
-                średnia_kupna_LTC[0] = 0
+                srednia_kupna_LTC[0] = 0
             else:
-                print(kupno_LTC)
-                średnia_kupna_LTC[0]=0
+                srednia_kupna_LTC[0]=0
                 for j in range(len(kupno_LTC)):
-                    średnia_kupna_LTC[0] += (float(kupno_LTC[j][0]) * float(kupno_LTC[j][1]))
-                s_LTC[0] = średnia_kupna_LTC[0]
-                średnia_kupna_LTC[0] = średnia_kupna_LTC[0] / suma_LTC[0]
+                    srednia_kupna_LTC[0] += (float(kupno_LTC[j][0]) * float(kupno_LTC[j][1]))
+                s_LTC[0] = srednia_kupna_LTC[0]
+                srednia_kupna_LTC[0] = srednia_kupna_LTC[0] / suma_LTC[0]
 
 
             if v == choices[2]:
@@ -504,13 +511,13 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
 
             if len(kupno_ETH) == 0:
                 s_ETH[0]=0
-                średnia_kupna_ETH[0] = 0
+                srednia_kupna_ETH[0] = 0
             else:
-                średnia_kupna_ETH[0]=0
+                srednia_kupna_ETH[0]=0
                 for g in range(len(kupno_ETH)):
-                    średnia_kupna_ETH[0] += (float(kupno_ETH[g][0]) * float(kupno_ETH[g][1]))
-                s_ETH[0] = średnia_kupna_ETH[0]
-                średnia_kupna_ETH[0] = średnia_kupna_ETH[0] / suma_ETH[0]
+                    srednia_kupna_ETH[0] += (float(kupno_ETH[g][0]) * float(kupno_ETH[g][1]))
+                s_ETH[0] = srednia_kupna_ETH[0]
+                śsrednia_kupna_ETH[0] = srednia_kupna_ETH[0] / suma_ETH[0]
         with open(plik, 'w') as outfile:
             json.dump(list, outfile)
 
@@ -518,11 +525,11 @@ def buy_sell(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,
 
 
     B1 = Button(master, text="Kupiono",
-                command=lambda: kup(średnia_kupna_BTC, średnia_kupna_LTC, średnia_kupna_ETH, s_BTC, s_LTC, s_ETH,
-                                    suma_BTC, suma_LTC, suma_ETH,E.get(),W_buy)).grid(row=1, column=6)
-    B2 = Button(master, text="Sprzedano", command=lambda:sprzedaj(E.get(),zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,średnia_kupna_BTC,średnia_kupna_LTC, średnia_kupna_ETH, s_BTC, s_LTC, s_ETH, suma_BTC, suma_LTC, suma_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,kupno_BTC,kupno_LTC,kupno_ETH,W_sell)).grid(row=3, column=6)
+                command=lambda: kup(srednia_kupna_BTC, srednia_kupna_LTC, srednia_kupna_ETH, s_BTC, s_LTC, s_ETH,
+                                    suma_BTC, suma_LTC, suma_ETH,plik[0],W_buy)).grid(row=1, column=6)
+    B2 = Button(master, text="Sprzedano", command=lambda:sprzedaj(plik[0],zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,srednia_kupna_BTC,srednia_kupna_LTC, srednia_kupna_ETH, s_BTC, s_LTC, s_ETH, suma_BTC, suma_LTC, suma_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,kupno_BTC,kupno_LTC,kupno_ETH,W_sell)).grid(row=3, column=6)
 
-    B = Button(master, text="Pobierz dane", command=lambda:pobierz_dane(E.get(),zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,W_buy,W_sell)).grid(row=3, column=8)
+    B = Button(master, text="Pobierz dane", command=lambda:pobierz_dane(plik[0],zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH,suma_sell_BTC,suma_sell_LTC,suma_sell_ETH,W_buy,W_sell)).grid(row=3, column=8)
 
     master.mainloop()
 
@@ -545,10 +552,14 @@ def plot(data,y_data,volumes,window_mean,currency,axs,l,sell_mean,buy_mean,wzros
 
     axs_m = axs[0][l].twinx()
 
-    axs_m.plot(data, s, label='Sell mean ' + currency, alpha=0.5, ls='--',color='olive')
-    axs_m.set_ylabel('Buy mean', color='olive')
-    val_m = f'Zysk/strata: {win_loss[0]}'
-    axs_m.text(0.80, 0.95, val_m, horizontalalignment='center',
+    axs_m.plot(data, s, label=currency+'_buy_average', alpha=0.5, ls='--',color='olive')
+    axs_m.set_ylabel('Buy average', color='olive')
+    if float(win_loss[0])>=0:
+        sign='Zysk'
+    else:
+        sign='Strata'
+    val_m = f'{sign} {win_loss[0]}'
+    axs_m.text(0.95, 1.1, val_m, horizontalalignment='center',
                    verticalalignment='center', transform=axs_m.transAxes)
 
     axs[1][l].bar(data, volume,color='r',alpha=0.7)
@@ -572,7 +583,7 @@ def plot(data,y_data,volumes,window_mean,currency,axs,l,sell_mean,buy_mean,wzros
     axs[1][l].set_xticks((x))
     axs[1][l].set_xticklabels(x, rotation=45)
 
-    axs[0][l].legend(bbox_to_anchor=(0, 1.3), loc='center')
+    axs[0][l].legend(bbox_to_anchor=(0, 1.2), loc='center',prop={'size': 6})
 
     fig.tight_layout()
 
@@ -618,11 +629,10 @@ def increase_decrease_RSI(RSI_list,volume_list,axs,y_data):
         if RSI_list[i][-1]!=0:
             axs[1][i].text(0.5, 0.95, decisions[i], horizontalalignment='center',
                        verticalalignment='center', transform=axs[1][i].transAxes)
-            if volume_max:
-                if decisions[i]=='Trend wzrostowy' and round(sum(volume_list[i][-int(Volume_range/Time_sleep):]),3)==volume_max:
-                    s=spread(S,y_data[i])
-                    v=volatile_asset(X, Y,i)
-                    axs[0][i].set_title("Najlepszy kandydat \n"+s+'\n'+v)
+            if decisions[i]=='Trend wzrostowy' and round(sum(volume_list[i][-int(Volume_range/Time_sleep):]),3)==volume_max:
+                s=spread(S,y_data[i])
+                v=volatile_asset(X, Y,i)
+                axs[0][i].set_title("Najlepszy kandydat \n"+s+'\n'+v)
 
 def draw_plot(i):
     x_data_BCC_d,plt_BCC_d,BCC_volumes_d=plot_data(x_data_BCC,plt_BCC, BCC_volumes,0)
@@ -632,9 +642,9 @@ def draw_plot(i):
     gs = fig.add_gridspec(2, 3, hspace=0)
     axs = gs.subplots(sharex=True)
 
-    BCC_RSI,BCC_volume,BCC_plt=plot(x_data_BCC_d,plt_BCC_d,BCC_volumes_d, Window_mean, 'BCC',axs,0,sell_mean_BCC,buy_mean_BCC,wzrost_BCC,spadek_BCC,RSI_BCC,choice,changed_volumes_BCC,średnia_kupna_BTC,zysk_strata_BTC)
-    LTC_RSI,LTC_volume,LTC_plt=plot(x_data_LTC_d, plt_LTC_d, LTC_volumes_d, Window_mean, 'LTC',axs, 1,sell_mean_LTC,buy_mean_LTC,wzrost_LTC,spadek_LTC,RSI_LTC,choice,changed_volumes_LTC,średnia_kupna_LTC,zysk_strata_LTC)
-    ETH_RSI,ETH_volume,ETH_plt=plot(x_data_ETH_d, plt_ETH_d, ETH_volumes_d, Window_mean, 'ETH',axs, 2,sell_mean_ETH,buy_mean_ETH,wzrost_ETH,spadek_ETH,RSI_ETH,choice,changed_volumes_ETH,średnia_kupna_ETH,zysk_strata_ETH)
+    BCC_RSI,BCC_volume,BCC_plt=plot(x_data_BCC_d,plt_BCC_d,BCC_volumes_d, Window_mean, 'BCC',axs,0,sell_mean_BCC,buy_mean_BCC,wzrost_BCC,spadek_BCC,RSI_BCC,choice,changed_volumes_BCC,srednia_kupna_BTC,zysk_strata_BTC)
+    LTC_RSI,LTC_volume,LTC_plt=plot(x_data_LTC_d, plt_LTC_d, LTC_volumes_d, Window_mean, 'LTC',axs, 1,sell_mean_LTC,buy_mean_LTC,wzrost_LTC,spadek_LTC,RSI_LTC,choice,changed_volumes_LTC,srednia_kupna_LTC,zysk_strata_LTC)
+    ETH_RSI,ETH_volume,ETH_plt=plot(x_data_ETH_d, plt_ETH_d, ETH_volumes_d, Window_mean, 'ETH',axs, 2,sell_mean_ETH,buy_mean_ETH,wzrost_ETH,spadek_ETH,RSI_ETH,choice,changed_volumes_ETH,srednia_kupna_ETH,zysk_strata_ETH)
 
     increase_decrease_RSI([BCC_RSI,LTC_RSI,ETH_RSI],[BCC_volume,LTC_volume,ETH_volume],axs,[BCC_plt,LTC_plt,ETH_plt])
 
@@ -653,14 +663,14 @@ if __name__=="__main__":
     changed_volumes_BCC=[];changed_volumes_LTC=[];changed_volumes_ETH=[]
     fig = plt.figure()
     choice='RSI and volume'
-    średnia_kupna_BTC = {0: 0}
-    średnia_kupna_LTC = {0: 0}
-    średnia_kupna_ETH = {0: 0}
+    srednia_kupna_BTC = {0: 0}
+    srednia_kupna_LTC = {0: 0}
+    srednia_kupna_ETH = {0: 0}
     zysk_strata_BTC={0:0}
     zysk_strata_LTC={0:0}
     zysk_strata_ETH={0:0}
     T_animation=animation(fig,draw_plot,interval=1000*Time_sleep)
-    th = threading.Thread(target=buy_sell, args=(Currencies,Currency_category,średnia_kupna_BTC,średnia_kupna_LTC,średnia_kupna_ETH,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH))
+    th = threading.Thread(target=buy_sell, args=(Currencies,Currency_category,srednia_kupna_BTC,srednia_kupna_LTC,srednia_kupna_ETH,zysk_strata_BTC,zysk_strata_LTC,zysk_strata_ETH))
     th.start()
 
     plt.show()
