@@ -227,12 +227,6 @@ def user_fifo_average(currency, buy_dict, sell_dict, buy_amount, buy_price, sell
     return fifo_average
 
 
-def suma(lista, n):
-    lista2 = list(dict.fromkeys(lista))
-    suma = sum(lista2[n:])
-    return suma
-
-
 def calculate_user_profit(currency, buy_dict, sell_dict, buy_amount, buy_price, sell_amount, sell_price):
     value_list_buy = []
     value_list_sell = []
@@ -243,8 +237,8 @@ def calculate_user_profit(currency, buy_dict, sell_dict, buy_amount, buy_price, 
         for j in sell_dict[currency]:
             value_list_sell.append(j)
     n = len(value_list_buy)
-    buy_sum = suma(value_list_buy, n)
-    sell_sum = suma(value_list_buy, 0)
+    buy_sum = sum(value_list_buy[n:])
+    sell_sum = sum(value_list_sell)
     profit = sell_sum - buy_sum
     return profit
 
