@@ -154,13 +154,72 @@ def choose_row_for_sale():
             print(err)
 
 
+def bid_price(curr):
+    data = pd.read_csv('data.csv')
+    ask = [0, 2]
+    if curr == 1:
+        ask = data['bid_cur1']
+    elif curr == 2:
+        ask = data['bid_cur2']
+    elif curr == 3:
+        ask = data['bid_cur3']
+    min_ask = min(ask)
+    min_final = min_ask  # - 0.1*min_ask
+
+    max_ask = max(ask)
+    max_final = max_ask  # + 0.1*max_ask
+    message = f'Type bid price beetwen {min_final} and {max_final}: '
+    print(message)
+    while True:
+        try:
+            number = float(input("Type number: "))
+            if min_final <= number <= max_final:
+                return number
+            else:
+                print('\nInvalid number')
+                print(message)
+        except Exception as err:
+            print(err)
+            print(message)
+
+
+def count_profit(row, profit):
+    total_ask = float(row[1]) * float(row[2])
+    price = bid_price(int(row[0]))
+    total_bid = float(row[1]) * price
+    profit[int(row[0])-1] += total_bid - total_ask
+
+
+
+def write_profit(profit):
+    fieldnames = ['prof1', 'prof2', 'prof3']
+
+    with open('profit.csv', 'w') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        csv_writer.writeheader()
+
+        info = {
+            'prof1': profit[0],
+            'prof2': profit[1],
+            'prof3': profit[2]
+        }
+
+        csv_writer.writerow(info)
+
+
 if __name__ == '__main__':
+
+
     path_file = 'user_input.csv'
     print('Use historic input data?')
     if decision():
         mode = 'a+'
+        data_profit = pd.read_csv('profit.csv')
+        profit = [data_profit['prof1'], data_profit['prof2'], data_profit['prof3']]
     else:
         mode = 'w'
+        profit = [0, 0, 0]
     while True:
         current_time = get_time()
         print(f'Pass data in current time? \n{current_time[1]}')
@@ -171,3 +230,5 @@ if __name__ == '__main__':
         if decision():
             row_for_sale = choose_row_for_sale()
             sold_row = delete_row(row_for_sale)
+            count_profit(sold_row, profit)
+            write_profit(profit)

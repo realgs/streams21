@@ -64,7 +64,7 @@ def open_user_input_data():
     with open('user_input.csv', newline='') as f:
         reader = csv.reader(f)
         data = list(reader)
-    data.append([-1, -1, -1 ])
+    data.append([-1, -1, -1])
 
     cur1 = []
     cur2 = []
@@ -112,7 +112,6 @@ def animate(i):
     ax5.plot(x, bid_cur3, label=f'Bid')
     ax5.plot(x, ask_cur3, label=f'Ask')
 
-
     if show_average:
         # prepare data for average, plot averaeg
         sliced_data = data[int(len_data/3):]
@@ -153,7 +152,6 @@ def animate(i):
     ax5v.set_ylim([min(vol3)-1/10*(max(vol3)-min(vol3)), (max(vol3)-min(vol3))*3 + min(vol3)])
     ax5v.yaxis.tick_right()
     ax5v.fill_between(x, vol3, alpha=0.4)
-
 
     for ax in (ax1, ax3, ax5):
         ax.legend(loc="upper left")
@@ -245,12 +243,20 @@ def animate(i):
                       f'\nVolatile asset: {volatiletext}' \
                       f'\nLiquid asset: {spreadtext}'
 
+    profit = list()
+    with open('profit.csv', 'r') as readFile:
+        reader = csv.reader(readFile)
+        for row in reader:
+            profit.append(row)
+    profit.pop(0)
+    print(profit)
+
     ax2.set_title(f'VOLUMEN {currencies[0]} {candtext[0]}')
     ax4.set_title(f'VOLUMEN {currencies[1]} {candtext[1]}')
     ax6.set_title(f'VOLUMEN {currencies[2]} {candtext[2]}')
-    ax2.set_xlabel(f'Volume: {lastv1} \n RSI: {round(rs1, 2)} \n TREND: {trend1}')
-    ax4.set_xlabel(f'Volume {lastv2} \n RSI: {round(rs2, 2)} \n TREND: {trend2}')
-    ax6.set_xlabel(f'Volume {lastv3} \n RSI: {round(rs3, 2)} \n TREND: {trend3}')
+    ax2.set_xlabel(f'Volume: {lastv1} \n RSI: {round(rs1, 2)} \n TREND: {trend1} \n PROFIT: {round(float(profit[0][0]), 2)}')
+    ax4.set_xlabel(f'Volume {lastv2} \n RSI: {round(rs2, 2)} \n TREND: {trend2} \n PROFIT: {round(float(profit[0][1]), 2)}')
+    ax6.set_xlabel(f'Volume {lastv3} \n RSI: {round(rs3, 2)} \n TREND: {trend3} \n PROFIT: {round(float(profit[0][2]), 2)}')
 
     for ax in (ax2, ax4, ax6):
         plt.sca(ax)
@@ -326,4 +332,3 @@ if __name__ == '__main__':
     anim = FuncAnimation(plt.gcf(), animate, interval=1000)
 
     plt.show()
-
