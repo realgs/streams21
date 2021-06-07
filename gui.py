@@ -1,25 +1,16 @@
 import time
 import json
+import copy
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from matplotlib.animation import FuncAnimation
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from api import *
 from calc import *
 
-
-matplotlib.use('TkAgg')
-plt.style.use('Solarize_Light2')
-fig = plt.figure()
-
-time_samples, data_storage, avg_storage, rsi_storage, vol_storage, askbid_storage, trans_storage \
-    = ([] for _ in range(7))
-
-curr_avg_prices = [None]*3
-curr_balance = [0]*3
 
 class CryptoApp(tk.Tk):
 
@@ -137,7 +128,7 @@ class WalletPage(tk.Frame):
             temp = 0
             for transaction in queue:
                 temp += transaction[1]
-            curr_avg_prices[num] = temp / len(queue)
+            curr_avg_prices[num] = round((temp / len(queue)), 2)
 
         def calculate_curr_balance(amount, price, queue, num):
 
@@ -166,26 +157,44 @@ class WalletPage(tk.Frame):
                     transaction[0] -= amount_sold
                     break
 
-            queue = list(filter(lambda trans: trans[0] != 0, queue))
+            temp = copy.deepcopy(queue)
+            temp = list(filter(lambda t: t[0] != 0, temp))
+            queue.clear()
+            queue.extend(temp)
 
         def save_to_json():
 
             trans_list = [queue_first_curr, queue_sec_curr, queue_third_curr]
-            data = {}
-            for curr in PAIRS:
-                data[f'{curr[0]}'] = {}
-                print(data)
-                for index_elem in range(len(data)):
-                    data[f'{curr[0]}']['balance'] = curr_balance[index_elem]
-                    data[f'{curr[0]}']['transactions'] = trans_list[index_elem]
 
-            now = datetime.now().strftime("%Y%m%d-%H%M%S")
-            with open(f'{now}.txt', 'w') as outfile:
+            data = {}
+            for curr_pair in range(3):
+                data[f'{PAIRS[curr_pair][0]}'] = {}
+                data[f'{PAIRS[curr_pair][0]}']['balance'] = curr_balance[curr_pair]
+                data[f'{PAIRS[curr_pair][0]}']['avgprice'] = curr_avg_prices[curr_pair]
+                data[f'{PAIRS[curr_pair][0]}']['transactions'] = trans_list[curr_pair]
+
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            with open(f'{timestamp}.txt', 'w') as outfile:
                 json.dump(data, outfile)
 
-        def read_json():
-            pass
+        def read_from_json(first_queue, sec_queue, third_queue):
 
+            filename = filedialog.askopenfilename(title='Select your wallet file',
+                                                  initialdir=Path.cwd(),
+                                                  filetypes=(('Text files', '*.txt'),
+                                                             ('All files', '*.*')))
+            with open(filename, "r") as wallet_file:
+                prev_data = json.load(wallet_file)
+
+            temp = []
+            for curr_pair in range(3):
+                curr_balance[curr_pair] = prev_data[f'{PAIRS[curr_pair][0]}']['balance']
+                curr_avg_prices[curr_pair] = prev_data[f'{PAIRS[curr_pair][0]}']['avgprice']
+                temp.append(prev_data[f'{PAIRS[curr_pair][0]}']['transactions'])
+
+            first_queue, sec_queue, third_queue = temp[0], temp[1], temp[2]
+
+        #  wallet layout
         title = tk.Label(self, text='My Wallet', font=('Tahoma', 14, 'bold'))
         title.grid(row=0, column=1, columnspan=4, sticky='ew')
 
@@ -199,8 +208,8 @@ class WalletPage(tk.Frame):
         label_amount_s = tk.Label(self, text='Amount')
         label_price_s = tk.Label(self, text='Price')
         label_amount_b.grid(row=3, column=1)
-        label_amount_s.grid(row=3, column=3)
         label_price_b.grid(row=3, column=2)
+        label_amount_s.grid(row=3, column=3)
         label_price_s.grid(row=3, column=4)
 
         # 1
@@ -211,11 +220,10 @@ class WalletPage(tk.Frame):
 
         entry_curr_one_amount_b = tk.Entry(self)
         entry_curr_one_price_b = tk.Entry(self)
-        entry_curr_one_amount_b.grid(row=5, column=1, padx=10)
-        entry_curr_one_price_b.grid(row=5, column=2)
-
         entry_curr_one_amount_s = tk.Entry(self)
         entry_curr_one_price_s = tk.Entry(self)
+        entry_curr_one_amount_b.grid(row=5, column=1, padx=10)
+        entry_curr_one_price_b.grid(row=5, column=2)
         entry_curr_one_amount_s.grid(row=5, column=3, padx=10)
         entry_curr_one_price_s.grid(row=5, column=4)
 
@@ -240,11 +248,10 @@ class WalletPage(tk.Frame):
 
         entry_curr_two_amount_b = tk.Entry(self)
         entry_curr_two_price_b = tk.Entry(self)
-        entry_curr_two_amount_b.grid(row=8, column=1)
-        entry_curr_two_price_b.grid(row=8, column=2)
-
         entry_curr_two_amount_s = tk.Entry(self)
         entry_curr_two_price_s = tk.Entry(self)
+        entry_curr_two_amount_b.grid(row=8, column=1)
+        entry_curr_two_price_b.grid(row=8, column=2)
         entry_curr_two_amount_s.grid(row=8, column=3)
         entry_curr_two_price_s.grid(row=8, column=4)
 
@@ -269,11 +276,10 @@ class WalletPage(tk.Frame):
 
         entry_curr_three_amount_b = tk.Entry(self)
         entry_curr_three_price_b = tk.Entry(self)
-        entry_curr_three_amount_b.grid(row=11, column=1)
-        entry_curr_three_price_b.grid(row=11, column=2)
-
         entry_curr_three_amount_s = tk.Entry(self)
         entry_curr_three_price_s = tk.Entry(self)
+        entry_curr_three_amount_b.grid(row=11, column=1)
+        entry_curr_three_price_b.grid(row=11, column=2)
         entry_curr_three_amount_s.grid(row=11, column=3)
         entry_curr_three_price_s.grid(row=11, column=4)
 
@@ -296,7 +302,10 @@ class WalletPage(tk.Frame):
                                       command=save_to_json)
         button_save_json.grid(row=13, column=1, columnspan=2, ipady=10, pady=30)
 
-        button_load_json = ttk.Button(self, text='Load from file', width=30)
+        button_load_json = ttk.Button(self, text='Load from file', width=30,
+                                      command=lambda: read_from_json(queue_first_curr,
+                                                                     queue_sec_curr,
+                                                                     queue_third_curr))
         button_load_json.grid(row=13, column=3, columnspan=2, ipady=10, pady=30)
 
         # nav
@@ -475,6 +484,16 @@ if __name__ == '__main__':
     downward_icon, upward_icon, question_icon, tp_volatile_icon, tp_liquid_icon \
         = get_icons('downward', 'upward', 'question', 'fire', 'liquidity')
     volatile_icon, liquid_icon = get_icons('fire', 'liquidity', transparent=False)
+
+    matplotlib.use('TkAgg')
+    plt.style.use('Solarize_Light2')
+    fig = plt.figure()
+
+    time_samples, data_storage, avg_storage, rsi_storage, vol_storage, askbid_storage, trans_storage \
+        = ([] for _ in range(7))
+
+    curr_avg_prices = [None] * 3
+    curr_balance = [0] * 3
 
     app = CryptoApp()
     app.state('zoomed')
