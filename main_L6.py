@@ -7,12 +7,6 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
 import json
 
-N = 20
-upper = 20
-lower = 1
-T = 5
-profit = []
-
 
 def connect(currency1, currency2):
     return f'https://bitbay.net/API/Public/{currency1}{currency2}/ticker.json'
@@ -116,31 +110,42 @@ def file_values_sell():
     return amt_BTC_sell, amt_LTC_sell, amt_ETH_sell, price_BTC_sell, price_LTC_sell, price_ETH_sell, time_BTC_sell, time_LTC_sell, time_ETH_sell
 
 
+def product(list1, list2, lista):
+    for num1, num2 in zip ( list1, list2 ):
+        lista.append ( [num1] * num2 )
+
+    return lista
+
+
+def flat_list(lista):
+    flat_list = [item for sublist in lista for item in sublist]
+
+    return flat_list
+
+
 def after_sell(sell_list, amt_sell_list, buy_list, amt_buy_list):
     avg = []
     current = []
     fifo = []
+    current_nosell = []
 
     if len ( sell_list ) != 0:
 
         if sum ( amt_buy_list ) >= sum ( amt_sell_list ):
-
             x = len ( amt_sell_list )
 
             latest_amt = amt_sell_list[-1]
-            for num1, num2 in zip ( buy_list, amt_buy_list ):
-                fifo.append ( [num1] * num2 )
 
-            flat_list = [item for sublist in fifo for item in sublist]
+            product ( buy_list, amt_buy_list, fifo )
+
+            flat = flat_list ( fifo )
 
             amt_sold = amt_sell_list[:(x - 1)]
             sum_sold = sum ( amt_sold )
 
-            del_sells = flat_list[sum_sold:]
+            del_sells = flat[sum_sold:]
             cut_fifo = del_sells[latest_amt:]
             ann_cut = del_sells[:latest_amt]
-
-            products = []
 
             part_profit = (latest_amt * sell_list[-1]) - (sum ( ann_cut ))
             current.append ( part_profit )
@@ -157,12 +162,12 @@ def after_sell(sell_list, amt_sell_list, buy_list, amt_buy_list):
 
             products = []
             avg.append ( new_average ( buy_list ) )
-            for num1, num2 in zip ( buy_list, amt_buy_list ):
-                products.append ( num1 * num2 )
+            result = product ( buy_list, amt_buy_list, products )
+            flat_result = flat_list ( result )
+            print(flat_result)
+            current_nosell.append ( (-1) * sum ( flat_result ) )
 
-            current.append ( (-1) * sum ( products ) )
-
-    return current, avg
+    return current, avg, current_nosell
 
 
 def new_average(list):
@@ -180,9 +185,9 @@ def calc_new_avg(new_avg_BTC, new_avg_LTC, new_avg_ETH, label_btc, label_eth, la
     amt_BTC, amt_LTC, amt_ETH, price_BTC, price_LTC, price_ETH, time_BTC, time_LTC, time_ETH = file_values_buy ()
     amt_BTC_sell, amt_LTC_sell, amt_ETH_sell, price_BTC_sell, price_LTC_sell, price_ETH_sell, time_BTC_sell, time_LTC_sell, time_ETH_sell = file_values_sell ()
 
-    cur1, avg1 = after_sell ( price_BTC_sell, amt_BTC_sell, price_BTC, amt_BTC )
-    cur2, avg2 = after_sell ( price_LTC_sell, amt_LTC_sell, price_LTC, amt_LTC )
-    cur3, avg3 = after_sell ( price_ETH_sell, amt_ETH_sell, price_ETH, amt_ETH )
+    cur1, avg1, ns1 = after_sell ( price_BTC_sell, amt_BTC_sell, price_BTC, amt_BTC )
+    cur2, avg2, ns2 = after_sell ( price_LTC_sell, amt_LTC_sell, price_LTC, amt_LTC )
+    cur3, avg3, ns3 = after_sell ( price_ETH_sell, amt_ETH_sell, price_ETH, amt_ETH )
 
     new_avg_BTC.append ( avg1 )
     new_avg_LTC.append ( avg2 )
@@ -192,7 +197,11 @@ def calc_new_avg(new_avg_BTC, new_avg_LTC, new_avg_ETH, label_btc, label_eth, la
     label_ltc.append ( cur2 )
     label_eth.append ( cur3 )
 
-    return new_avg_BTC, new_avg_ETH, new_avg_LTC, label_btc, label_eth, label_ltc
+    nosellBTC.append ( ns1 )
+    nosellLTC.append ( ns2 )
+    nosellETH.append ( ns3 )
+
+    return new_avg_BTC, new_avg_ETH, new_avg_LTC, label_btc, label_eth, label_ltc, nosellBTC, nosellLTC, nosellETH
 
 
 def get_values(currency1):
@@ -346,6 +355,44 @@ def set_title(candidate, buy_list, sell_list, X, Y, S):
     return l_title[0], l_title[1], l_title[2], v_title[0], v_title[1], v_title[2]
 
 
+def reduce_tics(t):
+    ticks = list ()
+
+    if len ( t ) > 3:
+        ticks.append ( t[0] )
+        middle = int ( len ( t ) / 2 )
+        middle1 = int ( middle / 2 )
+        middle2 = middle + middle1
+        ticks.append ( t[middle] )
+        ticks.append ( t[middle1] )
+        ticks.append ( t[middle2] )
+        ticks.append ( t[-1] )
+        return ticks
+
+    else:
+        ticks = t
+        return ticks
+
+
+def return_sum(label):
+    flat = flat_list ( label )
+    lista = list ( dict.fromkeys ( flat ) )
+    suma = sum ( lista )
+
+    return suma
+
+
+def title_profit(suma, currency):
+    if suma < 0:
+        title = f'Your loss on {currency} equals {suma}'
+    elif suma == 0:
+        title = 0
+    else:
+        title = f'Your gain on {currency} equals {suma}'
+
+    return title
+
+
 def create_graph():
     ask1, bid1, vol1, avg_ask1, avg_bid1, rsi_a1, rsi_b1 = combine_values ( currency1[0], ask_list1, bid_list1,
                                                                             volumen_list1, avg_ask_graph1,
@@ -358,10 +405,16 @@ def create_graph():
                                                                             avg_bid_graph3, rsi_ask3, rsi_bid3 )
 
     amt_BTC, amt_LTC, amt_ETH, price_BTC, price_LTC, price_ETH, time_BTC, time_LTC, time_ETH = file_values_buy ()
-    new_BTC, new_ETH, new_LTC, label_BTC, label_ETH, label_LTC = calc_new_avg ( new_avg_BTC, new_avg_LTC, new_avg_ETH,
-                                                                                label_btc, label_eth, label_ltc )
+    new_BTC, new_ETH, new_LTC, label_BTC, label_ETH, label_LTC, nosBTC, nosLTC, nosETH = calc_new_avg ( new_avg_BTC,
+                                                                                                        new_avg_LTC,
+                                                                                                        new_avg_ETH,
+                                                                                                        label_btc,
+                                                                                                        label_eth,
+                                                                                                        label_ltc )
+    amt_BTC_sell, amt_LTC_sell, amt_ETH_sell, price_BTC_sell, price_LTC_sell, price_ETH_sell, time_BTC_sell, time_LTC_sell, time_ETH_sell = file_values_sell ()
 
     t.append ( time.strftime ( "%H:%M:%S", time.localtime () ) )
+    ticks = reduce_tics ( t )
 
     trend_BTC = trend ( rsi_b1 )
     trend_LTC = trend ( rsi_b2 )
@@ -372,64 +425,27 @@ def create_graph():
     title1, title2, title3, title4, title5, title6 = set_title ( candidate, [ask1, ask2, ask3], [bid1, bid2, bid3], X,
                                                                  Y, S )
 
-    suma1 = []
-    suma2 = []
-    suma3 = []
-
-    for i in label_BTC:
-        for j in label_BTC:
-            for k in j:
-                suma1.append ( k )
-
-    for i in label_LTC:
-        for j in label_LTC:
-            for k in j:
-                suma2.append ( k )
-
-    for i in label_ETH:
-        for j in label_ETH:
-            for k in j:
-                suma3.append ( k )
-
-    sumaBTC = sum ( suma1 )
-    sumaLTC = sum ( suma2 )
-    sumaETH = sum ( suma3 )
-
-    if sumaBTC < 0:
-        title1_words = f'Your loss on BTC equals {sumaBTC}'
-    elif sumaBTC == 0:
-        title1_words = 0
-    else:
-        title1_words = f'Your gain on BTC equals {sumaBTC}'
-
-    if sumaLTC < 0:
-        title2_words = f'Your loss on BTC equals {sumaLTC}'
-    elif sumaLTC == 0:
-        title2_words = 0
-    else:
-        title2_words = f'Your gain on BTC equals {sumaLTC}'
-
-    if sumaETH < 0:
-        title3_words = f'Your loss on BTC equals {sumaETH}'
-    elif sumaETH == 0:
-        title3_words = 0
-    else:
-        title3_words = f'Your gain on BTC equals {sumaETH}'
-
-    ticks = list ()
-
-    if len ( t ) > 3:
-        ticks.append ( t[0] )
-        middle = int ( len ( t ) / 2 )
-        middle1 = int ( middle / 2 )
-        middle2 = middle + middle1
-        ticks.append ( t[middle] )
-        ticks.append ( t[middle1] )
-        ticks.append ( t[middle2] )
-        ticks.append ( t[-1] )
+    if len ( price_BTC_sell ) == 0:
+        sumaBTC = return_sum ( nosBTC )
 
     else:
-        ticks = t
+        sumaBTC = return_sum ( label_BTC )
+
+    if len ( price_LTC_sell ) == 0:
+        sumaLTC = return_sum ( nosLTC )
+
+    else:
+        sumaLTC = return_sum ( label_LTC )
+
+    if len ( price_ETH_sell ) == 0:
+        sumaETH = return_sum ( nosETH )
+
+    else:
+        sumaETH = return_sum ( label_ETH )
+
+    title1_words = title_profit ( sumaBTC, currency1[0] )
+    title2_words = title_profit ( sumaLTC, currency1[1] )
+    title3_words = title_profit ( sumaETH, currency1[2] )
 
     plt.clf ()
     plt.ion ()
@@ -579,9 +595,18 @@ if __name__ == '__main__':
     label_eth = []
     label_ltc = []
 
+    nosellBTC = []
+    nosellLTC = []
+    nosellETH = []
+
     S = 5
     X = 5
     Y = 3
+
+    N = 20
+    upper = 20
+    lower = 1
+    T = 5
 
     while True:
         try:
