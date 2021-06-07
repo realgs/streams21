@@ -94,6 +94,7 @@ class App():
         self.trends = {}
 
         self.root = tk.Tk()
+        self.root.title('API')
         self.root.geometry("1600x900")
         
         self.draw_app()
