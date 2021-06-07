@@ -371,7 +371,7 @@
 
 	.inputs {
 		display: grid;
-		grid-template-columns: 270px 150px 240px 200px auto;
+		grid-template-columns: 270px 170px 250px 200px auto;
   	grid-template-rows: auto auto auto;
 	}
 	.inputs > div {
