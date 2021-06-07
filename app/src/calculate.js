@@ -34,38 +34,38 @@ export function calculateRSI(values, x) {
   return 100 - 100/(1 + a/b)
 }
 
-export function checkVolatile(buys, x, percent) {
+export function checkVolatile(buys, x, percent, log=false) {
   // Check if the resource is volatile based on last x buy values
   buys = sliceValues(buys, x)
   let mean = getAvg(buys, x)
-  console.log('%cVOLATILE', 'font-size: large')
-  console.log('buys: '+buys)
-  console.log('mean: '+mean)
-  console.log('samples: '+x)
-  console.log('percent: '+percent)
+  if (log) {
+    console.log('%cVOLATILE', 'font-size: large')
+    console.log(`buys: ${buys}\nmean: ${mean}`)
+    console.log(`samples: ${x}\npercent: ${percent}`)
+  }
   let logger = []
   for (const buy of buys) {
     let change = Math.abs(mean - buy)
     let current = (change/mean)*100
     logger.push({ buy: buy, change: change, percent: current })
     if (current >= percent) {
-      console.table(logger)
+      if (log) console.table(logger)
       return true
     }
   }
-  console.table(logger)
+  if (log) console.table(logger)
   return false
 }
 
-export function checkLiquid(bids, asks, x, percent) {
+export function checkLiquid(bids, asks, x, percent, log=false) {
   // Check if the resource is liquid based on last x values
   bids = sliceValues(bids, x)
   asks = sliceValues(asks, x)
-  console.log('%cLIQUID', 'font-size: large')
-  console.log('bids: '+bids)
-  console.log('asks: '+asks)
-  console.log('samples: '+x)
-  console.log('percent: '+percent)
+  if (log) {
+    console.log('%cLIQUID', 'font-size: large')
+    console.log(`bids: ${bids}\asks: ${asks}`)
+    console.log(`samples: ${x}\npercent: ${percent}`)
+  }
   let logger = []
   for (const i in bids) {
     let change = Math.abs(bids[i] - asks[i])
@@ -74,10 +74,10 @@ export function checkLiquid(bids, asks, x, percent) {
     logger.push({ bid: bids[i], ask: asks[i],
       change: change, max: max, percent: current })
     if (current < percent) {
-      console.table(logger)
+      if (log) console.table(logger)
       return true
     }
   }
-  console.table(logger)
+  if (log) console.table(logger)
   return false
 }

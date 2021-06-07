@@ -20,3 +20,19 @@ export function normalizeArray(array) {
     return el / (max-min)
   })
 }
+
+export function copyDatasets(data) {
+  let dataCopy = []
+  for (const d of data) {
+    let dCopy = []
+    for (const elem of d) {
+      let elemCopy = {}
+      for (const key in elem)
+        elemCopy[key] = elem[key]
+      dCopy.push(elemCopy)
+    }
+    dataCopy.push(dCopy)
+  }
+  return dataCopy
+}
+

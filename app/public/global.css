@@ -10,9 +10,9 @@ html, body {
 	height: 100%;
 }
 
-p, a, span,
+p, a, span, small,
 h1,h2,h3,h4,h5,h6,
-button, input, label {
+button, input, label, select {
 	font-family: 'JetBrains Mono', monospace;
 }
 p {
@@ -25,6 +25,44 @@ body {
 	margin: 0;
 }
 
+input {
+	border: none;
+	padding: 5px 10px;
+}
+input[type='number'] {
+	width: 60px;
+}
+input[type='checkbox'] {
+	width: 18px;
+	height: 18px;
+}
+
+p, label {
+	display: block;
+	margin-top: 15px;
+}
+
+
+button {
+	border-radius: 5px;
+	height: 30px;
+	font-weight: bold;
+}
 button:hover {
 	cursor: pointer;
+}
+button.big {
+	height: 40px;
+	width: 80px;
+}
+
+.red {
+	color: #ff6464;
+	border-color: #ff6464;
+	background-color: #fee;
+}
+.green {
+	color: #05d432;
+	border-color: #05d432;
+	background-color: #efe;
 }
