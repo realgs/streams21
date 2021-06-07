@@ -11,6 +11,7 @@ N = 20
 upper = 20
 lower = 1
 T = 5
+profit = []
 
 
 def connect(currency1, currency2):
@@ -31,6 +32,11 @@ def read_file_sell():
             json_sell = [json.loads ( line ) for line in handle]
             return json_sell
             time.sleep ( T )
+
+
+def print_file_values():
+    print(read_file_buy ())
+    print(read_file_sell ())
 
 
 def file_values_buy():
@@ -119,21 +125,25 @@ def after_sell(sell_list, amt_sell_list, buy_list, amt_buy_list):
 
         if sum ( amt_buy_list ) >= sum ( amt_sell_list ):
 
+            x = len ( amt_sell_list )
+
             latest_amt = amt_sell_list[-1]
             for num1, num2 in zip ( buy_list, amt_buy_list ):
                 fifo.append ( [num1] * num2 )
 
             flat_list = [item for sublist in fifo for item in sublist]
 
-            cut_fifo = flat_list[latest_amt:]
-            ann_cut = flat_list[:latest_amt]
+            amt_sold = amt_sell_list[:(x - 1)]
+            sum_sold = sum ( amt_sold )
+
+            del_sells = flat_list[sum_sold:]
+            cut_fifo = del_sells[latest_amt:]
+            ann_cut = del_sells[:latest_amt]
 
             products = []
 
-            for num1, num2 in zip ( sell_list, amt_sell_list ):
-                products.append ( num1 * num2 )
-
-            current.append ( sum ( products ) - (sum ( ann_cut )) )
+            part_profit = (latest_amt * sell_list[-1]) - (sum ( ann_cut ))
+            current.append ( part_profit )
             avg.append ( new_average ( cut_fifo ) )
 
 
@@ -350,7 +360,6 @@ def create_graph():
     amt_BTC, amt_LTC, amt_ETH, price_BTC, price_LTC, price_ETH, time_BTC, time_LTC, time_ETH = file_values_buy ()
     new_BTC, new_ETH, new_LTC, label_BTC, label_ETH, label_LTC = calc_new_avg ( new_avg_BTC, new_avg_LTC, new_avg_ETH,
                                                                                 label_btc, label_eth, label_ltc )
-    # amt_BTC_sell, amt_LTC_sell, amt_ETH_sell, price_BTC_sell, price_LTC_sell, price_ETH_sell, time_BTC_sell, time_LTC_sell, time_ETH_sell= file_values_sell()
 
     t.append ( time.strftime ( "%H:%M:%S", time.localtime () ) )
 
@@ -363,37 +372,49 @@ def create_graph():
     title1, title2, title3, title4, title5, title6 = set_title ( candidate, [ask1, ask2, ask3], [bid1, bid2, bid3], X,
                                                                  Y, S )
 
+    suma1 = []
+    suma2 = []
+    suma3 = []
+
     for i in label_BTC:
-        for j in i:
-            if j < 0:
-                title1_words = f'Your loss on BTC equals {j}'
-            elif j == 0:
-
-                title1_words = 0
-            else:
-                title1_words = f'Your gain on BTC equals {j}'
-
-    for i in label_ETH:
-        for j in i:
-            if j < 0:
-                title3_words = f'Your loss on ETH equals {j}'
-
-            elif j == 0:
-
-                title3_words = 0
-            else:
-                title3_words = f'Your gain on ETH equals {j}'
+        for j in label_BTC:
+            for k in j:
+                suma1.append ( k )
 
     for i in label_LTC:
-        for j in i:
-            if j < 0:
-                title2_words = f'Your loss on LTC equals {j}'
-            elif j == 0:
+        for j in label_LTC:
+            for k in j:
+                suma2.append ( k )
 
-                title2_words = 0
+    for i in label_ETH:
+        for j in label_ETH:
+            for k in j:
+                suma3.append ( k )
 
-            else:
-                title2_words = f'Your gain on LTC equals {j}'
+    sumaBTC = sum ( suma1 )
+    sumaLTC = sum ( suma2 )
+    sumaETH = sum ( suma3 )
+
+    if sumaBTC < 0:
+        title1_words = f'Your loss on BTC equals {sumaBTC}'
+    elif sumaBTC == 0:
+        title1_words = 0
+    else:
+        title1_words = f'Your gain on BTC equals {sumaBTC}'
+
+    if sumaLTC < 0:
+        title2_words = f'Your loss on BTC equals {sumaLTC}'
+    elif sumaLTC == 0:
+        title2_words = 0
+    else:
+        title2_words = f'Your gain on BTC equals {sumaLTC}'
+
+    if sumaETH < 0:
+        title3_words = f'Your loss on BTC equals {sumaETH}'
+    elif sumaETH == 0:
+        title3_words = 0
+    else:
+        title3_words = f'Your gain on BTC equals {sumaETH}'
 
     ticks = list ()
 
