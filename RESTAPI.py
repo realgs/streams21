@@ -150,54 +150,62 @@ if __name__ == "__main__":
         LSKRSIArray.append(RSI)
 
 
-        # BUY
-        # with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
-        #     data = json.load(fp)
-        #     fp.close()
-        #
-        # data["BTC"] = valueSellB
-        # data["ETH"] = valueSellE
-        # data["LSK"] = valueSell
-        #
-        # file = open("CurrentBuySellData/dataBuy.json", "w")
-        # json.dump(data, file)
-        # file.close()
-        #
-        # with open('Buys/buysBTC.json') as f:
-        #     lines = f.readlines()
-        #
-        # count = 0
-        # number = 0
-        #
-        # for line in lines:
-        #     number += 1
-        #     count += float(line)
-        # AVERAGE_USER_BUY_PRICE_BTC.append(count / number)
-        # f.close()
+        #BUY
+        with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
+            data = json.load(fp)
+            fp.close()
 
-        # with open('buysETH.json') as f:
-        #     lines = f.readlines()
-        #
-        # count = 0
-        # number = 0
-        #
-        # for line in lines:
-        #     number += 1
-        #     count += float(line)
-        # AVERAGE_USER_BUY_PRICE_ETH.append(count / number)
-        # f.close()
-        #
-        # with open('buysLSK.json') as f:
-        #     lines = f.readlines()
-        #
-        # count = 0
-        # number = 0
-        #
-        # for line in lines:
-        #     number += 1
-        #     count += float(line)
-        # AVERAGE_USER_BUY_PRICE_LSK.append(count / number)
-        # f.close()
+        data["BTC"] = valueSellB
+        data["ETH"] = valueSellE
+        data["LSK"] = valueSell
+
+        file = open("CurrentBuySellData/dataBuy.json", "w")
+        json.dump(data, file)
+        file.close()
+
+        # Buy BTC
+        f = open('Buys/buysBTC.json')
+        data = json.load(f)
+
+        count = 1
+        number = 1
+
+        for line in range(len(data["data"])):
+            number += 1
+            count += data['data'][line]['value']
+
+        AVERAGE_USER_BUY_PRICE_BTC.append(count / number)
+        f.close()
+
+        # Buy ETH
+        f = open('Buys/buysETH.json')
+        data = json.load(f)
+
+        count = 1
+        number = 1
+
+        for line in range(len(data["data"])):
+            number += 1
+            count += data['data'][line]['value']
+
+        AVERAGE_USER_BUY_PRICE_ETH.append(count / number)
+        f.close()
+
+        # Buy LSK
+
+        f = open('Buys/buysLSK.json')
+        data = json.load(f)
+
+        count = 1
+        number = 1
+
+        for line in range(len(data["data"])):
+            number += 1
+            count += data['data'][line]['value']
+
+        AVERAGE_USER_BUY_PRICE_LSK.append(count / number)
+        f.close()
+
 
         # # SELL
         # with open("dataSell.json", 'r') as fp:
@@ -255,7 +263,7 @@ if __name__ == "__main__":
         axes[0][0].plot(x, BTCSellArray, color='red')
         axes[0][0].plot(x, BTCBuyArray, color='magenta')
 
-        # axes[0][0].plot(x, AVERAGE_USER_BUY_PRICE_BTC, color='green', linestyle='dashed')
+        axes[0][0].plot(x, AVERAGE_USER_BUY_PRICE_BTC, color='green', linestyle='dashed')
         axes[0][0].set_xticks(xLabels)
 
         # axes[0][0].plot(x, BTCAverageArrayBuy, color='blue', linestyle='dashed')
@@ -267,7 +275,7 @@ if __name__ == "__main__":
         axes[0][1].plot(x, ETHSellArray, color='red')
         axes[0][1].plot(x, ETHBuyArray, color='magenta')
 
-        # axes[0][1].plot(x, AVERAGE_USER_BUY_PRICE_ETH, color='green', linestyle='dashed')
+        axes[0][1].plot(x, AVERAGE_USER_BUY_PRICE_ETH, color='green', linestyle='dashed')
 
         axes[0][1].set_xticks(xLabels)
         # axes[0][1].plot(x, ETHAverageArrayBuy, color='blue', linestyle='dashed')
@@ -279,7 +287,7 @@ if __name__ == "__main__":
         axes[0][2].plot(x, LSKSellArray, color='red', label='Sell' if i == 0 else "")
         axes[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
 
-        # axes[0][2].plot(x, AVERAGE_USER_BUY_PRICE_LSK, color='magenta', linestyle='dashed' if i == 0 else "")
+        axes[0][2].plot(x, AVERAGE_USER_BUY_PRICE_LSK, color='magenta', linestyle='dashed' if i == 0 else "")
 
         # axes[0][2].plot(x, LSKAverageArrayBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
         # axes[0][2].plot(x, LSKAverageArraySell, color='orange', linestyle='dashed', label='Ave.Sell' if i == 0 else "")

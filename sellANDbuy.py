@@ -89,65 +89,59 @@ while True:
 
         print(f"Kupiłeś - {output} \n")
 
-    else:
+    else:   # SELL
 
-        print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - XLM \n")
+        print("Jaką kryptowalutę życzysz sobie sprzedać? : 0 - BTC ; 1 - ETH ; 2 - XLM \n")
         value = int(input())
         currency = ""
 
         print("Ile jednostek tej krypto? \n")
         quant = int(input())
-        output = round(valueSell * quant, 3)
 
         if value == 0:
             valueSell = valueSellBTC
             currency = "BTC"
 
-            y = {"currency": currency,
-                 "count": quant,
-                 "value": output
-                 }
-
-            f = open('Sells/sellsBTC.json')
-
+            f = open('Buys/buysBTC.json')
             data = json.load(f)
-            data["data"].append(y)
 
-            with open('Sells/sellsBTC.json', 'w') as f:
-                json.dump(data, f)
+            count = 0
+            number = 0
+            toIndex = 0
 
-        elif value == 1:
-            valueSell = valueSellETH
-            currency = "ETH"
-
-            y = {"currency": currency,
-                 "count": quant,
-                 "value": output
-                 }
-
-            f = open('Sells/sellsETH.json')
-
-            data = json.load(f)
-            data["data"].append(y)
-
-            with open('Sells/sellsETH.json', 'w') as f:
-                json.dump(data, f)
-
-        else:
-            valueSell = valueSellLSK
-            currency = "LSK"
-
-            y = {"currency": currency,
-                 "count": quant,
-                 "value": output
-                 }
-
-            f = open('Sells/sellsLSK.json')
-
-            data = json.load(f)
-            data["data"].append(y)
-
-            with open('Sells/sellsLSK.json', 'w') as f:
-                json.dump(data, f)
-
-        print(f"Kupiłeś - {output} \n")
+            if len(data['data']) > 0:
+                for line in range(len(data["data"])):
+                    number += 1
+                    count += data['data'][line]['count']
+                    if count >= quant:
+                        output = round(valueSell * quant, 3)
+                        toIndex = number
+                        break
+                if toIndex == 0:
+                    print("Ilość kupionych kryptowalut jest niższa od ilości którą chcesz sprzedać")
+                else:
+                    if toIndex == 1 and count == quant:
+                        # usuwam
+                        money = output - data['data'][toIndex-1]['value']
+                        del data['data'][toIndex - 1]
+                    elif toIndex == 1 and count > quant:
+                        w = ((data['data'][toIndex-1]['value']/data['data'][toIndex-1]['count']) * quant)
+                        money = output - w
+                        data['data'][toIndex - 1]['count'] -= quant
+                    else:
+                        soldTotal = 0
+                        buyedSold = quant
+                        for items in range(toIndex):
+                            if buyedSold - data['data'][items]['count'] >= 0:
+                                # usuwam
+                                buyedSold -= data['data'][items]['count']
+                                soldTotal += data['data'][items]['value']
+                                del data['data'][items]
+                            else:
+                                cur = (quant-buyedSold)
+                                buyedSold -= (quant-buyedSold)
+                                soldTotal += (data['data'][items]['value']/data['data'][items]['count']) * (cur)
+                                data['data'][items]['count'] -= cur  # odejmuje
+                        money = output - soldTotal
+            else:
+                print("Brak wartości zakupionych danej kryptowaluty")

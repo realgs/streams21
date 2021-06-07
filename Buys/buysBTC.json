@@ -1,1 +1,24 @@
-{"data": [{"currency": "BTC", "count": 10, "value": 2169.367}, {"currency": "BTC", "count": 10, "value": 2169.367}, {"currency": "BTC", "count": 10, "value": 2169.367}, {"currency": "BTC", "count": 10, "value": 2169.367}]}
+{
+  "data": [
+    {
+      "currency": "BTC",
+      "count": 11,
+      "value": 2169.367
+    },
+    {
+      "currency": "BTC",
+      "count": 10,
+      "value": 2169.367
+    },
+    {
+      "currency": "BTC",
+      "count": 10,
+      "value": 2169.367
+    },
+    {
+      "currency": "BTC",
+      "count": 10,
+      "value": 2169.367
+    }
+  ]
+}
