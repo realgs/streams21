@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import csv
 
 
 def every_nth_func(x_val):
@@ -39,6 +40,7 @@ def count_volumen():
         sum_3 += elem[1]
     return [sum_1, sum_2, sum_3]
 
+
 def average(mylist):
     mylist = list(mylist)
     N = 3
@@ -52,15 +54,33 @@ def average(mylist):
     moving_aves.append(mylist[-1])
     return moving_aves
 
+
 def total_avg(mylist):
     mylist = list(mylist)
     return sum(mylist)/len(mylist)
 
-def volatile_asset(index):
-    pass
+
+def open_user_input_data():
+    with open('user_input.csv', newline='') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    data.append([-1, -1, -1 ])
+
+    cur1 = []
+    cur2 = []
+    cur3 = []
+    for info in data:
+        if info[0] == '1':
+            cur1.append(info[1:])
+        elif info[0] == '2':
+            cur2.append(info[1:])
+        elif info[0] == '3':
+            cur3.append(info[1:])
+    return cur1, cur2, cur3
 
 
 def animate(i):
+    show_average = False
     # read data
     data = pd.read_csv('data.csv')
     x = data['time']
@@ -92,34 +112,35 @@ def animate(i):
     ax5.plot(x, bid_cur3, label=f'Bid')
     ax5.plot(x, ask_cur3, label=f'Ask')
 
-    # prepare data for average, plot averaeg
-    sliced_data = data[int(len_data/3):]
-    sliced_x = sliced_data['time']
-    sliced_bid_cur1 = sliced_data['bid_cur1']
-    sliced_ask_cur1 = sliced_data['ask_cur1']
-    average_bid_cur1 = average(sliced_bid_cur1)
-    average_ask_cur1 = average(sliced_ask_cur1)
-    ax1.plot(sliced_x, average_bid_cur1, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur1))}')
-    ax1.plot(sliced_x, average_ask_cur1, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur1))}')
-    sliced_bid_cur2= sliced_data['bid_cur2']
-    sliced_ask_cur2 = sliced_data['ask_cur2']
-    average_bid_cur2 = average(sliced_bid_cur2)
-    average_ask_cur2 = average(sliced_ask_cur2)
-    ax3.plot(sliced_x, average_bid_cur2, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur2))}')
-    ax3.plot(sliced_x, average_ask_cur2, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur2))}')
-    sliced_bid_cur3= sliced_data['bid_cur3']
-    sliced_ask_cur3 = sliced_data['ask_cur3']
-    average_bid_cur3 = average(sliced_bid_cur3)
-    average_ask_cur3 = average(sliced_ask_cur3)
-    ax5.plot(sliced_x, average_bid_cur3, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur3))}')
-    ax5.plot(sliced_x, average_ask_cur3, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur3))}')
+
+    if show_average:
+        # prepare data for average, plot averaeg
+        sliced_data = data[int(len_data/3):]
+        sliced_x = sliced_data['time']
+        sliced_bid_cur1 = sliced_data['bid_cur1']
+        sliced_ask_cur1 = sliced_data['ask_cur1']
+        average_bid_cur1 = average(sliced_bid_cur1)
+        average_ask_cur1 = average(sliced_ask_cur1)
+        ax1.plot(sliced_x, average_bid_cur1, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur1))}')
+        ax1.plot(sliced_x, average_ask_cur1, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur1))}')
+        sliced_bid_cur2 = sliced_data['bid_cur2']
+        sliced_ask_cur2 = sliced_data['ask_cur2']
+        average_bid_cur2 = average(sliced_bid_cur2)
+        average_ask_cur2 = average(sliced_ask_cur2)
+        ax3.plot(sliced_x, average_bid_cur2, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur2))}')
+        ax3.plot(sliced_x, average_ask_cur2, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur2))}')
+        sliced_bid_cur3 = sliced_data['bid_cur3']
+        sliced_ask_cur3 = sliced_data['ask_cur3']
+        average_bid_cur3 = average(sliced_bid_cur3)
+        average_ask_cur3 = average(sliced_ask_cur3)
+        ax5.plot(sliced_x, average_bid_cur3, label=f'AVG bid, TOTAL: {round(total_avg(sliced_bid_cur3))}')
+        ax5.plot(sliced_x, average_ask_cur3, label=f'AVG ask, TOTAL: {round(total_avg(sliced_ask_cur3))}')
 
     # volumen24
     vol24 = pd.read_csv('volumen24.csv')
     vol1 = vol24['vol1']
     vol2 = vol24['vol2']
     vol3 = vol24['vol3']
-    color = 'tab:pink'
 
     ax1v.set_ylim([min(vol1)-1/10*(max(vol1)-min(vol1)), (max(vol1)-min(vol1))*3 + min(vol1)])
     ax1v.yaxis.tick_right()
@@ -156,18 +177,26 @@ def animate(i):
     ax4.barh('-', volume[1], align='edge')
     ax6.barh('-', volume[2], align='edge')
 
+    if rs1 > 70:
+        trend1 = 'overbought'
+    elif 30 < rs1 < 70:
+        trend1 = 'neutral'
+    else:
+        trend1 = 'oversold'
 
-    if rs1 > 70: trend1 = 'overbought'
-    elif rs1 < 70 and rs1 >30: trend1 = 'neutral'
-    else: trend1 = 'oversold'
+    if rs2 > 70:
+        trend2 = 'overbought'
+    elif 30 < rs2 < 70:
+        trend2 = 'neutral'
+    else:
+        trend2 = 'oversold'
 
-    if rs2 > 70: trend2 = 'overbought'
-    elif rs2 < 70 and rs2 >30: trend2 = 'neutral'
-    else: trend2 = 'oversold'
-
-    if rs3 > 70: trend3 = 'overbought'
-    elif rs3 < 70 and rs1 >30: trend3 = 'neutral'
-    else: trend3 = 'oversold'
+    if rs3 > 70:
+        trend3 = 'overbought'
+    elif rs3 < 70 and rs1 > 30:
+        trend3 = 'neutral'
+    else:
+        trend3 = 'oversold'
 
     candidate = []
     for trend in (trend1, trend2, trend3):
@@ -188,6 +217,7 @@ def animate(i):
 
     maxv_candidate = max(candidate)
     candtext = ['-']*3
+    index = 0
     if maxv_candidate != -1:
         index = lastvall.index(maxv_candidate)
 
@@ -197,7 +227,8 @@ def animate(i):
     volatilebid = list(volatile[f'bid_cur{index + 1}'])
     volatileask = list(volatile[f'ask_cur{index + 1}'])
 
-    if 1 - (volatileask[0] +  abs(volatileask[-1]-volatileask[0]))/volatileask[0] >X_percentage or 1 - (volatilebid[0] +  abs(volatilebid[-1]-volatilebid[0]))/volatilebid[0] >X_percentage:
+    if 1 - (volatileask[0] + abs(volatileask[-1]-volatileask[0]))/volatileask[0] > X_percentage \
+            or 1 - (volatilebid[0] + abs(volatilebid[-1]-volatilebid[0]))/volatilebid[0] > X_percentage:
         volatiletext = "yes"
     else:
         volatiletext = 'no'
@@ -229,9 +260,53 @@ def animate(i):
     ax1.set_title(f'{currencies[0]}')
     ax3.set_title(f'{currencies[1]}')
     ax5.set_title(f'{currencies[2]}')
+    if index == 0:
+        ax1.set_title(f'***{currencies[0]}***', color='red')
+    if index == 1:
+        ax3.set_title(f'{currencies[0]}', color='red')
+    if index == 2:
+        ax5.set_title(f'{currencies[0]}', color='red')
 
+    # grid disable
+    for ax in (ax1, ax2, ax3, ax4, ax5, ax6, ax1v, ax3v, ax5v):
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(False)
+
+    # ask user input
+    cur1, cur2, cur3 = open_user_input_data()
+    suma = 0
+    wages = 0
+    if cur1:
+        for data in cur1:
+            suma += float(data[0])*float(data[1])
+            wages += float(data[0])
+        avg1 = [suma/wages]*2
+        x_val1 = [list(x)[0], list(x)[int(cur1[-1][2])]]
+        ax1.plot(x_val1, avg1, color='red', linestyle='dashed', linewidth=0.5, label='User Ask Average')
+        ax1.legend(loc="upper left")
+    suma = 0
+    wages = 0
+    if cur2:
+        for data in cur2:
+            suma += float(data[0])*float(data[1])
+            wages += float(data[0])
+        avg1 = [suma/wages]*2
+        x_val1 = [list(x)[0], list(x)[int(cur2[-1][2])]]
+        ax3.plot(x_val1, avg1, color='red', linestyle='dashed', linewidth=0.5, label='User Ask Average')
+        ax3.legend(loc="upper left")
+    suma = 0
+    wages = 0
+    if cur3:
+        for data in cur3:
+            suma += float(data[0])*float(data[1])
+            wages += float(data[0])
+        avg1 = [suma/wages]*2
+        x_val1 = [list(x)[0], list(x)[int(cur3[-1][2])]]
+        ax5.plot(x_val1, avg1, color='red', linestyle='dashed', linewidth=0.5, label='User Ask Average')
+        ax5.legend(loc="upper left")
 
     plt.tight_layout()
+
 
 if __name__ == '__main__':
     fig = plt.figure()
@@ -249,4 +324,6 @@ if __name__ == '__main__':
     fig.set_size_inches(12, 8, forward=True)
     plt.locator_params(axis='x', nbins=10)
     anim = FuncAnimation(plt.gcf(), animate, interval=1000)
+
     plt.show()
+

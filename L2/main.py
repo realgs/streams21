@@ -4,6 +4,7 @@ from requests.exceptions import HTTPError
 import csv
 from datetime import datetime, date
 
+
 class Finance():
 
     def __init__(self):
