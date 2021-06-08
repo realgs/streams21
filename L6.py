@@ -239,7 +239,7 @@ def calculate_user_profit(currency, buy_dict, sell_dict):
     if len(sell_dict[currency]) != 0:
         for j in sell_dict[currency]:
             value_list_sell.append(j)
-    n = len(value_list_buy)
+    n = len(value_list_sell)
     buy_sum = sum(value_list_buy[:n])
     sell_sum = sum(value_list_sell)
     profit = sell_sum - buy_sum
@@ -268,7 +268,7 @@ def draw_plot(time_interval):
         buy, sell, volumen, avg_buy, avg_sell, RSI_buy, RSI_sell = add_values(buy_dict, sell_dict, volumen_dict, avg_buy_dict, avg_sell_dict, RSI_buy_dict, RSI_sell_dict)
         current_time = get_time(current_time)
         user_average, user_fifo, user_profit = add_user_value()
-        print(user_average)
+        print(user_profit)
         for curr in range(currencies_amount):
             if len(buy[list_currencies[curr]]) and len(sell[list_currencies[curr]]) and len(RSI_buy[list_currencies[curr]]) and len(RSI_sell[list_currencies[curr]]) == 2:
                 time = [current_time[-2].strftime("%H:%M:%S"), current_time[-1].strftime("%H:%M:%S")]
