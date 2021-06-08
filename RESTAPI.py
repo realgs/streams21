@@ -121,11 +121,6 @@ if __name__ == "__main__":
         RSIB = calculateRSI(BTCDecreaseArray, BTCIncreaseArray, BTCSellArray, RSI_SAMPLES_NUMBER)
         BTCRSIArray.append(RSIB)
 
-
-
-
-
-
         # Ether
         ETHSellArray.append(sellETH)
         ETHBuyArray.append(buyETH)
@@ -169,12 +164,17 @@ if __name__ == "__main__":
 
         count = 1
         number = 1
+        down = 1
+        equesionSum = 0
 
         for line in range(len(data["data"])):
-            number += 1
-            count += data['data'][line]['value']
-
-        AVERAGE_USER_BUY_PRICE_BTC.append(count / number)
+            down += data['data'][line]['count']
+            number = data['data'][line]['count']
+            count = data['data'][line]['value']
+            equesionSum += number * count
+        equesionSum = equesionSum / down
+        print(f'Obecna średnia cena zakupy {FIRST_CRYPTO} to: {equesionSum}')
+        AVERAGE_USER_BUY_PRICE_BTC.append(equesionSum)
         f.close()
 
         # Buy ETH
@@ -183,17 +183,53 @@ if __name__ == "__main__":
 
         count = 1
         number = 1
+        down = 1
+        equesionSum = 0
 
         for line in range(len(data["data"])):
-            number += 1
-            count += data['data'][line]['value']
-
-        AVERAGE_USER_BUY_PRICE_ETH.append(count / number)
+            down += data['data'][line]['count']
+            number = data['data'][line]['count']
+            count = data['data'][line]['value']
+            equesionSum += number * count
+        equesionSum = equesionSum / down
+        print(f'Obecna średnia cena zakupy {SECOND_CRYPTO} to: {equesionSum}')
+        AVERAGE_USER_BUY_PRICE_ETH.append(equesionSum)
         f.close()
 
         # Buy LSK
-
         f = open('Buys/buysLSK.json')
+        data = json.load(f)
+
+        count = 1
+        number = 1
+        down = 1
+        equesionSum = 0
+
+        for line in range(len(data["data"])):
+            down += data['data'][line]['count']
+            number = data['data'][line]['count']
+            count = data['data'][line]['value']
+            equesionSum += number * count
+        equesionSum = equesionSum / down
+        print(f'Obecna średnia cena zakupy {THIRD_CRYPTO} to: {equesionSum}')
+        AVERAGE_USER_BUY_PRICE_LSK.append(equesionSum)
+        f.close()
+
+        # SELL
+        with open("CurrentBuySellData/dataSell.json", 'r') as fp:
+            data = json.load(fp)
+            fp.close()
+
+        data["BTC"] = valueBuyB
+        data["ETH"] = valueBuyE
+        data["LSK"] = valueBuy
+
+        file = open("CurrentBuySellData/dataSell.json", "w")
+        json.dump(data, file)
+        file.close()
+
+        # Sell BTC
+        f = open('Sells/sellsBTC.json')
         data = json.load(f)
 
         count = 1
@@ -203,67 +239,65 @@ if __name__ == "__main__":
             number += 1
             count += data['data'][line]['value']
 
-        AVERAGE_USER_BUY_PRICE_LSK.append(count / number)
+        AVERAGE_USER_SELL_PRICE_BTC.append(count / number)
         f.close()
 
+        # Sell ETH
+        f = open('Sells/sellsETH.json')
+        data = json.load(f)
 
-        # # SELL
-        # with open("dataSell.json", 'r') as fp:
-        #     data = json.load(fp)
-        #     fp.close()
-        #
-        # data["BTC"] = valueBuyB
-        # data["ETH"] = valueBuyE
-        # data["LSK"] = valueBuy
-        #
-        # file = open("dataSell.json", "w")
-        # json.dump(data, file)
-        # file.close()
-        #
-        # with open('sellsBTC.json') as f:
-        #     lines = f.readlines()
-        #
-        # count = 0
-        # number = 0
-        #
-        # for line in lines:
-        #     number += 1
-        #     count += float(line)
-        # AVERAGE_USER_SELL_PRICE_ETH.append(count / number)
-        # f.close()
-        #
-        # with open('sellsETH.json') as f:
-        #     lines = f.readlines()
-        #
-        # count = 0
-        # number = 0
-        #
-        # for line in lines:
-        #     number += 1
-        #     count += float(line)
-        # AVERAGE_USER_SELL_PRICE_LSK.append(count / number)
-        # f.close()
-        #
-        # with open('sellsLSK.json') as f:
-        #     lines = f.readlines()
-        #
-        # count = 0
-        # number = 0
-        #
-        # for line in lines:
-        #     number += 1
-        #     count += float(line)
-        # AVERAGE_USER_SELL_PRICE_BTC.append(count / number)
-        # f.close()
+        count = 1
+        number = 1
 
+        for line in range(len(data["data"])):
+            number += 1
+            count += data['data'][line]['value']
 
+        AVERAGE_USER_SELL_PRICE_ETH.append(count / number)
+        f.close()
 
+        # Sell LSK
+        f = open('Sells/sellsLSK.json')
+        data = json.load(f)
+
+        count = 1
+        number = 1
+
+        for line in range(len(data["data"])):
+            number += 1
+            count += data['data'][line]['value']
+
+        AVERAGE_USER_SELL_PRICE_LSK.append(count / number)
+        f.close()
+
+        # if revenue or loss
+        f = open('Revenue/revenueBTC.json')
+        data = json.load(f)
+        if data['data'][0]['revenue'] > 0:
+            axes[0][0].set_title(f'{FIRST_CRYPTO} | ZYSK')
+        else:
+            axes[0][0].set_title(f'{FIRST_CRYPTO} | STRATA')
+
+        f = open('Revenue/revenueETH.json')
+        data = json.load(f)
+        if data['data'][0]['revenue'] > 0:
+            axes[0][1].set_title(f'{SECOND_CRYPTO} | ZYSK')
+        else:
+            axes[0][1].set_title(f'{SECOND_CRYPTO} | STRATA')
+
+        f = open('Revenue/revenueLSK.json')
+        data = json.load(f)
+        if data['data'][0]['revenue'] > 0:
+            axes[0][2].set_title(f'{THIRD_CRYPTO} | ZYSK')
+        else:
+            axes[0][2].set_title(f'{THIRD_CRYPTO} | STRATA')
 
 
         axes[0][0].plot(x, BTCSellArray, color='red')
         axes[0][0].plot(x, BTCBuyArray, color='magenta')
 
         axes[0][0].plot(x, AVERAGE_USER_BUY_PRICE_BTC, color='green', linestyle='dashed')
+        axes[0][0].plot(x, AVERAGE_USER_SELL_PRICE_BTC, color='blue', linestyle='dashed')
         axes[0][0].set_xticks(xLabels)
 
         # axes[0][0].plot(x, BTCAverageArrayBuy, color='blue', linestyle='dashed')
@@ -276,6 +310,7 @@ if __name__ == "__main__":
         axes[0][1].plot(x, ETHBuyArray, color='magenta')
 
         axes[0][1].plot(x, AVERAGE_USER_BUY_PRICE_ETH, color='green', linestyle='dashed')
+        axes[0][1].plot(x, AVERAGE_USER_SELL_PRICE_ETH, color='blue', linestyle='dashed')
 
         axes[0][1].set_xticks(xLabels)
         # axes[0][1].plot(x, ETHAverageArrayBuy, color='blue', linestyle='dashed')
@@ -287,7 +322,8 @@ if __name__ == "__main__":
         axes[0][2].plot(x, LSKSellArray, color='red', label='Sell' if i == 0 else "")
         axes[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
 
-        axes[0][2].plot(x, AVERAGE_USER_BUY_PRICE_LSK, color='magenta', linestyle='dashed' if i == 0 else "")
+        axes[0][2].plot(x, AVERAGE_USER_BUY_PRICE_LSK, color='green', linestyle='dashed', label='AVG.Buy' if i == 0 else "")
+        axes[0][2].plot(x, AVERAGE_USER_SELL_PRICE_LSK, color='blue', linestyle='dashed', label='AVG.Sell' if i == 0 else "")
 
         # axes[0][2].plot(x, LSKAverageArrayBuy, color='blue', linestyle='dashed', label='Ave.Buy' if i == 0 else "")
         # axes[0][2].plot(x, LSKAverageArraySell, color='orange', linestyle='dashed', label='Ave.Sell' if i == 0 else "")
