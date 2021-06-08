@@ -132,6 +132,7 @@ if __name__ == "__main__":
 
         RSIE = calculateRSI(ETHDecreaseArray, ETHIncreaseArray, ETHBuyArray, RSI_SAMPLES_NUMBER)
         ETHRSIArray.append(RSIE)
+
         # Lisk
         LSKSellArray.append(sellLSK)
         LSKBuyArray.append(buyLSK)
@@ -144,20 +145,7 @@ if __name__ == "__main__":
         RSI = calculateRSI(LSKDecreaseArray, LSKIncreaseArray, LSKSellArray, RSI_SAMPLES_NUMBER)
         LSKRSIArray.append(RSI)
 
-
-        #BUY
-        with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
-            data = json.load(fp)
-            fp.close()
-
-        data["BTC"] = valueSellB
-        data["ETH"] = valueSellE
-        data["LSK"] = valueSell
-
-        file = open("CurrentBuySellData/dataBuy.json", "w")
-        json.dump(data, file)
-        file.close()
-
+        # BUY
         # Buy BTC
         f = open('Buys/buysBTC.json')
         data = json.load(f)
@@ -216,18 +204,6 @@ if __name__ == "__main__":
         f.close()
 
         # SELL
-        with open("CurrentBuySellData/dataSell.json", 'r') as fp:
-            data = json.load(fp)
-            fp.close()
-
-        data["BTC"] = valueBuyB
-        data["ETH"] = valueBuyE
-        data["LSK"] = valueBuy
-
-        file = open("CurrentBuySellData/dataSell.json", "w")
-        json.dump(data, file)
-        file.close()
-
         # Sell BTC
         f = open('Sells/sellsBTC.json')
         data = json.load(f)

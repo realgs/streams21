@@ -2,20 +2,7 @@ import json
 
 while True:
 
-    with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
-        data = json.load(fp)
-        valueBuyBTC = data['BTC']
-        valueBuyETH = data['ETH']
-        valueBuyLSK = data['LSK']
-
     valueBuy = 0
-
-    with open("CurrentBuySellData/dataSell.json", 'r') as fp:
-        data = json.load(fp)
-        valueSellBTC = data['BTC']
-        valueSellETH = data['ETH']
-        valueSellLSK = data['LSK']
-
     valueSell = 0
 
     while True:
@@ -29,7 +16,7 @@ while True:
     if sellbuy == 0:
 
         while True:
-            print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - XLM \n")
+            print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - LSK \n")
             value = int(input())
             if value == 0 or value == 1 or value == 2:
                 break
@@ -51,13 +38,25 @@ while True:
 
         if value == 0:
             valueBuy = price
+
+            with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+
+            data["BTC"] = price
+
+            file = open("CurrentBuySellData/dataBuy.json", "w")
+            json.dump(data, file)
+            file.close()
+
             currency = "BTC"
 
             output = round(valueBuy * quant, 3)
 
             y = {"currency": currency,
                  "count": quant,
-                 "value": output
+                 "value": output,
+                 "single": valueBuy
                  }
 
             f = open('Buys/buysBTC.json')
@@ -70,13 +69,25 @@ while True:
 
         elif value == 1:
             valueBuy = price
+
+            with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+
+            data["ETH"] = price
+
+            file = open("CurrentBuySellData/dataBuy.json", "w")
+            json.dump(data, file)
+            file.close()
+
             currency = "ETH"
 
             output = round(valueBuy * quant, 3)
 
             y = {"currency": currency,
                  "count": quant,
-                 "value": output
+                 "value": output,
+                 "single": valueBuy
                  }
 
             f = open('Buys/buysETH.json')
@@ -89,13 +100,25 @@ while True:
 
         else:
             valueBuy = price
+
+            with open("CurrentBuySellData/dataBuy.json", 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+
+            data["LSK"] = price
+
+            file = open("CurrentBuySellData/dataBuy.json", "w")
+            json.dump(data, file)
+            file.close()
+
             currency = "LSK"
 
             output = round(valueBuy * quant, 3)
 
             y = {"currency": currency,
                  "count": quant,
-                 "value": output
+                 "value": output,
+                 "single": valueBuy
                  }
 
             f = open('Buys/buysLSK.json')
@@ -106,12 +129,12 @@ while True:
             with open('Buys/buysLSK.json', 'w') as f:
                 json.dump(data, f)
 
-        print(f"Kupiłeś - {output} \n")
+        print(f"Kupiłeś - {output} {currency} (za jednostkę: {price}) \n")
 
     else:   # SELL
 
         while True:
-            print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - XLM \n")
+            print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - LSK \n")
             value = int(input())
             if value == 0 or value == 1 or value == 2:
                 break
@@ -131,14 +154,47 @@ while True:
 
         if value == 0:
             valueSell = price
+
+            with open("CurrentBuySellData/dataSell.json", 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+
+            data["BTC"] = price
+
+            file = open("CurrentBuySellData/dataSell.json", "w")
+            json.dump(data, file)
+            file.close()
+
             currency = "BTC"
             f = open('Buys/buysBTC.json')
         elif value == 1:
             valueSell = price
+
+            with open("CurrentBuySellData/dataSell.json", 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+
+            data["ETH"] = price
+
+            file = open("CurrentBuySellData/dataSell.json", "w")
+            json.dump(data, file)
+            file.close()
+
             currency = "ETH"
             f = open('Buys/buysETH.json')
         elif value == 2:
             valueSell = price
+
+            with open("CurrentBuySellData/dataSell.json", 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+
+            data["LSK"] = price
+
+            file = open("CurrentBuySellData/dataSell.json", "w")
+            json.dump(data, file)
+            file.close()
+
             currency = "LSK"
             f = open('Buys/buysLSK.json')
 
@@ -170,22 +226,23 @@ while True:
                     data['data'][toIndex - 1]['count'] -= quant
                 else:
                     soldTotal = 0
-                    buyedSold = quant
+                    boughtSold = quant
                     items = 0
-                    while buyedSold != 0:
-                        if buyedSold - data['data'][items]['count'] >= 0:
+                    while boughtSold != 0:
+                        if boughtSold - data['data'][items]['count'] >= 0:
                             # usuwam
-                            buyedSold -= data['data'][items]['count']
+                            boughtSold -= data['data'][items]['count']
                             soldTotal += data['data'][items]['value']
                             del data['data'][items]
                             toIndex -= 1
                         else:
-                            cur = float(quant-buyedSold)
-                            buyedSold -= (quant-buyedSold)
+                            cur = float(quant - boughtSold)
+                            boughtSold -= (quant - boughtSold)
                             soldTotal += (data['data'][items]['value']/data['data'][items]['count']) * (cur)
                             data['data'][items]['count'] -= cur  # odejmuje
                     money += output - soldTotal
 
+            print(f"Sprzedałeś - {money} {currency} (za jednostkę: {price}) \n")
             if value == 0:
                 with open('Buys/buysBTC.json', 'w') as f:
                     json.dump(data, f)
@@ -194,7 +251,8 @@ while True:
                 data = json.load(f)
                 y = {"currency": currency,
                      "count": quant,
-                     "value": output
+                     "value": output,
+                     "single": price
                      }
                 data['data'].append(y)
                 with open('Sells/sellsBTC.json', 'w') as f:
@@ -215,7 +273,8 @@ while True:
                     data = json.load(f)
                     y = {"currency": currency,
                          "count": quant,
-                         "value": output
+                         "value": output,
+                         "single": price
                          }
                     data['data'].append(y)
                     with open('Sells/sellsETH.json', 'w') as f:
@@ -236,7 +295,8 @@ while True:
                     data = json.load(f)
                     y = {"currency": currency,
                          "count": quant,
-                         "value": output
+                         "value": output,
+                         "single": price
                          }
                     data['data'].append(y)
                     with open('Sells/sellsLSK.json', 'w') as f:
