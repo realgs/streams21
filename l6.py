@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from matplotlib.ticker import MaxNLocator
 from json import loads
+from sys import exit
 
 
 def read_new_lines_from_json(current_data):
@@ -116,6 +117,7 @@ def separate_tuples(list_of_tuples):
 
 
 def user_amount_and_profit(dict_, curr):
+    print('user_amount_and_profit')
     buy, sell = [], []
 
     if dict_[curr]['buy'] == [] and dict_[curr]['sell'] == []:
@@ -126,24 +128,37 @@ def user_amount_and_profit(dict_, curr):
     for i in range(len(dict_[curr]['sell'])):
         sell.append(dict_[curr]['sell'][i])
 
-    profit =  separate_tuples(sell)[1] - separate_tuples(buy)[1]
+    profit = separate_tuples(sell)[1] - separate_tuples(buy)[1]
 
     buy_amount = separate_tuples(buy)[0]
     sell_amount = separate_tuples(sell)[0]  
 
     if buy_amount > sell_amount:
-        for i in range(len(dict_[curr]['buy'])):
-            while sell_amount > 0:
+        # print('sinfull')
+        # print("buy amount: ",buy_amount, "buy: ", buy,"\nsell amount: ",sell_amount, "sell: ", sell)
+        while sell_amount > 0:
+            for i in range(len(dict_[curr]['buy'])):
+                x = 0
+
+                # print("x: ", x)
+                # print("i: ", i, "\nbuy[i][0]",buy[i][0])
                 if buy[i][0] <= sell_amount:
+                    # print("a) tu odejmujemy: ",sell_amount, "-",buy[i][0])
                     sell_amount -= buy[i][0]
                     buy[i] = (0, 0)
-                elif buy[i][0]>sell_amount:
+                    # print("tu odjeslismy: ",sell_amount, "-",buy[i][0])
+                if buy[i][0] > sell_amount:
+                    # print("b) tu odejmujemy: ",buy[i][0], "-", sell_amount)
                     buy[i] = (buy[i][0] - sell_amount, buy[i][1])
                     sell_amount = 0
+                x+=1
 
-        return separate_tuples(buy)[0], profit, 1 #amount + profit+info
+        return separate_tuples(buy)[0], separate_tuples(buy)[1], profit #amount + profit+info
     
-    elif  buy_amount < sell_amount:
+    elif buy_amount < sell_amount:
+        print ("Nice try, you can't sell the currency, you don't have, \nEnd of your purchase")
+        exit()
+        print('sinless')
         for i in range(len(dict_[curr]['sell'])):
             while buy_amount > 0:
                 if sell[i][0] <= buy_amount:
@@ -152,7 +167,7 @@ def user_amount_and_profit(dict_, curr):
                 elif sell[i][0] > buy_amount:
                     sell[i] = (sell[i][0] - buy_amount, sell[i][1])
                     buy_amount = 0
-        return -1 * separate_tuples(sell)[0], profit, 0 #amount + loss +info
+        return -1 * separate_tuples(sell)[0], separate_tuples(sell)[1], profit #amount + loss +info
     
     return 0, 0, 0
 
@@ -171,6 +186,7 @@ def avg_list_of_tuples(list):
 def draw_plot(time_interval):   
     fig, axs = draw_axes()
     buy, sell, buy_list, sell_list, avg_buy_list, avg_sell_list, rsi_buy_list, rsi_sell_list, user_average_list = [], [], [], [], [], [], [], [], []
+    cout1, cout2,cout3 = {}, {}, {}
     i = 0
     user_data, current_time = [], []
     data = {} #bo w ang nie ma datas!
@@ -184,6 +200,9 @@ def draw_plot(time_interval):
             print(currency_type)
             if i == 0:
                 data[currency_type] = {'sell': [], 'buy':[]}
+                cout1[currency_type] = axs[1][a].text(0.0, 1.3, '', transform=axs[1][a].transAxes, fontsize=7)
+                cout2[currency_type] = axs[1][a].text(0.0, 1.2, '', transform=axs[1][a].transAxes, fontsize=7)
+                cout3[currency_type] = axs[1][a].text(0.0, 1.1, '', transform=axs[1][a].transAxes, fontsize=7)
             for element in new_data:
                 if element['Currency'] == currency_type and element['Action'] == 'sell' :
                     data[currency_type]['sell'].append((element['Amount'], element['Price']))
@@ -191,13 +210,13 @@ def draw_plot(time_interval):
                     data[currency_type]['buy'].append((element['Amount'], element['Price']))
 
 
-            amount, profit, info = user_amount_and_profit(data, currency_type)
+            amount, div, profit = user_amount_and_profit(data, currency_type)
             if amount != 0:
-                user_avg = profit / amount
+                user_avg = div / amount
             else:
                 user_avg = 0
             user_average_list.append(user_avg)
-         
+            # print("user_avg: ", user_avg)
             dataset = get_data(currency_type)
             buy.append(dataset[0])
             sell.append(dataset[1])
@@ -216,7 +235,7 @@ def draw_plot(time_interval):
             rsi_sell_list.append(RSI_value(sell_list, elements_r))
                         
 
-            if len(buy) and len(sell) and len(rsi_buy_list) and len(rsi_sell_list) >= 4:
+            if len(rsi_sell_list) >= 4:
                 
                 x = [current_time[-2].strftime("%H:%M:%S"), current_time[-1].strftime("%H:%M:%S")]
 
@@ -240,12 +259,12 @@ def draw_plot(time_interval):
                 axs[1][a].plot(x, RSI_sell_value, label='RSI sell', color='darkgreen')
 
     
-                if len(buy) and len(sell) and len(rsi_buy_list) and len(rsi_sell_list) == 6:
+                if len(rsi_sell_list) == 6:
                     set_Legend(axs)
 
-                axs[1][a].text(0.0,1.3, f'Actual profit / loss: {profit}', transform = axs[1][a].transAxes , fontsize = 7)
-                axs[1][a].text(0.0,1.2, f'Actual amount: {amount}' , transform = axs[1][a].transAxes, fontsize = 7 )
-           
+                cout1[currency_type].set_text(f'Actual profit : {profit}')
+                cout2[currency_type].set_text(f'Actual amount : {amount}')
+                cout3[currency_type].set_text(f'Actual fifo_avg : {user_avg}')
 
         i += 1
         plt.pause(time_interval)
