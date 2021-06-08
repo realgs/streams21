@@ -1,0 +1,6 @@
+{"Currency": "BTC-PLN", "Amount": 10.0, "Price": 119000.0, "Action": "buy"}
+{"Currency": "LTC-PLN", "Amount": 15.0, "Price": 575.0, "Action": "buy"}
+{"Currency": "ETH-PLN", "Amount": 15.0, "Price": 8950.0, "Action": "buy"}
+{"Currency": "BTC-PLN", "Amount": 8.0, "Price": 120000.0, "Action": "sell"}
+{"Currency": "ETH-PLN", "Amount": 3.0, "Price": 9500.0, "Action": "buy"}
+{"Currency": "ETH-PLN", "Amount": 12.0, "Price": 7000.0, "Action": "buy"}
