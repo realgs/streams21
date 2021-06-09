@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "count": 20,
+      "value": 40000,
+      "single": 2000
+    },
+    {
+      "count": 10,
+      "value": 40000,
+      "single": 2000
+    },
+    {
+      "count": 30,
+      "value": 40000,
+      "single": 2000
+    },
+    {
+      "count": 40,
+      "value": 40000,
+      "single": 2000
+    }
+
+  ]
+}
