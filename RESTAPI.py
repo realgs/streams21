@@ -165,7 +165,7 @@ if __name__ == "__main__":
             count = data['data'][line]['value']
             equesionSum += number * count
         equesionSum = equesionSum / down
-        print(f'Obecna średnia cena zakupy {FIRST_CRYPTO} to: {equesionSum}')
+        print(f'Obecna średnia cena zakupu {FIRST_CRYPTO} to: {equesionSum}')
         AVERAGE_USER_BUY_PRICE_BTC.append(equesionSum)
         f.close()
 
@@ -184,7 +184,7 @@ if __name__ == "__main__":
             count = data['data'][line]['value']
             equesionSum += number * count
         equesionSum = equesionSum / down
-        print(f'Obecna średnia cena zakupy {SECOND_CRYPTO} to: {equesionSum}')
+        print(f'Obecna średnia cena zakupu {SECOND_CRYPTO} to: {equesionSum}')
         AVERAGE_USER_BUY_PRICE_ETH.append(equesionSum)
         f.close()
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
             count = data['data'][line]['value']
             equesionSum += number * count
         equesionSum = equesionSum / down
-        print(f'Obecna średnia cena zakupy {THIRD_CRYPTO} to: {equesionSum}')
+        print(f'Obecna średnia cena zakupu {THIRD_CRYPTO} to: {equesionSum}')
         AVERAGE_USER_BUY_PRICE_LSK.append(equesionSum)
         f.close()
 
@@ -320,7 +320,6 @@ if __name__ == "__main__":
         ax20.set_ylabel('RSI',color='red')
         ax21.set_ylabel('RSI',color='red')
         ax22.set_ylabel('RSI',color='red')
-
 
         i += 1
         plt.draw()
