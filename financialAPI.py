@@ -1,9 +1,10 @@
+import json
 import time
 import requests
 import statistics
-import numpy as np
 from requests.exceptions import HTTPError
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 
 data_currency = {
@@ -24,8 +25,8 @@ data_currency_extra1 = {
     "GNT": [],
 }
 
-S = 5
-X = 5
+S = 0.05
+X = 3
 Y = 3
 
 
@@ -44,6 +45,7 @@ def data(lines, window, zakres):
         candidate = find_candidate(currency_1[0], currency_1[1], currency_1[2])
         define_liquid(candidate)
         define_volatile(candidate)
+        gain_from_json()
         time.sleep(5)
     return diffrence
 
@@ -127,7 +129,7 @@ def check_trend(currency):
     if (down_hills_points[-1] < down_hills_points[len(down_hills_points) - 2]) and \
             (down_hills_points[len(down_hills_points) - 2] != 0):
         print("down")
-        return "Downward"
+        return "Decrease"
 
     elif (up_hills_points[-1] > up_hills_points[len(up_hills_points) - 2]) and \
             (up_hills_points[-1] != 0):
@@ -146,6 +148,19 @@ def check_trend(currency):
         return "Insufficient amount of data"
 
 
+def check_trend_vol2(currency):
+    data = data_currency_extra[currency][- 1]["RSI"]
+    if data > 70:
+        print("up")
+        return "Rising"
+    elif data < 30:
+        print("down")
+        return "Decrease"
+    else:
+        print("side")
+        return "Sideways"
+
+
 def find_candidate(c1, c2, c3):
     currency1 = False
     currency2 = False
@@ -155,43 +170,49 @@ def find_candidate(c1, c2, c3):
     c2_trend = data_currency_extra1[c2][-1]["trend"]
     c3_trend = data_currency_extra1[c3][-1]["trend"]
 
-    print(c1_trend, c2_trend, c3_trend)
     bool_array = [currency1, currency2, currency3]
 
-    LastVolumen_c1 = data_currency_extra[c1][-1]['volumen']
-    LastVolumen_c2 = data_currency_extra[c2][-1]['volumen']
-    LastVolumen_c3 = data_currency_extra[c3][-1]['volumen']
+    last_volumen_c1 = float(data_currency_extra[c1][-1]['volumen'])
+    last_volumen_c2 = float(data_currency_extra[c2][-1]['volumen'])
+    last_volumen_c3 = float(data_currency_extra[c3][-1]['volumen'])
 
-    LastVolumeArray = [LastVolumen_c1, LastVolumen_c2, LastVolumen_c3]
-    
-    max = ""
+    last_volumen_array = [last_volumen_c1, last_volumen_c2, last_volumen_c3]
+    maximum = ''
 
-    if c1_trend !=  "Downward":
-        currency1 = True
-    if c2_trend != "Downward":
-        currency2 = True
-    if c3_trend != "Downward":
-        currency3 = True
-
-    print(bool_array, ' ------- ')
+    if c1_trend != "Decrease":
+        bool_array[0] = True
+    if c2_trend != "Decrease":
+        bool_array[1] = True
+    if c3_trend != "Decrease":
+        bool_array[2] = True
 
     max_array = []
-    for items in bool_array:
-        if items is True:
-            max_array.append(LastVolumeArray[items])
+    for i in range(len(bool_array)):
+        if bool_array[i]:
+            max_array.append(last_volumen_array[i])
         else:
             max_array.append(0)
-    out = max_array.index(np.max(max_array))
+    out = max_array.index(max(max_array))
+    # print(last_volumen_array)
 
     if out == 0:
-        max = c1
+        maximum = c1
+        else1 = c2
+        else2 = c3
     elif out == 1:
-        max = c2
+        maximum = c2
+        else1 = c1
+        else2 = c3
     else:
-        max = c3
+        maximum = c3
+        else1 = c2
+        else2 = c1
 
-    data_currency_extra1[max][-1]['candidate'] = 'C'
-    return max
+    data_currency_extra1[maximum][-1]['candidate'] = 'C'
+    data_currency_extra1[else2][-1]['candidate'] = '-'
+    data_currency_extra1[else1][-1]['candidate'] = '-'
+
+    return maximum
 
 
 def define_liquid(currency):
@@ -201,12 +222,10 @@ def define_liquid(currency):
 
     maximum = max(buy, sell)
     minimum = min(buy, sell)
+    diffrence = (maximum - minimum) / 100
 
-    out = maximum * 100/minimum
-    distance = 100 - out
-
-    if distance < 5:
-        data_currency_extra1[currency][-1]['liquid']='L'
+    if diffrence < S:
+        data_currency_extra1[currency][-1]['liquid'] = 'L'
         return True
     else:
         return False
@@ -218,20 +237,28 @@ def define_volatile(currency):
         data = data_currency[currency][i]["buy_price"]
         buy_array.append(data)
 
-    if Y < len(buy_array):
-        value_Y = buy_array[len(buy_array)-Y]
-    else:
-        value_Y = buy_array[-1]
+    y_value_array = []
+    for d in range(Y):
+        if Y < len(buy_array):
+            Y_value = buy_array[len(buy_array)-i]
+            y_value_array.append(Y_value)
+        else:
+            Y_value = buy_array[-1]
 
-    current = buy_array[0]
+        current = buy_array[0]
 
-    maximum = max(value_Y, current)
-    minimum = min(value_Y, current)
+    counter = 0
+    for y in range(len(y_value_array)):
+        maximum = max(Y_value, current)
+        minimum = min(Y_value, current)
 
-    out = minimum * 100/maximum
-    distance = 100 - out
+        out = minimum * 100/maximum
+        distance = 100 - out
 
-    if distance > X:
+        if distance > X:
+            counter += 1
+
+    if counter > 0:
         data_currency_extra1[currency][-1]['volatile'] = 'V'
         return True
     else:
@@ -262,10 +289,10 @@ def calculate(data, currency, beginning, end):
         'RSI': RSI,
         'volumen': volumen,
     }
-
     data_currency_extra[currency].append(diffrence2)
     if len(data_currency_extra[currency]) >= 3:
-        trend = check_trend(currency)
+        # trend = check_trend(currency)
+        trend = check_trend_vol2(currency)
 
     else:
         trend = None
@@ -280,10 +307,69 @@ def calculate(data, currency, beginning, end):
     return diffrence
 
 
+def get_file_name():
+    file = open('file_name.txt', 'r')
+    filename = file.read()
+    return filename
+
+
+def mean_from_json(file):
+    currency = ['LSK', 'BCP', 'GNT']
+    currency_mean = {
+        "LSK": [],
+        "BCP": [],
+        "GNT": [],
+    }
+    currency_amount = {
+        "LSK": [],
+        "BCP": [],
+        "GNT": [],
+    }
+
+    with open(file, 'r') as openfile:
+        data = json.load(openfile)
+
+    for c in currency:
+        mean = 0
+        price = list()
+        quantity = list()
+        for i in range(len(data[c])):
+            price_of_one = data[c][i][1] * data[c][i][0]
+            quantity.append(data[c][i][0])
+            price.append(price_of_one)
+        if len(price) < 1:
+            mean = 0
+        else:
+            mean = (sum(price)) / (sum(quantity))
+
+        currency_mean[c].append(mean)
+        currency_amount[c].append(sum(quantity))
+
+    openfile.close()
+    return currency_mean, currency_amount
+
+
+def gain_from_json():
+    currency = ['LSK', 'BCP', 'GNT']
+    currency_gain ={
+        "LSK": [],
+        "BCP": [],
+        "GNT": [],
+    }
+
+    with open('sell_json.json', 'r') as openfile:
+        gain_data = json.load(openfile)
+        for c in currency:
+            c_gain = gain_data[c]
+            currency_gain[c].append(sum(c_gain))
+
+    return currency_gain
+
 xrang = 8
 
 
 def create_graph(j, lines):
+
     for c, l in lines.items():
         data = data_currency[c]
         data2 = data_currency_extra[c]
@@ -300,6 +386,15 @@ def create_graph(j, lines):
         volatile = []
         liquid = []
         width = 0.35
+        our_average = []
+        our_gain = []
+        our_amount = []
+        # count1 = {}
+        averages, amount = mean_from_json(FILE_NAME)
+        gains = gain_from_json()
+
+        # count1[c] = plts[c].text(0.0, 1.3, '', transform=plts[c].transAxes, fontsize=7)
+
         if len(data) > 0:
             itr = range(xrang)
             if len(data) < xrang:
@@ -316,31 +411,53 @@ def create_graph(j, lines):
                 candidate.append(data3[i-len(itr)]["candidate"])
                 volatile.append(data3[i-len(itr)]["volatile"])
                 liquid.append(data3[i-len(itr)]["liquid"])
+                our_average.append(averages[c][0])
+
+            g = gains[c][0]
+            a = amount[c][0]
+
+            our_amount.append(a)
+            our_gain.append(g)
+            locator = MaxNLocator(nbins=4)
 
             l[0].set_data(itr, buy)
             l[1].set_data(itr, sell)
             l[2].set_data(itr, buy_average)
             l[3].set_data(itr, sell_average)
+            l[4].set_data(itr, our_average)
             plts[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
             plts[c].set_xlim(0, xrang-1)
-            plts[c].set_title(f"{c} - PLN, {candidate[0]}, {volatile[0]}, {liquid[0]}")
+            plts[c].yaxis.set_major_locator(locator)
 
-            if min(buy) >= min(buy_average):
-                bottom = min(buy_average)
-            else:
-                bottom = min(buy)
+            plts[c].legend(labels=[f'Buy: {round(buy[-1], 2)}', f'Sell: {round(sell[-1],2)}', f'Buy Average: {round(buy_average[-1],2)}', f'Sell Average: {round(sell_average[-1],2)}',f'Our Average: {round(our_average[-1],2)}'])
+            plts[c].set_title(f"{c} - PLN, {candidate[0]}, {volatile[0]}, {liquid[0]}, Profit: {round(our_gain[-1],2)}, Amount: {round(our_amount[-1],2)}")
 
-            if max(sell) <= max(sell_average):
-                top = max(sell_average)
+            min_buy_avg = min(buy_average)
+            min_buy = min(buy)
+
+            if our_average[-1] != 0:
+                our_avg = our_average[-1]
+                bottom = min(min_buy_avg, min_buy, our_avg)
             else:
-                top = max(sell)
+                bottom = min(min_buy_avg, min_buy)
+
+            max_sell_avg = max(sell_average)
+            max_sell = max(sell)
+
+            if our_average[-1] != 0:
+                max_our_avg = max(our_average)
+                top = max(max_sell_avg, max_sell, max_our_avg)
+            else:
+                top = max(max_sell_avg, max_sell)
             plts[c].set_ylim([bottom*0.95, top*1.05])
+
+            locator1 = MaxNLocator(nbins=4)
 
             br1 = itr
             br2 = [x + width for x in br1]
             plts_ex[c].bar(br1, volumen, width, align='center', color='blue', label=volumen)
             plts_ex[c].bar(br2, RSI, width, align='center', color='orange', label=RSI)
-
+            plts_ex[c].yaxis.set_major_locator(locator1)
             plts_ex[c].set_xticklabels(tim, rotation='horizontal', fontsize=7)
             plts_ex[c].set_xlim(0, xrang-1)
             plts_ex[c].set_title(f"{c} - PLN, trend:{trend[-1]}")
@@ -355,7 +472,7 @@ def create_graph(j, lines):
             else:
                 top1 = max(RSI)
             plts_ex[c].legend(labels=[f'Volumen: {volumen[-1]}', f'RSI: {RSI[-1]}'])
-            plts_ex[c].set_ylim([bottom1*0.85, top1*1.15])
+            plts_ex[c].set_ylim([bottom1*0.80, top1*1.20])
 
     plt.draw()
     plt.pause(1e-17)
@@ -363,8 +480,14 @@ def create_graph(j, lines):
 
 if __name__ == "__main__":
 
-    window = int(input("podaj długość zakresu z którego chcesz otrzymać średnią: "))
-    zakres = int(input("podaj długość zakresu z którego chcesz otrzymać RSI: "))
+    window = 4
+    zakres = 3
+
+    FILE_EXTENSION = "json"
+    CONNECTION_TYPE = "ticker"
+    FILE_NAME = get_file_name()
+    print(FILE_NAME)
+
     plt.ion()
 
     plts = {}
@@ -384,11 +507,11 @@ if __name__ == "__main__":
         sell_line, = plts[c].plot([0], [0], label='sell')
         buy_average, = plts[c].plot([0], [0], color='blue', linestyle='dashed', label='buy_average')
         sell_average, = plts[c].plot([0], [0], color='orange', linestyle='dashed', label='sell_average')
-        lines[c] = [buy_line, sell_line, buy_average, sell_average]
+        our_average, = plts[c].plot([0], [0], color='purple', linestyle='dashed', label='our_average')
+        lines[c] = [buy_line, sell_line, buy_average, sell_average, our_average, ]
 
         plts[c].set_ylim([1, 5])
         plts[c].set_title(f"{c} - PLN")
-
         plts[c].set_xlabel("time")
         plts[c].set_ylabel("value")
 
