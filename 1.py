@@ -5,6 +5,7 @@ from datetime import datetime
 from matplotlib.font_manager import FontProperties
 import numpy as np
 from matplotlib.ticker import MaxNLocator
+import json
 
 currency = ['LTCBTC', 'ETHBTC', 'DASHBTC']
 fig, axs = plt.subplots(3)
@@ -47,14 +48,14 @@ def prepare_data(ask1_values, bid1_values,ask2_values,bid2_values,ask3_values,bi
     data2 = get_data(currency[1])
     data3 = get_data(currency[2])
     large_volumes1.append(data1.get('volume'))
-    volume1.append(large_volumes1[-1]-large_volumes1[-2])
+    volume1.append(abs(large_volumes1[-1]-large_volumes1[-2]))
     large_volumes2.append(data2.get('volume'))
-    volume2.append(large_volumes2[-1] - large_volumes2[-2])
+    volume2.append(abs(large_volumes2[-1] - large_volumes2[-2]))
     large_volumes3.append(data3.get('volume'))
-    volume3.append(large_volumes3[-1] - large_volumes3[-2])
-    print(volume1)
-    print(volume2)
-    print(volume3)
+    volume3.append(abs(large_volumes3[-1] - large_volumes3[-2]))
+    # print(volume1)
+    # print(volume2)
+    # print(volume3)
     append_not_none(ask1_values,data1.get('ask'))
     append_not_none(bid1_values,data1.get('bid'))
     append_not_none(ask2_values, data2.get('ask'))
@@ -165,23 +166,14 @@ def make_plot(i):
         for i in range(0,3):
             if list_of_rsi[i][-1]>30:
                 trend_checking[i]= list_of_volumes[i][-1]
-        print(f'trend to {trend_checking}')
+        #print(f'trend to {trend_checking}')
         array = np.asarray(trend_checking)
-        print(f'array to {array}')
+        #print(f'array to {array}')
         maxarg = np.argmax(array)
-        print(f'maxarg {maxarg}')
-        textvar = fig.text(0,0," ")
-        textvar.remove()
-        if maxarg == 0:
-            textvar = fig.text(0.02, 0.7, 'Kandydat', fontsize=10)
-        elif maxarg == 1:
-            textvar = fig.text(0.02, 0.4, 'Kandydat', fontsize=10)
-        elif maxarg == 1:
-            textvar = fig.text(0.02, 0.1, 'Kandydat', fontsize=10)
-
+        #print(f'maxarg {maxarg}')
     FontP = FontProperties()
     FontP.set_size('xx-small')
-    fig.legend(loc='upper left', prop={'size': 6})
+    fig.legend(loc='upper left', prop={'size': 5})
 
 
 
@@ -189,6 +181,8 @@ def make_plot(i):
 if __name__ == "__main__":
     mean_elements = int(input("How many last elements do we use to calculate mean or RSI: "))
     mean_or_rsi = int(input("1.Mean or 2.RSI "))
+    save = int(input("Do you want to save values when closing program?\n1.Yes\n0.No\n"))
+    from_saved = int(input("Do you want to use saved data?\n1.Yes\n0.No\n"))
     if mean_or_rsi == 2:
         ax01 = axs[0].twinx()
         ax11 = axs[1].twinx()
@@ -201,27 +195,78 @@ if __name__ == "__main__":
     large_volumes1.append(get_data(currency[0]).get('volume'))
     large_volumes2.append(get_data(currency[1]).get('volume'))
     large_volumes3.append(get_data(currency[2]).get('volume'))
-    volume1 = []
-    volume2 = []
-    volume3 = []
-    ask1_values = []
-    ask1_mean = []
-    bid1_mean = []
-    bid1_values = []
-    ask2_values = []
-    ask2_mean = []
-    bid2_mean = []
-    bid2_values = []
-    ask3_values = []
-    ask3_mean = []
-    bid3_mean = []
-    bid3_values = []
-    rsi1_values = []
-    rsi2_values = []
-    rsi3_values = []
+    if from_saved == 0:
+        ask1_values = []
+        ask1_mean = []
+        bid1_mean = []
+        bid1_values = []
+        ask2_values = []
+        ask2_mean = []
+        bid2_mean = []
+        bid2_values = []
+        ask3_values = []
+        ask3_mean = []
+        bid3_mean = []
+        bid3_values = []
+        rsi1_values = []
+        rsi2_values = []
+        rsi3_values = []
+        volume1 = []
+        volume2 = []
+        volume3 = []
+
+    elif from_saved == 1:
+        with open('data.json') as json_file:
+            data = json.load(json_file)
+        ask1_values = data['ask1_values']
+        ask1_mean = data['ask1_mean']
+        bid1_mean = data['bid1_mean']
+        bid1_values = data['bid1_values']
+        ask2_values = data['ask2_values']
+        ask2_mean = data['ask2_mean']
+        bid2_mean = data['bid2_mean']
+        bid2_values = data['bid2_values']
+        ask3_values = data['ask3_values']
+        ask3_mean = data['ask3_mean']
+        bid3_mean = data['bid3_mean']
+        bid3_values = data['bid3_values']
+        rsi1_values = data['rsi1_values']
+        rsi2_values = data['rsi2_values']
+        rsi3_values = data['rsi3_values']
+        now = data['now']
+        volume1 = data['volume1']
+        volume2 = data['volume2']
+        volume3 = data['volume3']
+
     animations = FuncAnimation(fig, make_plot, interval=5000)
     axs[0].xaxis.set_major_locator(MaxNLocator(5))
+    plt.autoscale()
     plt.show()
+
+    if save == 1:
+        data = {}
+        data['ask1_values'] = ask1_values
+        data['bid1_values'] = bid1_values
+        data['ask1_mean'] = ask1_mean
+        data['bid1_mean'] = bid1_mean
+        data['ask2_values'] = ask2_values
+        data['bid2_values'] = bid2_values
+        data['ask2_mean'] = ask2_mean
+        data['bid2_mean'] = bid2_mean
+        data['ask3_values'] = ask3_values
+        data['bid3_values'] = bid3_values
+        data['ask3_mean'] = ask3_mean
+        data['bid3_mean'] = bid3_mean
+        data['now'] = now
+        data['rsi1_values'] = rsi1_values
+        data['rsi2_values'] = rsi2_values
+        data['rsi3_values'] = rsi3_values
+        data['volume1'] = volume1
+        data['volume2'] = volume2
+        data['volume3'] = volume3
+
+        with open('data.json', 'w') as outfile:
+            json.dump(data, outfile)
 
 
 
