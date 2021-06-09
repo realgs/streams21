@@ -129,7 +129,7 @@ while True:
             with open('Buys/buysLSK.json', 'w') as f:
                 json.dump(data, f)
 
-        print(f"Kupiłeś - {output} {currency} (za jednostkę: {price}) \n")
+        print(f"Kupiłeś - {quant} {currency} (za jednostkę: {price}), suma: {output} \n")
 
     else:   # SELL
 
@@ -240,9 +240,9 @@ while True:
                             boughtSold -= (quant - boughtSold)
                             soldTotal += (data['data'][items]['value']/data['data'][items]['count']) * (cur)
                             data['data'][items]['count'] -= cur  # odejmuje
-                    money += output - soldTotal
+                    money += quant - soldTotal
 
-            print(f"Sprzedałeś - {money} {currency} (za jednostkę: {price}) \n")
+            print(f"Sprzedałeś - {money} {currency} (za jednostkę: {price}), suma: {quant} \n")
             if value == 0:
                 with open('Buys/buysBTC.json', 'w') as f:
                     json.dump(data, f)

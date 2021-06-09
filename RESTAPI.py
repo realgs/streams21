@@ -269,9 +269,8 @@ if __name__ == "__main__":
             axes[0][2].set_title(f'{THIRD_CRYPTO} | STRATA')
 
 
-        axes[0][0].plot(x, BTCSellArray, color='red')
-        axes[0][0].plot(x, BTCBuyArray, color='magenta')
-
+        # axes[0][0].plot(x, BTCSellArray, color='red')
+        # axes[0][0].plot(x, BTCBuyArray, color='magenta')
         axes[0][0].plot(x, AVERAGE_USER_BUY_PRICE_BTC, color='green', linestyle='dashed')
         axes[0][0].plot(x, AVERAGE_USER_SELL_PRICE_BTC, color='blue', linestyle='dashed')
         axes[0][0].set_xticks(xLabels)
@@ -282,8 +281,8 @@ if __name__ == "__main__":
         axes[1][0].bar(x, BTCVolumeArray, color='red')
         axes[1][0].set_xticks(xLabels)
 
-        axes[0][1].plot(x, ETHSellArray, color='red')
-        axes[0][1].plot(x, ETHBuyArray, color='magenta')
+        # axes[0][1].plot(x, ETHSellArray, color='red')
+        # axes[0][1].plot(x, ETHBuyArray, color='magenta')
 
         axes[0][1].plot(x, AVERAGE_USER_BUY_PRICE_ETH, color='green', linestyle='dashed')
         axes[0][1].plot(x, AVERAGE_USER_SELL_PRICE_ETH, color='blue', linestyle='dashed')
@@ -295,8 +294,8 @@ if __name__ == "__main__":
         axes[1][1].bar(x, ETHVolumeArray, color='red')
         axes[1][1].set_xticks(xLabels)
 
-        axes[0][2].plot(x, LSKSellArray, color='red', label='Sell' if i == 0 else "")
-        axes[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
+        # axes[0][2].plot(x, LSKSellArray, color='red', label='Sell' if i == 0 else "")
+        # axes[0][2].plot(x, LSKBuyArray, color='magenta', label='Buy' if i == 0 else "")
 
         axes[0][2].plot(x, AVERAGE_USER_BUY_PRICE_LSK, color='green', linestyle='dashed', label='AVG.Buy' if i == 0 else "")
         axes[0][2].plot(x, AVERAGE_USER_SELL_PRICE_LSK, color='blue', linestyle='dashed', label='AVG.Sell' if i == 0 else "")
