@@ -6,34 +6,34 @@ while True:
     valueSell = 0
 
     while True:
-        print("Witaj, życzysz sobie kupić czy sprzedać? (Kolejno: 0 lub 1)")
+        print("Jeśli chcesz kupić - wybierz 0, jeśli chcesz sprzedać - wybierz 1")
         sellbuy = int(input())
         if sellbuy == 0 or sellbuy == 1:
             break
         else:
-            print("wartość z poza zakresu")
+            print("Podana wartość jest nieprawidłowa - nie da się jej obsłużyć")
 
     if sellbuy == 0:
 
         while True:
-            print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - LSK \n")
+            print("Jeśli chcesz kupić: BTC - wybierz 0, ETH - wybierz 1, LSK - wybierz 2 \n")
             value = int(input())
             if value == 0 or value == 1 or value == 2:
                 break
             else:
-                print("wartość z poza zakresu")
+                print("Podana wartość jest nieprawidłowa - nie da się jej obsłużyć")
 
         currency = ""
 
         while True:
-            print("Ile jednostek tej krypto? \n")
+            print("Ile jednostek tej kryptowaluty chcesz kupić? \n")
             quant = int(input())
-            print("W jakiej cenie ta jednostka krypto? \n")
+            print("W jakiej cenie chcesz kupić tą kryptowalutę? \n")
             price = int(input())
             if quant > 0 and price > 0:
                 break
             else:
-                print("wartość z poza zakresu")
+                print("Podana wartość jest nieprawidłowa - nie da się jej obsłużyć")
 
 
         if value == 0:
@@ -129,28 +129,28 @@ while True:
             with open('Buys/buysLSK.json', 'w') as f:
                 json.dump(data, f)
 
-        print(f"Kupiłeś - {output} {currency} (za jednostkę: {price}) \n")
+        print(f"Kupiłeś - {output} {currency} (za kwotę: {price}) \n")
 
     else:   # SELL
 
         while True:
-            print("Jaką kryptowalutę życzysz sobie zakupić? : 0 - BTC ; 1 - ETH ; 2 - LSK \n")
+            print("Jeśli chcesz sprzedać: BTC - wybierz 0, ETH - wybierz 1, LSK - wybierz 2 \n")
             value = int(input())
             if value == 0 or value == 1 or value == 2:
                 break
             else:
-                print("wartość z poza zakresu")
+                print("Podana wartość jest nieprawidłowa - nie da się jej obsłużyć")
         currency = ""
 
         while True:
-            print("Ile jednostek tej krypto? \n")
+            print("Ile jednostek tej kryptowaluty chcesz sprzedać? \n")
             quant = int(input())
-            print("W jakiej cenie ta jednostka krypto? \n")
+            print("W jakiej cenie chcesz sprzedać tą kryptowalutę? \n")
             price = int(input())
             if quant > 0 and price > 0:
                 break
             else:
-                print("wartość z poza zakresu")
+                print("Podana wartość jest nieprawidłowa - nie da się jej obsłużyć")
 
         if value == 0:
             valueSell = price
@@ -214,7 +214,7 @@ while True:
                     toIndex = number
                     break
             if toIndex == 0:
-                print("Ilość kupionych kryptowalut jest niższa od ilości którą chcesz sprzedać")
+                print("Posiadasz mniejszą ilość kryptowalut niż ilość, którą chciałbyś sprzedać")
             else:
                 if toIndex == 1 and count == quant:
                     # usuwam
