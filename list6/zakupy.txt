@@ -1,0 +1,1 @@
+{"average_BTC_json": null, "average_BCC_json": 1200.9, "average_ETH_json": null, "saldo_BTC_json": 3000.0, "saldo_BCC_json": 68995.9, "saldo_ETH_json": -81304.86, "list_BTC_json": [], "list_BCC_json": [1200.9, 1200.9, 1200.9, 1200.9, 1200.9], "list_ETH_json": []}
