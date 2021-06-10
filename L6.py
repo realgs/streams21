@@ -163,67 +163,46 @@ def draw_black_axes(axs, number):
     axs[2, number].spines['right'].set_color('k')
 
 
-def open_json_file():
-    with open("CRYPTO2.json", 'r') as entered:
-        json_values = [json.loads(line) for line in entered]
-    return json_values
+def download_transactions():
+    f = open('user_value.json', )
+    data = json.load(f)
+    f.close()
+    f = open('user_value.json', 'w')
+    f.write(json.dumps([]))
+    f.close()
+    return data
 
 
-def segregate_data(json_values, buy_amount, buy_price, sell_amount, sell_price):
-    #new_buy_amount, new_buy_price, new_sell_amount, new_sell_price = gen_empty_dicts(list_currencies),  gen_empty_dicts(list_currencies),  gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
-    #json_values = open_json_file()
-    #buy_amount, buy_price, sell_amount, sell_price = gen_empty_dicts(list_currencies),  gen_empty_dicts(list_currencies),  gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
-    new_json_values = open_json_file()
-    for i in range(len(json_values), len(new_json_values)):
-        print(new_json_values[i])
-        if new_json_values[i]['currency'] == 'BTC-PLN':
-            buy_amount['BTC-PLN'].append(new_json_values[i]['buy amount'])
-            buy_price['BTC-PLN'].append(new_json_values[i]['buy price'])
-            sell_amount['BTC-PLN'].append(new_json_values[i]['sell amount'])
-            sell_price['BTC-PLN'].append(new_json_values[i]['sell price'])
-        if new_json_values[i]['currency'] == 'LTC-PLN':
-            buy_amount['LTC-PLN'].append(new_json_values[i]['buy amount'])
-            buy_price['LTC-PLN'].append(new_json_values[i]['buy price'])
-            sell_amount['LTC-PLN'].append(new_json_values[i]['sell amount'])
-            sell_price['LTC-PLN'].append(new_json_values[i]['sell price'])
-        if new_json_values[i]['currency'] == 'TRX-PLN':
-            buy_amount['TRX-PLN'].append(new_json_values[i]['buy amount'])
-            buy_price['TRX-PLN'].append(new_json_values[i]['buy price'])
-            sell_amount['TRX-PLN'].append(new_json_values[i]['sell amount'])
-            sell_price['TRX-PLN'].append(new_json_values[i]['sell price'])
-    print(buy_amount)
-    return buy_amount, buy_price, sell_amount, sell_price
+def segregate_data(user_buy_dict, user_sell_dict):
+    new_json_values = download_transactions()
+    if len(new_json_values) > 0:
+        if new_json_values[0]['currency'] == 'BTC-PLN':
+            for i in range(new_json_values[0]['amount']):
+                if new_json_values[0]['action'] == 'buy':
+                    user_buy_dict['BTC-PLN'].append(new_json_values[0]['price'])
+            for i in range(new_json_values[0]['amount']):
+                if new_json_values[0]['action'] == 'sell':
+                    user_sell_dict['BTC-PLN'].append(new_json_values[0]['price'])
+        if new_json_values[0]['currency'] == 'LTC-PLN':
+            for i in range(new_json_values[0]['amount']):
+                if new_json_values[0]['action'] == 'buy':
+                    user_buy_dict['LTC-PLN'].append(new_json_values[0]['price'])
+            for i in range(new_json_values[0]['amount']):
+                if new_json_values[0]['action'] == 'sell':
+                    user_sell_dict['LTC-PLN'].append(new_json_values[0]['price'])
+        if new_json_values[0]['currency'] == 'TRX-PLN':
+            for i in range(new_json_values[0]['amount']):
+                if new_json_values[0]['action'] == 'buy':
+                    user_buy_dict['TRX-PLN'].append(new_json_values[0]['price'])
+            for i in range(new_json_values[0]['amount']):
+                if new_json_values[0]['action'] == 'sell':
+                    user_sell_dict['TRX-PLN'].append(new_json_values[0]['price'])
 
 
-def user_buy_average(currency, json_values, buy_amount, buy_price, sell_amount, sell_price):
-    buy_amount, buy_price, sell_amount, sell_price = segregate_data(json_values, buy_amount, buy_price, sell_amount, sell_price)
-    if len(buy_amount[currency]) != 0:
-        sum_buy = 0
-        for i in range(len(buy_amount[currency])):
-            sum_buy += buy_amount[currency][i] * buy_price[currency][i]
-            len_buy = len(buy_amount[currency])
-        return sum_buy / len_buy
-    else:
-        return 0
 
-
-def create_action_dict(currency, action_dict, action_amount, action_price):
-    if len(action_amount[currency]) and len(action_price[currency]) != 0:
-        for i in range(len(action_amount[currency])):
-            for j in range(action_amount[currency][i]):
-                action_dict[currency].append(action_price[currency][i])
-    return action_dict
-
-
-def user_fifo_average(currency, buy_dict, sell_dict):
-    value_list_buy = []
-    value_list_sell = []
-    if len(buy_dict[currency]) != 0:
-        for j in buy_dict[currency]:
-            value_list_buy.append(j)
-    if len(sell_dict[currency]) != 0:
-        for j in sell_dict[currency]:
-                value_list_sell.append(j)
+def user_fifo_average(currency, user_buy_dict, user_sell_dict):
+    value_list_buy = user_buy_dict[currency]
+    value_list_sell = user_sell_dict[currency]
     n = len(value_list_sell)
     buy_sum = sum(value_list_buy[n:])
     len_sum = len(value_list_buy[n:])
@@ -233,15 +212,9 @@ def user_fifo_average(currency, buy_dict, sell_dict):
     return fifo_average
 
 
-def calculate_user_profit(currency, buy_dict, sell_dict):
-    value_list_buy = []
-    value_list_sell = []
-    if len(buy_dict[currency]) != 0:
-        for j in buy_dict[currency]:
-            value_list_buy.append(j)
-    if len(sell_dict[currency]) != 0:
-        for j in sell_dict[currency]:
-            value_list_sell.append(j)
+def calculate_user_profit(currency, user_buy_dict, user_sell_dict):
+    value_list_buy = user_buy_dict[currency]
+    value_list_sell = user_sell_dict[currency]
     n = len(value_list_sell)
     buy_sum = sum(value_list_buy[:n])
     sell_sum = sum(value_list_sell)
@@ -249,34 +222,27 @@ def calculate_user_profit(currency, buy_dict, sell_dict):
     return profit
 
 
-def add_user_value(json_values, buy_amount, buy_price, sell_amount, sell_price, user_average, user_fifo, user_profit):
-    #buy_dict_user, sell_dict_user = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
-    #user_average, user_fifo, user_profit = gen_empty_dicts(list_currencies), gen_empty_dicts(
-     #   list_currencies), gen_empty_dicts(list_currencies)
-    buy_dict_user, sell_dict_user = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
-    for currency in list_currencies:
-        buy_amount, buy_price, sell_amount, sell_price = segregate_data(json_values, buy_amount, buy_price, sell_amount, sell_price)
-        buy_dict = create_action_dict(currency, buy_dict_user, buy_amount, buy_price)
-        sell_dict = create_action_dict(currency, sell_dict_user, sell_amount, sell_price)
-        user_average[currency].append(user_buy_average(currency, json_values, buy_amount, buy_price, sell_amount, sell_price))
-        user_fifo[currency].append(user_fifo_average(currency, buy_dict, sell_dict))
-        user_profit[currency].append(calculate_user_profit(currency, buy_dict, sell_dict))
-    return user_average, user_fifo, user_profit
+def user_add_values(currency, user_buy_dict, user_sell_dict, user_fifo_dict, user_profit_dict):
+    user_fifo_dict[currency].append(user_fifo_average(currency, user_buy_dict, user_sell_dict))
+    user_profit_dict[currency].append(calculate_user_profit(currency, user_buy_dict, user_sell_dict))
+    return user_fifo_dict, user_profit_dict
 
 
 def draw_plot(time_interval):
     fig, axs, profit_text, currencies_amount = draw_axes(list_currencies)
     buy_dict, sell_dict, volumen_dict, avg_buy_dict, avg_sell_dict, RSI_buy_dict, RSI_sell_dict = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
     current_time = []
-    buy_amount, buy_price, sell_amount, sell_price = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
-    user_average, user_fifo, user_profit = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
-    json_values = open_json_file()
+    user_buy_dict, user_sell_dict = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
+    user_fifo_dict, user_profit_dict = gen_empty_dicts(list_currencies), gen_empty_dicts(list_currencies)
     while True:
+        segregate_data(user_buy_dict, user_sell_dict)
         buy, sell, volumen, avg_buy, avg_sell, RSI_buy, RSI_sell = add_values(buy_dict, sell_dict, volumen_dict, avg_buy_dict, avg_sell_dict, RSI_buy_dict, RSI_sell_dict)
         current_time = get_time(current_time)
-        user_average, user_fifo, user_profit = add_user_value(json_values, buy_amount, buy_price, sell_amount, sell_price, user_average, user_fifo, user_profit)
-        #print(user_profit)
+        segregate_data(user_buy_dict, user_sell_dict)
+
         for curr in range(currencies_amount):
+            fifo, profit = user_add_values(list_currencies[curr], user_buy_dict, user_sell_dict, user_fifo_dict, user_profit_dict)
+            #print('profit', profit)
             if len(buy[list_currencies[curr]]) and len(sell[list_currencies[curr]]) and len(RSI_buy[list_currencies[curr]]) and len(RSI_sell[list_currencies[curr]]) == 2:
                 time = [current_time[-2].strftime("%H:%M:%S"), current_time[-1].strftime("%H:%M:%S")]
                 selling_cost = [sell[list_currencies[curr]][-2], sell[list_currencies[curr]][-1]]
@@ -286,14 +252,15 @@ def draw_plot(time_interval):
                 avg_sell_value = [avg_sell[list_currencies[curr]][-2], avg_sell[list_currencies[curr]][-1]]
                 RSI_buy_value = [RSI_buy[list_currencies[curr]][-2], RSI_buy[list_currencies[curr]][-1]]
                 RSI_sell_value = [RSI_sell[list_currencies[curr]][-2], RSI_sell[list_currencies[curr]][-1]]
-                if user_fifo[list_currencies[curr]][-1] != 0:
+                if fifo[list_currencies[curr]][-1] != 0:
                     if len(list_currencies[curr]) >= 2:
-                        user_fifo_value = [user_fifo[list_currencies[curr]][-2], user_fifo[list_currencies[curr]][-1]]
-                        profit_text[curr].set_text(f'Profit equals: {user_profit[list_currencies[curr]][-1]}')
+                        user_fifo_value = [fifo[list_currencies[curr]][-2], fifo[list_currencies[curr]][-1]]
+                        profit_text[curr].set_text(f'Profit equals: {profit[list_currencies[curr]][-1]}')
                         y_position = min(avg_buy[list_currencies[curr]])
                         profit_text[curr].set_position((0, y_position))
 
                         axs[0, curr].plot(time, user_fifo_value, '--', label='User average buy', color='purple')
+
 
                 axs[0, curr].plot(time, selling_cost, label="Selling cost", color='c')
                 axs[0, curr].plot(time, purchase_cost, label="Purchase cost", color='limegreen')
@@ -334,12 +301,13 @@ def draw_plot(time_interval):
                 avg_sell_value = [avg_sell[list_currencies[curr]][-2], avg_sell[list_currencies[curr]][-1]]
                 RSI_buy_value = [RSI_buy[list_currencies[curr]][-2], RSI_buy[list_currencies[curr]][-1]]
                 RSI_sell_value = [RSI_sell[list_currencies[curr]][-2], RSI_sell[list_currencies[curr]][-1]]
-                if user_fifo[list_currencies[curr]][-1] != 0:
+                if fifo[list_currencies[curr]][-1] != 0:
                     if len(list_currencies[curr]) >= 2:
-                        user_fifo_value = [user_fifo[list_currencies[curr]][-2], user_fifo[list_currencies[curr]][-1]]
-                        profit_text[curr].set_text(f'Profit equals: {user_profit[list_currencies[curr]][-1]}')
+                        user_fifo_value = [fifo[list_currencies[curr]][-2], fifo[list_currencies[curr]][-1]]
+                        profit_text[curr].set_text(f'Profit equals: {profit[list_currencies[curr]][-1]}')
                         y_position = min(avg_buy[list_currencies[curr]])
                         profit_text[curr].set_position((0, y_position))
+
                         axs[0, curr].plot(time, user_fifo_value, '--', label='User average buy', color='purple')
 
                 axs[0, curr].plot(time, selling_cost, label="Selling cost", color='c')
@@ -372,6 +340,19 @@ def draw_plot(time_interval):
 if __name__ == '__main__':
     try:
         list_currencies = ['BTC-PLN', 'LTC-PLN', 'TRX-PLN']
+        wallet = {'BTC-PLN':
+                      {
+                          'amount':0,
+                          'total_profit':0},
+                  'LTC-PLN':
+                      {
+                          'amount': 0,
+                          'total_profit': 0},
+                  'TRX-PLN':
+                      {
+                          'amount': 0,
+                          'total_profit': 0}
+                  }
         time_interval = 2
         qty = 10
         start = 1
